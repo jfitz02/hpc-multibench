@@ -12,7 +12,7 @@ def test_get_greeting() -> None:
     assert get_greeting().startswith("Hello")
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 def test_main() -> None:
     """Test the main method."""
     main()

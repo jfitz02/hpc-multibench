@@ -35,6 +35,14 @@ repos:
   ### Python specific tools
   - repo: local
     hooks:
+    - id: ruff
+      name: ruff
+      description: lints python code.
+      entry: poetry run ruff check
+      require_serial: true
+      language: system
+      types: [python]
+      args: [--fix, --exit-non-zero-on-fix]
 
     - id: black
       name: black
@@ -49,3 +57,28 @@ repos:
       entry: poetry run isort
       language: system
       types_or: [ python ]
+
+    - id: mypy
+      name: mypy
+      description: statically analyses python type annotations.
+      entry: poetry run mypy
+      language: system
+      types: [ python ]
+      args: [ --namespace-packages, --explicit-package-bases ]
+      require_serial: true
+
+    - id: vulture
+      name: vulture
+      description: finds unused python code.
+      language: system
+      entry: poetry run vulture
+      types: [ python ]
+      pass_filenames: false
+
+    - id: bandit
+      name: bandit
+      description: finds common python security issues.
+      entry: poetry run bandit
+      language: system
+      types: [ python ]
+      args: [ -c, pyproject.toml ]

@@ -4,6 +4,7 @@ MAKEFLAGS += --warn-undefined-variables
 SHELL := bash
 .DEFAULT_GOAL := install
 
+
 ### Installation ###
 .PHONY: install
 install:
@@ -11,11 +12,20 @@ install:
 	@poetry install
 	@poetry run pre-commit install
 
+
 ### Static analysis ###
 .PHONY: check
 check: .venv/
 	@echo "Running pre-commit hooks:"
 	@poetry run pre-commit run --all-files
+
+.PHONY: whitelist
+whitelist:
+	@echo "Creating vulture whitelist:"
+	@echo "# noqa" > pyproject_template/whitelist.py
+	@echo "# type: ignore" >> pyproject_template/whitelist.py
+	@poetry run vulture pyproject_template tests --make-whitelist \
+		>> pyproject_template/whitelist.py
 
 
 ### Testing ###
