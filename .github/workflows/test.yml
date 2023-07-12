@@ -7,10 +7,6 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  PYTHON_VERSION: "3.11"
-  POETRY_VERSION: "1.5.1"
-
 permissions:
   contents: read
 
@@ -25,7 +21,7 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v4
         with:
-          python-version: $PYTHON_VERSION
+          python-version: "3.11"
 
       ### Install the Poetry dependency manager, caching if possible ###
       - name: Load cached Poetry installation
@@ -33,12 +29,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.local # the path depends on the OS
-          key: poetry-$POETRY_VERSION-0 # increment suffix to manually reset the cache
+          key: poetry-1.5.1-v0 # increment suffix to manually reset the cache
       - name: Install Poetry
         if: steps.cached-poetry.outputs.cache-hit != 'true'
         uses: snok/install-poetry@v1
         with:
-          version: $POETRY_VERSION
+          version: 1.5.1
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
