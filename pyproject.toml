@@ -7,7 +7,9 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/EdmundGoodman/pyproject_template"
 homepage = "https://edmundgoodman.github.io/pyproject_template"
-packages = [{include = "pyproject_template"}]
+packages = [
+    { include = "pyproject_template/" }
+]
 
 [build-system]
 requires = ["poetry-core"]
