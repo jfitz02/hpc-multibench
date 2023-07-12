@@ -16,3 +16,26 @@ install:
 check: .venv/
 	@echo "Running pre-commit hooks:"
 	@poetry run pre-commit run --all-files
+
+
+### Testing ###
+.PHONY: test_unit
+test_unit: .venv/
+	@echo "Running unit tests:"
+	@poetry run coverage run -m pytest -s -m "not (integration)" &&\
+ 		poetry run coverage report -m
+
+.PHONY: test_integration
+test_integration: .venv/
+	@echo "Running test_integration tests:"
+	@poetry run coverage run -m pytest -s -m integration &&\
+ 		poetry run coverage report -m
+
+.PHONY: test
+test: .venv/
+	@echo "Running tests:"
+	@poetry run coverage run -m pytest -s &&\
+ 		poetry run coverage report -m
+
+.PHONY: verify
+verify: check test

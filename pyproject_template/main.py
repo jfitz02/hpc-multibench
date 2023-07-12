@@ -3,6 +3,11 @@
 """Docstring for an example tool."""
 
 
+def get_greeting() -> str:
+    """Get a string greeting."""
+    return "Hello world!"
+
+
 def main() -> None:
     """Say hello."""
-    print("Hello world")
+    print(get_greeting())
