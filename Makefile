@@ -51,11 +51,28 @@ test: .venv/
 verify: check test
 
 
+### Documentation ###
+.PHONY: docs
+docs: .venv/
+	@echo "Generating documentation:"
+	@poetry run mkdocs build --strict
+
+.PHONY: view_docs
+view_docs: site/index.html
+	@echo "Opening documentation:"
+	@xdg-open site/index.html
+
+
 ### Cleanup ###
 .PHONY: clean_cache
 clean_cache:
 	@echo "Deleting tooling cache files:"
 	rm -rf .mypy_cache/ .pytest_cache/ .ruff_cache/  .coverage
+
+.PHONY: clean_docs
+clean_docs:
+	@echo "Deleting generated documentation site:"
+	rm -rf site/
 
 .PHONY: clean_pycache
 clean_pycache:
@@ -65,7 +82,7 @@ clean_pycache:
 		xargs rm -rf
 
 .PHONY: clean
-clean: clean_cache clean_pycache
+clean: clean_cache clean_docs clean_pycache
 
 .PHONY: clobber
 clobber: clean

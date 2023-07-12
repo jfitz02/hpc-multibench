@@ -22,6 +22,7 @@ repos:
     - id: check-toml
     - id: check-xml
     - id: check-yaml
+      args: ["--unsafe"]  # Needed for some tags in `mkdocs.yml`
     # Python specific checks
     - id: check-ast
     - id: check-builtin-literals
