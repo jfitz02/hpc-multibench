@@ -51,6 +51,12 @@ test: .venv/
 verify: check test
 
 
+### Execution ###
+.PHONY: run
+run: .venv/
+	@poetry run python3 -m pyproject_template
+
+
 ### Documentation ###
 .PHONY: docs
 docs: .venv/
