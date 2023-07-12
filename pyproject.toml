@@ -26,6 +26,7 @@ mypy = "^1.4.1"
 vulture = "^2.7"
 ruff = "^0.0.277"
 
+
 [tool.bandit]
 exclude_dirs = [".venv"]
 skips = ["B101"]

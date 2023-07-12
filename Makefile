@@ -49,3 +49,25 @@ test: .venv/
 
 .PHONY: verify
 verify: check test
+
+
+### Cleanup ###
+.PHONY: clean_cache
+clean_cache:
+	@echo "Deleting tooling cache files:"
+	rm -rf .mypy_cache/ .pytest_cache/ .ruff_cache/  .coverage
+
+.PHONY: clean_pycache
+clean_pycache:
+	@echo "Deleting python cache files:"
+	find . -not -path "./.venv/*" | \
+		grep -E "(/__pycache__$$|\.pyc$$|\.pyo$$)" | \
+		xargs rm -rf
+
+.PHONY: clean
+clean: clean_cache clean_pycache
+
+.PHONY: clobber
+clobber: clean
+	@echo "Deleting virtual environment"
+	rm -rf .venv/
