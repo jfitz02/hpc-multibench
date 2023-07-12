@@ -8,6 +8,6 @@ def get_greeting() -> str:
     return "Hello world!"
 
 
-def main() -> None:
+def main() -> None:  # pragma: no cover
     """Say hello."""
     print(get_greeting())
