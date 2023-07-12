@@ -30,3 +30,21 @@ repos:
     - id: check-shebang-scripts-are-executable
     - id: debug-statements
     - id: fix-encoding-pragma
+
+  ### Python specific tools
+  - repo: local
+    hooks:
+
+    - id: black
+      name: black
+      description: formats python code.
+      entry: poetry run black
+      language: system
+      types_or: [ python ]
+
+    - id: isort
+      name: isort
+      description: sorts python imports.
+      entry: poetry run isort
+      language: system
+      types_or: [ python ]
