@@ -34,7 +34,7 @@ coverage = "^7.2.7"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.1.18"
-mkdocstrings = {extras = ["python"], version = "^0.20.0"}
+mkdocstrings = { extras = ["python"], version = "^0.20.0" }
 # mike = "^1.1.2"
 
 [tool.bandit]
@@ -46,7 +46,7 @@ target-version = ["py310"]
 
 [tool.isort]
 profile = "black"
-py_version = 310  # Latest supported, 311 is not
+py_version = 310     # Latest supported, 311 is not
 src_paths = ["src/"]
 filter_files = true
 
@@ -72,24 +72,24 @@ show_error_codes = true
 select = ["ALL"]
 ignore = [
     ### From https://github.com/jerry-git/pytest-split/blob/master/pyproject.toml
-    "ANN",      # Type hints related, let mypy handle these.
-    "COM812",   # "Trailing comma missing". If black is happy, I'm happy.
-    "E501",     # "Line too long". If black is happy, I'm happy.
-    "EM101",    # "Exception must not use a string literal, assign to variable first"
-    "EM102",    # "Exception must not use an f-string literal, assign to variable first"
+    "ANN",    # Type hints related, let mypy handle these.
+    "COM812", # "Trailing comma missing". If black is happy, I'm happy.
+    "E501",   # "Line too long". If black is happy, I'm happy.
+    "EM101",  # "Exception must not use a string literal, assign to variable first"
+    "EM102",  # "Exception must not use an f-string literal, assign to variable first"
     # "RET504",   # "Unnecessary variable assignment before `return` statement"
-    "S101",     # "Use of `assert` detected"
-    "SIM108",   # "Use ternary operator ...". Ternary is harmful for readability in some cases.
-    "TRY003",   # "Avoid specifying long messages outside the exception class"
+    "S101",   # "Use of `assert` detected"
+    "SIM108", # "Use ternary operator ...". Ternary is harmful for readability in some cases.
+    "TRY003", # "Avoid specifying long messages outside the exception class"
     # "D",      # Docstrings related. We want to keep this to replace `pydocstyle`
-    "D203",     # Disable incompatible docstring rules to avoid warnings
-    "D212",     #  "
+    "D203", # Disable incompatible docstring rules to avoid warnings
+    "D212", #  "
     ### Edmund's preferences
-    "UP009",    # "UTF-8 encoding declaration is unnecessary". Adding UTF-8 pragmas is best practice
-    "T201",     # Allow print statements!
-    "INP001",   # "Add an `__init__.py`". The `test` directory should be a namespace package (https://stackoverflow.com/a/8450858)!
-    "I",        # Ignore import sorting, as we using `isort` instead, as it has more functionality
-    ]
+    "UP009",  # "UTF-8 encoding declaration is unnecessary". Adding UTF-8 pragmas is best practice
+    "T201",   # Allow print statements!
+    "INP001", # "Add an `__init__.py`". The `test` directory should be a namespace package (https://stackoverflow.com/a/8450858)!
+    "I",      # Ignore import sorting, as we using `isort` instead, as it has more functionality
+]
 # Support Python 3.10+.
 target-version = "py310"
 src = ["src/", "tests/"]
@@ -117,7 +117,4 @@ omit = ["src/pyproject_template/__main__.py"]
 
 [tool.coverage.report]
 fail_under = 90
-exclude_lines = [
-    'if TYPE_CHECKING:',
-    'pragma: no cover'
-]
+exclude_lines = ['if TYPE_CHECKING:', 'pragma: no cover']
