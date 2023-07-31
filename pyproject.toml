@@ -7,9 +7,9 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/EdmundGoodman/pyproject_template"
 homepage = "https://edmundgoodman.github.io/pyproject_template"
-packages = [
-    { include = "pyproject_template/" }
-]
+
+[tool.poetry.scripts]
+main = "pyproject_template.main:main"
 
 [build-system]
 requires = ["poetry-core"]
@@ -23,19 +23,22 @@ black = "^23.7.0"
 isort = "^5.12.0"
 pre-commit = "^2.20.0"
 pre-commit-hooks = "^4.3.0"
-pytest = "^7.4.0"
-coverage = "^7.2.7"
 bandit = "^1.7.5"
-mkdocs-material = "^9.1.18"
-mkdocstrings = {extras = ["python"], version = "^0.20.0"}
-# mike = "^1.1.2"
 mypy = "^1.4.1"
 vulture = "^2.7"
 ruff = "^0.0.277"
 
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
+coverage = "^7.2.7"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "^9.1.18"
+mkdocstrings = {extras = ["python"], version = "^0.20.0"}
+# mike = "^1.1.2"
 
 [tool.bandit]
-exclude_dirs = [".venv"]
+exclude_dirs = [".venv/"]
 skips = ["B101"]
 
 [tool.black]
@@ -44,7 +47,7 @@ target-version = ["py310"]
 [tool.isort]
 profile = "black"
 py_version = 310  # Latest supported, 311 is not
-src_paths = ["pyproject_template/"]
+src_paths = ["src/"]
 filter_files = true
 
 [tool.mypy]
@@ -89,11 +92,11 @@ ignore = [
     ]
 # Support Python 3.10+.
 target-version = "py310"
-src = ["pyproject_template/", "tests/"]
+src = ["src/", "tests/"]
 
 [tool.vulture]
 ignore_names = ["test_*", "fixture_*", "pytest_*"]
-paths = ["pyproject_template/", "tests/"]
+paths = ["src/", "tests/"]
 exclude = [".venv/"]
 
 
@@ -109,8 +112,8 @@ markers = [
 
 [tool.coverage.run]
 branch = true
-source = ["pyproject_template/"]
-omit = ["pyproject_template/__main__.py"]
+source = ["src/"]
+omit = ["src/pyproject_template/__main__.py"]
 
 [tool.coverage.report]
 fail_under = 90

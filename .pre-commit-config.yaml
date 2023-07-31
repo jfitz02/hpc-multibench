@@ -65,7 +65,7 @@ repos:
       entry: poetry run mypy
       language: system
       types: [ python ]
-      args: [ --namespace-packages, --explicit-package-bases ]
+#      args: [ --namespace-packages, --explicit-package-bases ]
       require_serial: true
 
     - id: vulture

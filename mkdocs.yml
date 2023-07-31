@@ -24,30 +24,30 @@ theme:
   name: material
   locale: en_GB
   features:
-  - announce.dismiss
-  - content.code.annotate
-  - content.code.copy
-  - navigation.footer
-  - navigation.indexes
-  - navigation.tabs
-  - navigation.tabs.sticky
-  - navigation.top
-#  - navigation.tracking
-  - search.highlight
-  - search.suggest
-  - toc.follow
+    - announce.dismiss
+    - content.code.annotate
+    - content.code.copy
+    - navigation.footer
+    - navigation.indexes
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    #  - navigation.tracking
+    - search.highlight
+    - search.suggest
+    - toc.follow
   palette:
-  - media: "(prefers-color-scheme: light)"
-    scheme: default
-    toggle:
-      icon: material/weather-sunny
-      name: Switch to dark mode
-  - media: "(prefers-color-scheme: dark)"
-    scheme: slate
-    primary: black
-    toggle:
-      icon: material/weather-night
-      name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
 
 markdown_extensions:
   # Inbuilt extensions
@@ -87,8 +87,8 @@ markdown_extensions:
 
 plugins:
   - search
-#  - minify:
-#      minify_html: true
+  #  - minify:
+  #      minify_html: true
   - mkdocstrings:
       handlers:
         python:

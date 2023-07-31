@@ -2,6 +2,6 @@
 # -*- coding: utf-8 -*-
 """A python template project."""
 
-from pyproject_template.main import main
+from main import main
 
 main()
