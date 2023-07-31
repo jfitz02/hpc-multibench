@@ -1,8 +1,8 @@
 repos:
+  ### Run various small, general hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
     hooks:
-      ### Default checks (https://github.com/pre-commit/pre-commit-hooks/blob/main/.pre-commit-hooks.yaml)
       # Git checks
       - id: check-added-large-files
       # - id: no-commit-to-branch
@@ -16,9 +16,9 @@ repos:
       - id: fix-byte-order-marker
       - id: mixed-line-ending
       - id: trailing-whitespace
+        args: ["--markdown-linebreak-ext=md"]
       # Data format checks
       - id: check-json
-      # - id: pretty-format-json
       - id: check-toml
       - id: check-xml
       - id: check-yaml
@@ -33,7 +33,15 @@ repos:
       - id: debug-statements
       - id: fix-encoding-pragma
 
-  ### Python specific tools
+  # Validates GitHub workflow files
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.22.0
+    hooks:
+      - id: check-github-workflows
+
+  ### Run local tooling
+  # These tools are intentionally run locally, so everything runs in the same
+  # virtual environment, with a locked set of dependencies
   - repo: local
     hooks:
       - id: ruff
@@ -43,7 +51,7 @@ repos:
         language: python
         require_serial: true
         types_or: [python, pyi]
-        args: [--fix, --exit-non-zero-on-fix]
+        args: ["--fix", "--exit-non-zero-on-fix"]
 
       - id: black
         name: black
@@ -69,8 +77,8 @@ repos:
         require_serial: true
         language: python
         types_or: [python, pyi]
-        # args: [ --namespace-packages, --explicit-package-bases ]
-        # args: ["--ignore-missing-imports", "--scripts-are-modules"]
+        args: ["--scripts-are-modules"]
+        # verbose: true
 
       - id: vulture
         name: vulture
@@ -88,4 +96,4 @@ repos:
         language: python
         types: [python]
         require_serial: true
-        args: [--configfile, pyproject.toml]
+        args: ["--configfile", "pyproject.toml"]
