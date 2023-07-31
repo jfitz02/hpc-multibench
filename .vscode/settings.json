@@ -1,0 +1,21 @@
+{
+    "python.analysis.typeCheckingMode": "strict",
+    "python.linting.enabled": false,
+    "python.testing.pytestEnabled": true,
+    "isort.args": [
+        "--profile black"
+    ],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "yaml.schemas": {
+        "https://squidfunk.github.io/mkdocs-material/schema.json": "mkdocs.yml"
+    },
+    "yaml.customTags": [
+        "tag:yaml.org,2002:python/name:materialx.emoji.to_svg",
+        "tag:yaml.org,2002:python/name:materialx.emoji.twemoji"
+    ],
+    "[markdown]": {
+        "files.trimTrailingWhitespace": false
+    }
+}
