@@ -46,8 +46,8 @@ target-version = ["py310"]
 
 [tool.isort]
 profile = "black"
-py_version = 310     # Latest supported, 311 is not
-src_paths = ["src/"]
+py_version = 310  # Latest supported, 311 is not
+# src_paths = ["src/"]  # This is not a supported keyword?
 filter_files = true
 
 [tool.mypy]
