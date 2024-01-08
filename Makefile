@@ -22,10 +22,10 @@ check: .venv/
 .PHONY: whitelist
 whitelist:
 	@echo "Creating vulture whitelist:"
-	@echo "# noqa" > pyproject_template/whitelist.py
-	@echo "# type: ignore" >> pyproject_template/whitelist.py
-	@poetry run vulture pyproject_template tests --make-whitelist \
-		>> pyproject_template/whitelist.py
+	@echo "# noqa" > src/pyproject_template/whitelist.py
+	@echo "# type: ignore" >> src/pyproject_template/whitelist.py
+	@poetry run vulture src/pyproject_template tests --make-whitelist \
+		>> src/pyproject_template/whitelist.py
 
 
 ### Testing ###
@@ -54,7 +54,7 @@ verify: check test
 ### Execution ###
 .PHONY: run
 run: .venv/
-	@poetry run python3 -m pyproject_template
+	@poetry run python3 -m src/pyproject_template
 
 
 ### Documentation ###
