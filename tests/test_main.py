@@ -4,7 +4,7 @@
 
 import pytest
 
-from pyproject_template.main import get_greeting, main
+from hpc_multibench.main import get_greeting, main
 
 
 def test_get_greeting() -> None:

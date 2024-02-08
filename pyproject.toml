@@ -1,15 +1,15 @@
 [tool.poetry]
-name = "pyproject-template"
+name = "hpc-multibench"
 version = "0.1.0"
-description = "A template for making new python projects with all the bells and whistles"
+description = "A tool to generate and run HPC batch computer jobs via Slurm from a YAML configuration file"
 authors = ["EdmundGoodman <egoodman3141@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/EdmundGoodman/pyproject_template"
-homepage = "https://edmundgoodman.github.io/pyproject_template"
+repository = "https://github.com/EdmundGoodman/hpc-multibench"
+homepage = "https://edmundgoodman.github.io/hpc-multibench"
 
 [tool.poetry.scripts]
-main = "pyproject_template.main:main"
+main = "hpc-multibench.main:main"
 
 [build-system]
 requires = ["poetry-core"]
@@ -113,7 +113,7 @@ markers = [
 [tool.coverage.run]
 branch = true
 source = ["src/"]
-omit = ["src/pyproject_template/__main__.py"]
+omit = ["src/hpc-multibench/__main__.py"]
 
 [tool.coverage.report]
 fail_under = 90
