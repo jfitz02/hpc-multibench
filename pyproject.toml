@@ -8,15 +8,13 @@ readme = "README.md"
 repository = "https://github.com/EdmundGoodman/hpc-multibench"
 homepage = "https://edmundgoodman.github.io/hpc-multibench"
 
-[tool.poetry.scripts]
-main = "hpc-multibench.main:main"
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+pyyaml = "^6.0.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.7.0"
