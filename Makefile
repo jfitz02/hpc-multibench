@@ -2,8 +2,12 @@
 # https://clarkgrubb.com/makefile-style-guide
 MAKEFLAGS += --warn-undefined-variables
 SHELL := bash
-.DEFAULT_GOAL := install
+.DEFAULT_GOAL := default
 
+
+.PHONY: default
+default:
+	@echo "Try installing the project with `make install`"
 
 ### Installation ###
 .PHONY: install
@@ -54,7 +58,7 @@ verify: check test
 ### Execution ###
 .PHONY: run
 run: .venv/
-	@poetry run python3 src/hpc_multibench/__main__.py
+	@poetry run python3 -m hpc_multibench
 
 
 ### Documentation ###
