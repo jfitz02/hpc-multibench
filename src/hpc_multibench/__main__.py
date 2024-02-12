@@ -2,6 +2,6 @@
 # -*- coding: utf-8 -*-
 """A python template project."""
 
-from main import main
+from hpc_multibench.main import main
 
 main()

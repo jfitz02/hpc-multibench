@@ -4,10 +4,9 @@
 
 from pathlib import Path
 from re import search as re_search
-from subprocess import PIPE
-from subprocess import run as subprocess_run
+from subprocess import PIPE  # nosec
+from subprocess import run as subprocess_run  # nosec
 from tempfile import NamedTemporaryFile
-from typing import Optional
 
 BASH_SHEBANG = "#!/bin/sh\n"
 JOB_ID_REGEX = r"Submitted batch job (\d+)"
@@ -22,10 +21,10 @@ class RunConfiguration:
         self.sbatch_config: dict[str, str] = {}
         self.module_loads: list[str] = []
         self.environment_variables: dict[str, str] = {}
-        self.directory: Optional[Path] = None
+        self.directory: Path | None = None
         self.build_commands: list[str] = []
         self.run_command: str = run_command
-        self.args: Optional[str] = None
+        self.args: str | None = None
 
     @property
     def sbatch_contents(self) -> str:
@@ -53,7 +52,7 @@ class RunConfiguration:
 
         sbatch_file += "\necho '===== RUN"
         if self.name != "":
-            sbatch_file += f"{self.name} "
+            sbatch_file += f" '{self.name}' "
         sbatch_file += " ====='\n"
         sbatch_file += f"time srun {self.run_command} {self.args}\n"
 
@@ -63,15 +62,17 @@ class RunConfiguration:
         """Get the sbatch configuration file defining the run."""
         return self.sbatch_contents
 
-    def run(self) -> Optional[int]:
+    def run(self) -> int | None:
         """Run the specified run configuration."""
         with NamedTemporaryFile(
             suffix=".sbatch", dir=Path("./"), mode="w+"
         ) as sbatch_tmp:
             sbatch_tmp.write(self.sbatch_contents)
             sbatch_tmp.flush()
-            result = subprocess_run(
-                ["sbatch", Path(sbatch_tmp.name)], check=True, stdout=PIPE
+            result = subprocess_run(  # nosec
+                ["sbatch", Path(sbatch_tmp.name)],  # noqa: S603, S607
+                check=True,
+                stdout=PIPE,
             )
             job_id_search = re_search(JOB_ID_REGEX, result.stdout.decode("utf-8"))
             if job_id_search is None:

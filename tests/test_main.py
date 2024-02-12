@@ -4,12 +4,7 @@
 
 import pytest
 
-from hpc_multibench.main import get_greeting, main
-
-
-def test_get_greeting() -> None:
-    """Test getting the greeting string."""
-    assert get_greeting().startswith("Hello")
+from hpc_multibench.main import main
 
 
 @pytest.mark.integration()
