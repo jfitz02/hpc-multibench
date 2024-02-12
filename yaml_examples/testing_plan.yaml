@@ -1,12 +1,12 @@
-#- defaults:
-#  - "default name":
+#defaults:
+#  "default name":
 executables:
   "executable name":
     sbatch_config:
       "nodes": 1
       "ntasks-per-node": 1
-      "cpus-per-task": "1"
-      "mem-per-cpu": "3700"
+      "cpus-per-task": 1
+      "mem-per-cpu": 3700
     module_loads:
       - "GCC/11.3.0"
     environment_variables: {}
@@ -14,12 +14,13 @@ executables:
     build_commands:
       - "make -j 8"
     run_command: "./test_HPCCG"
+
 benches:
- "bench name":
-   executables: ["executable name"]
-   matrix:
-     - args:
-       - "50 50 50"
-       - "100 100 100"
-     - environment_variables:
-       - OMP_NUM_THREADS: 8
+  "bench name":
+    executables: ["executable name"]
+    matrix:
+      - args:
+        - "50 50 50"
+        - "100 100 100"
+      - environment_variables:
+        - OMP_NUM_THREADS: 8
