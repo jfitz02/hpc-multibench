@@ -111,8 +111,8 @@ executables:
 benches:
   "cpp_rust_comp":
     executables:
-      - "cpp_reference"
-      - "cpp_openmp"
+      # - "cpp_reference"
+      # - "cpp_openmp"
       # - "cpp_mpi"
       # - "cpp_hybrid"
       - "rust_reference"
@@ -122,5 +122,4 @@ benches:
       - args:
         - "50 50 50"
         - "100 100 100"
-      - environment_variables:
-        - OMP_NUM_THREADS: 8
+        - "200 200 200"

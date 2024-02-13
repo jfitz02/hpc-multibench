@@ -16,6 +16,7 @@ class Defaults(BaseModel):
 ```
 """
 
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +42,7 @@ class Bench(BaseModel):
     """."""
 
     executables: list[str]
+    # This is a list of dictionaries to preserve matrix ordering!!!
     matrix: list[dict[str, list[Any]]]
 
 
@@ -71,23 +73,48 @@ def get_run_configuration(name: str, executable: Executable) -> RunConfiguration
     return run
 
 
+def get_matrix_iterator(matrix: list[dict[str, list[Any]]]) -> Iterator[dict[str, Any]]:
+    """
+    Get an iterator of values to update from the test matrix.
+
+    TODO: Make this work for more than the first element...
+    """
+    shaped: list[tuple[str, list[Any]]] = [
+        (list(item.keys())[0], list(item.values())[0]) for item in matrix
+    ]
+
+    print(shaped)
+
+    # https://docs.python.org/3/library/itertools.html#itertools.product
+    item = shaped[0]
+    for value in item[1]:
+        yield {item[0]: value}
+
+
 def get_bench(
     bench_name: str, bench: Bench, executables: dict[str, Executable]
 ) -> list[RunConfiguration]:
     """."""
     bench_run_configurations: list[RunConfiguration] = []
     # Iterate through matrix
-    for executable_name in bench.executables:
-        if executable_name not in executables:
-            raise RuntimeError(
-                f"Executable '{executable_name}' not in list of defined executables!"
-            )
-        executable = executables[executable_name]
 
-        # Update executable based on matrix
-        bench_run_configurations.append(
-            get_run_configuration(f"{bench_name}/{executable_name}", executable)
-        )
+    for matrix_variables in get_matrix_iterator(bench.matrix):
+        print(matrix_variables)
+        for executable_name in bench.executables:
+            if executable_name not in executables:
+                raise RuntimeError(
+                    f"Executable '{executable_name}' not in list of defined executables!"
+                )
+            executable = executables[executable_name]
+            run_configuration = get_run_configuration(
+                f"{bench_name}/{executable_name}/", executable
+            )
+
+            for key, value in matrix_variables.items():
+                if key == "args":
+                    run_configuration.args = value
+
+            bench_run_configurations.append(run_configuration)
     return bench_run_configurations
 
 
