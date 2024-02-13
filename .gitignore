@@ -1,5 +1,5 @@
 ### Project specific ignores
-results/
+results*/
 
 ### Python ignores
 # Byte-compiled / optimized / DLL files
