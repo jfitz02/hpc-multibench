@@ -1,3 +1,3 @@
 # Reference
 
-::: pyproject_template.main
+::: hpc_multibench.main

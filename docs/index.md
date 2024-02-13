@@ -5,9 +5,4 @@ hide:
 
 # Introduction
 
-`pyproject.template` is template for making new python projects with all the bells and whistles, including:
-
-- [x] Dependency management with `poetry`
-- [x] Static analysis tools, including: `black`, `ruff`, `vulture`, and more!
-- [x] Testing with `pytest` and `coverage.py`
-- [x] Documentation with `mkdocs`
+`hpc-multibench` is a Python tool to define and run HPC batch compute jobs via Slurm from a convenient YAML format.

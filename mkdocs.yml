@@ -1,13 +1,13 @@
 # https://www.mkdocs.org/user-guide/configuration/
 
 # Project information
-site_name: pyproject.template
+site_name: hpc-multibench
 site_author: Edmund Goodman
 copyright: Copyright &copy Edmund Goodman
 
 # Repository
-repo_name: EdmundGoodman/pyproject_template
-repo_url: https://github.com/EdmundGoodman/pyproject_template
+repo_name: EdmundGoodman/hpc-multibench
+repo_url: https://github.com/EdmundGoodman/hpc-multibench
 
 # Configuration
 use_directory_urls: false
