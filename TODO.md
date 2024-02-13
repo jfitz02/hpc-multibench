@@ -1,0 +1,23 @@
+- [x] Minimum viable product
+  - [x] Construct sbatch files programmatically
+  - [x] Run constructed sbatch files
+  - [x] Ingest YAML of schema
+  - [x] Generate sbatch files from YAML
+- [ ] Improvements
+  - [ ] YAML schema
+    - [ ] Multiple nested arguments
+    - [ ] Pairwise arguments
+    - [ ] Default groups for executables
+  - [ ] Results analysis
+    - [ ] Result aggregation
+    - [ ] Result analysis
+    - [ ] Statistical re-runs
+  - [ ] Optional extras
+    - [ ] Unit tests
+    - [ ] Documentations
+    - [ ] Publish to PyPI
+    - [ ] Textual TUI
+      - [ ] Visualise YAML schema structure
+      - [ ] Spawn runs for benches/individual executables
+      - [ ] View results/analysis of runs
+      - [ ] Modify YAML via inbuilt editor?
