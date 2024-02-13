@@ -113,13 +113,13 @@ benches:
     executables:
       # - "cpp_reference"
       # - "cpp_openmp"
-      # - "cpp_mpi"
+      - "cpp_mpi"
       # - "cpp_hybrid"
-      - "rust_reference"
+      #- "rust_reference"
       # - "rust_rayon"
-      # - "rust_mpi"
+      - "rust_mpi"
     matrix:
       - args:
-        - "50 50 50"
-        - "100 100 100"
+        #- "50 50 50"
+        #- "100 100 100"
         - "200 200 200"

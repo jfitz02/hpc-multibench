@@ -12,4 +12,6 @@ def main() -> None:  # pragma: no cover
     yaml_path = Path("./yaml_examples/cpp_rust_comp_plan.yaml")
     for bench in get_benches(yaml_path).values():
         for run in bench:
+            print(run)
             run.run()
+            print("\n\n\n")
