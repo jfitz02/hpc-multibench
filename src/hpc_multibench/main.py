@@ -9,7 +9,7 @@ from hpc_multibench.yaml_ingest import get_benches
 
 def main() -> None:  # pragma: no cover
     """Run the tool."""
-    yaml_path = Path("./yaml_examples/cpp_rust_comp_plan.yaml")
+    yaml_path = Path("./yaml_examples/kudu_plan.yaml")
     for bench in get_benches(yaml_path).values():
         for run in bench:
             print(run)
