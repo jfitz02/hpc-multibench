@@ -10,7 +10,7 @@ from tempfile import NamedTemporaryFile
 
 BASH_SHEBANG = "#!/bin/sh\n"
 JOB_ID_REGEX = r"Submitted batch job (\d+)"
-OUTPUT_DIRECTORY = Path("results_example/")
+OUTPUT_DIRECTORY = Path("results/")
 
 class RunConfiguration:
     """A builder/runner for a run configuration."""
