@@ -10,7 +10,7 @@ from tempfile import NamedTemporaryFile
 
 BASH_SHEBANG = "#!/bin/sh\n"
 JOB_ID_REGEX = r"Submitted batch job (\d+)"
-
+OUTPUT_DIRECTORY = Path("results/")
 
 class RunConfiguration:
     """A builder/runner for a run configuration."""
@@ -33,6 +33,9 @@ class RunConfiguration:
 
         for key, value in self.sbatch_config.items():
             sbatch_file += f"#SBATCH --{key}={value}\n"
+        if "output" not in self.sbatch_config:
+            name = f"{self.name}_" if self.name != "" else slurm
+            sbatch_file += f"#SBATCH --output={OUTPUT_DIRECTORY}/{name}_%j.out\n"
 
         if len(self.module_loads) > 0:
             sbatch_file += "module purge\n"
@@ -54,7 +57,7 @@ class RunConfiguration:
         if self.name != "":
             sbatch_file += f" '{self.name}' "
         sbatch_file += " ====='\n"
-        sbatch_file += f"time srun {self.run_command} {self.args}\n"
+        sbatch_file += f"time {self.run_command} {self.args}\n"
 
         return sbatch_file
 
@@ -64,6 +67,9 @@ class RunConfiguration:
 
     def run(self) -> int | None:
         """Run the specified run configuration."""
+        if "output" not in self.sbatch_config:
+            # Ensure the output directory exists if it is being used
+            OUTPUT_DIRECTORY.mkdir(exist_ok=True)
         with NamedTemporaryFile(
             suffix=".sbatch", dir=Path("./"), mode="w+"
         ) as sbatch_tmp:

@@ -1,7 +1,7 @@
 #defaults:
 #  "default name":
 executables:
-  "cpp_reference":
+  "cpp-reference":
     sbatch_config:
       "nodes": 1
       "ntasks-per-node": 1
@@ -15,7 +15,7 @@ executables:
       - "make -j 8"
     run_command: "./test_HPCCG"
 
-  "cpp_openmp":
+  "cpp-openmp":
     sbatch_config:
       "nodes": 1
       "ntasks-per-node": 1
@@ -30,7 +30,7 @@ executables:
       - "make -j 8"
     run_command: "./test_HPCCG"
 
-  "cpp_mpi":
+  "cpp-mpi":
     sbatch_config:
       "nodes": 2
       "ntasks-per-node": 8
@@ -45,7 +45,7 @@ executables:
       - "make -j 8"
     run_command: "mpirun -n 2 ./test_HPCCG"
 
-  "cpp_hybrid":
+  "cpp-hybrid":
     sbatch_config:
       "nodes": 2
       "ntasks-per-node": 4
@@ -61,7 +61,7 @@ executables:
       - "make -j 8"
     run_command: "mpirun -n 2 ./test_HPCCG"
 
-  "rust_reference":
+  "rust-reference":
     sbatch_config:
       "nodes": 1
       "ntasks-per-node": 1
@@ -76,7 +76,7 @@ executables:
       - "cargo build --release"
     run_command: "cargo run --release"
 
-  "rust_rayon":
+  "rust-rayon":
     sbatch_config:
       "nodes": 1
       "ntasks-per-node": 1
@@ -92,7 +92,7 @@ executables:
       - "cargo build --release"
     run_command: "cargo run --release"
 
-  "rust_mpi":
+  "rust-mpi":
     sbatch_config:
       "nodes": 2
       "ntasks-per-node": 8
@@ -103,23 +103,24 @@ executables:
       - "Clang/13.0.1"
       - "OpenMPI/4.1.4"
     environment_variables: {}
-    directory: "../6_mpi"
+    directory: "../7_mpi"
     build_commands:
       - "cargo build --release"
-    run_command: "mpirun -n 2 cargo run --release"
+    run_command: "mpirun -n 2 ./target/release/hpccg-rs"
 
 benches:
-  "cpp_rust_comp":
+  "cpp-rust-comp":
     executables:
-      # - "cpp_reference"
-      # - "cpp_openmp"
-      - "cpp_mpi"
-      # - "cpp_hybrid"
-      #- "rust_reference"
-      # - "rust_rayon"
-      - "rust_mpi"
+      - "cpp-reference"
+      - "cpp-openmp"
+      - "cpp-mpi"
+      - "cpp-hybrid"
+      - "rust-reference"
+      - "rust-rayon"
+      - "rust-mpi"
     matrix:
       - args:
-        #- "50 50 50"
-        #- "100 100 100"
+        - "100 100 100"
         - "200 200 200"
+        - "300 300 300"
+        - "400 400 400"

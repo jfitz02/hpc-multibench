@@ -91,6 +91,10 @@ def get_matrix_iterator(matrix: list[dict[str, list[Any]]]) -> Iterator[dict[str
         yield {item[0]: value}
 
 
+def get_matrix_variables_suffix(variables: dict[str, Any]) -> str:
+    """."""
+    return ",".join(f"{name}={value.replace('/','').replace(' ','_')}" for name, value in variables.items())
+
 def get_bench(
     bench_name: str, bench: Bench, executables: dict[str, Executable]
 ) -> list[RunConfiguration]:
@@ -107,7 +111,7 @@ def get_bench(
                 )
             executable = executables[executable_name]
             run_configuration = get_run_configuration(
-                f"{bench_name}/{executable_name}/", executable
+                f"{bench_name}__{executable_name}__{get_matrix_variables_suffix(matrix_variables)}", executable
             )
 
             for key, value in matrix_variables.items():
