@@ -23,7 +23,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel
 
-from hpc_multibench.configuration import RunConfiguration
+from hpc_multibench.configuration import DEFAULT_OUTPUT_DIRECTORY, RunConfiguration
 
 
 class Executable(BaseModel):
@@ -60,10 +60,13 @@ def get_test_plan(config_file: Path) -> TestPlan:
     return TestPlan(**config_data)
 
 
-def get_run_configuration(name: str, executable: Executable) -> RunConfiguration:
+def get_run_configuration(
+    name: str, output_file: Path, executable: Executable
+) -> RunConfiguration:
     """."""
     run = RunConfiguration(executable.run_command)
     run.name = name
+    run.output_file = output_file
     run.sbatch_config = executable.sbatch_config
     run.module_loads = executable.module_loads
     run.environment_variables = executable.environment_variables
@@ -82,9 +85,6 @@ def get_matrix_iterator(matrix: list[dict[str, list[Any]]]) -> Iterator[dict[str
     shaped: list[tuple[str, list[Any]]] = [
         (list(item.keys())[0], list(item.values())[0]) for item in matrix
     ]
-
-    print(shaped)
-
     # https://docs.python.org/3/library/itertools.html#itertools.product
     item = shaped[0]
     for value in item[1]:
@@ -93,7 +93,11 @@ def get_matrix_iterator(matrix: list[dict[str, list[Any]]]) -> Iterator[dict[str
 
 def get_matrix_variables_suffix(variables: dict[str, Any]) -> str:
     """."""
-    return ",".join(f"{name}={value.replace('/','').replace(' ','_')}" for name, value in variables.items())
+    return ",".join(
+        f"{name}={value.replace('/','').replace(' ','_')}"
+        for name, value in variables.items()
+    )
+
 
 def get_bench(
     bench_name: str, bench: Bench, executables: dict[str, Executable]
@@ -110,8 +114,14 @@ def get_bench(
                     f"Executable '{executable_name}' not in list of defined executables!"
                 )
             executable = executables[executable_name]
+            output_file = (
+                DEFAULT_OUTPUT_DIRECTORY
+                / f"{bench_name}/{executable_name}__{get_matrix_variables_suffix(matrix_variables)}"
+            )
             run_configuration = get_run_configuration(
-                f"{bench_name}__{executable_name}__{get_matrix_variables_suffix(matrix_variables)}", executable
+                executable_name,
+                output_file,
+                executable,
             )
 
             for key, value in matrix_variables.items():

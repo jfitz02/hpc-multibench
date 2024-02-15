@@ -12,7 +12,8 @@ from time import sleep
 
 BASH_SHEBANG = "#!/bin/sh\n"
 JOB_ID_REGEX = r"Submitted batch job (\d+)"
-OUTPUT_DIRECTORY = Path("results/")
+DEFAULT_OUTPUT_DIRECTORY = Path("results/")
+DEFAULT_OUTPUT_FILE = DEFAULT_OUTPUT_DIRECTORY / "slurm_%j.out"
 
 
 class RunConfiguration:
@@ -21,6 +22,9 @@ class RunConfiguration:
     def __init__(self, run_command: str):
         """Initialise the run configuration file as a empty bash file."""
         self.name: str = ""
+        self.output_file: Path = (
+            DEFAULT_OUTPUT_FILE  # Less precedence than `sbatch_config`
+        )
         self.sbatch_config: dict[str, str] = {}
         self.module_loads: list[str] = []
         self.environment_variables: dict[str, str] = {}
@@ -37,8 +41,7 @@ class RunConfiguration:
         for key, value in self.sbatch_config.items():
             sbatch_file += f"#SBATCH --{key}={value}\n"
         if "output" not in self.sbatch_config:
-            name = f"{self.name}_" if self.name != "" else "slurm"
-            sbatch_file += f"#SBATCH --output={OUTPUT_DIRECTORY}/{name}_%j.out\n"
+            sbatch_file += f"#SBATCH --output={self.output_file}\n"
 
         if len(self.module_loads) > 0:
             sbatch_file += "module purge\n"
@@ -70,11 +73,17 @@ class RunConfiguration:
 
     def run(self) -> int | None:
         """Run the specified run configuration."""
-        if "output" not in self.sbatch_config:
-            # Ensure the output directory exists if it is being used
-            OUTPUT_DIRECTORY.mkdir(exist_ok=True)
+        # Ensure the output directory before it is used
+        output_file = (
+            Path(self.sbatch_config["output"])
+            if "output" in self.sbatch_config
+            else self.output_file
+        )
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        # Create and run the temporary sbatch file
         with NamedTemporaryFile(
-            suffix=".sbatch", dir=Path("./"), mode="w+"
+            prefix=self.name, suffix=".sbatch", dir=Path("./"), mode="w+"
         ) as sbatch_tmp:
             sbatch_tmp.write(self.sbatch_contents)
             sbatch_tmp.flush()
@@ -92,7 +101,7 @@ class RunConfiguration:
 def wait_till_queue_empty(
     max_time_to_wait: int = 172_800, backoff: list[int] | None = None
 ) -> bool:
-    """."""
+    """Wait until the Slurm queue is empty for the current user."""
     if backoff is None or len(backoff) < 1:
         backoff = [5, 10, 15, 30, 60]
 
@@ -101,6 +110,7 @@ def wait_till_queue_empty(
     while time_waited < max_time_to_wait:
         wait_time = backoff[backoff_index]
         sleep(wait_time)
+        print(f"Waited {time_waited}s for Slurm queue to empty...")
         time_waited += wait_time
 
         result = subprocess_run(  # nosec
