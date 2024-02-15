@@ -5,8 +5,6 @@
 from pathlib import Path
 from re import search as re_search
 
-from hpc_multibench.configuration import DEFAULT_OUTPUT_DIRECTORY
-from hpc_multibench.yaml_ingest import Bench
 
 METRICS_REGEXES: dict[str, str] = {
     "name": r"===== RUN (.*) =====",

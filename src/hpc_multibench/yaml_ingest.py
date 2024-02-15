@@ -17,14 +17,14 @@ class Defaults(BaseModel):
 """
 
 from pathlib import Path
-from typing import Any
-
+from typing import Any, Self
 
 import yaml
 from pydantic import BaseModel
 
+from hpc_multibench.configuration import RunConfiguration
 
-class Executable(BaseModel):
+class RunConfigurationModel(BaseModel):
     """A Pydantic model for an executable."""
 
     sbatch_config: dict[str, Any]
@@ -34,33 +34,45 @@ class Executable(BaseModel):
     build_commands: list[str]
     run_command: str
     args: str | None = None
+    
+    def realise(self, name: str, output_file: Path) -> RunConfiguration:
+        """Construct a run configuration from its data model."""
+        run = RunConfiguration(self.run_command, output_file)
+        run.name = name
+        run.sbatch_config = self.sbatch_config
+        run.module_loads = self.module_loads
+        run.environment_variables = self.environment_variables
+        run.directory = Path(self.directory)
+        run.build_commands = self.build_commands
+        run.args = self.args
+        return run
 
 
-class Analysis(BaseModel):
+class AnalysisModel(BaseModel):
     """A Pydantic model for a test bench's analysis."""
 
     metrics: dict[str, str]
     plots: dict[str, str]
 
 
-class Bench(BaseModel):
+class BenchModel(BaseModel):
     """A Pydantic model for a test bench."""
 
-    executables: list[str]
+    run_configurations: list[str]
     # This is a list of dictionaries to preserve matrix ordering!!!
     matrix: list[dict[str, list[Any]]]
-    analysis: Analysis
+    analysis: AnalysisModel
 
 
-class TestPlan(BaseModel):
+class TestPlanModel(BaseModel):
     """A Pydantic model for a set of test benches and their executables."""
 
-    executables: dict[str, Executable]
-    benches: dict[str, Bench]
+    run_configurations: dict[str, RunConfigurationModel]
+    benches: dict[str, BenchModel]
 
-
-def get_test_plan(config_file: Path) -> TestPlan:
-    """Ingest the YAML file as a test plan using Pydantic."""
-    with config_file.open(encoding="utf-8") as config_handle:
-        config_data = yaml.safe_load(config_handle)
-    return TestPlan(**config_data)
+    @classmethod
+    def from_yaml(cls, file: Path) -> Self:
+        """Construct the model from a YAML file."""
+        with file.open(encoding="utf-8") as handle:
+            data = yaml.safe_load(handle)
+        return cls(**data)

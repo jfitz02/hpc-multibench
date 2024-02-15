@@ -1,6 +1,6 @@
 #defaults:
 #  "default name":
-executables:
+run_configurations:
   "cpp-reference":
     sbatch_config:
       "nodes": 1
@@ -100,7 +100,7 @@ executables:
 
 benches:
   "cpp-rust-comp":
-    executables:
+    run_configurations:
       - "cpp-reference"
       - "cpp-openmp"
       # - "cpp-mpi"
