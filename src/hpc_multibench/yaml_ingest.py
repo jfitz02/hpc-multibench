@@ -116,7 +116,7 @@ def get_bench(
             executable = executables[executable_name]
             output_file = (
                 DEFAULT_OUTPUT_DIRECTORY
-                / f"{bench_name}/{executable_name}__{get_matrix_variables_suffix(matrix_variables)}"
+                / f"{bench_name}/{executable_name}__{get_matrix_variables_suffix(matrix_variables)}__%j.out"
             )
             run_configuration = get_run_configuration(
                 executable_name,
