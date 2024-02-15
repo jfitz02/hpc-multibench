@@ -7,7 +7,7 @@ from pathlib import Path
 
 from hpc_multibench.analysis import analyse
 from hpc_multibench.configuration import DEFAULT_OUTPUT_DIRECTORY, wait_till_queue_empty
-from hpc_multibench.yaml_ingest import get_benches
+from hpc_multibench.test_harness import get_benches
 
 class Mode(Enum):
     RUN = auto()
