@@ -61,7 +61,7 @@ class RunConfiguration:
 
         sbatch_file += "\necho '===== RUN"
         if self.name != "":
-            sbatch_file += f" '{self.name}' "
+            sbatch_file += f" '{self.name}'"
         sbatch_file += " ====='\n"
         sbatch_file += f"time {self.run_command} {self.args}\n"
 
@@ -107,10 +107,11 @@ def wait_till_queue_empty(
 
     time_waited = 0
     backoff_index = 0
+    print("Starting to wait for Slurm queue")
     while time_waited < max_time_to_wait:
         wait_time = backoff[backoff_index]
         sleep(wait_time)
-        print(f"Waited {time_waited}s for Slurm queue to empty...")
+        print(f"Waited {time_waited}s for Slurm queue to empty")
         time_waited += wait_time
 
         result = subprocess_run(  # nosec
@@ -118,7 +119,7 @@ def wait_till_queue_empty(
             check=True,
             stdout=PIPE,
         )
-        if result.stdout.decode("utf-8").count("\n") > 1:
+        if result.stdout.decode("utf-8").count("\n") <= 1:
             return True
 
         if backoff_index < len(backoff) - 1:
