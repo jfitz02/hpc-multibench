@@ -27,7 +27,7 @@ from hpc_multibench.configuration import DEFAULT_OUTPUT_DIRECTORY, RunConfigurat
 
 
 class Executable(BaseModel):
-    """."""
+    """A Pydantic model for an executable."""
 
     sbatch_config: dict[str, Any]
     module_loads: list[str]
@@ -38,23 +38,31 @@ class Executable(BaseModel):
     args: str | None = None
 
 
+class Analysis(BaseModel):
+    """A Pydantic model for a test bench's analysis."""
+
+    metrics: dict[str, str]
+    plots: dict[str, str]
+
+
 class Bench(BaseModel):
-    """."""
+    """A Pydantic model for a test bench."""
 
     executables: list[str]
     # This is a list of dictionaries to preserve matrix ordering!!!
     matrix: list[dict[str, list[Any]]]
+    analysis: Analysis
 
 
 class TestPlan(BaseModel):
-    """."""
+    """A Pydantic model for a set of test benches and their executables."""
 
     executables: dict[str, Executable]
     benches: dict[str, Bench]
 
 
 def get_test_plan(config_file: Path) -> TestPlan:
-    """."""
+    """Ingest the YAML file as a test plan using Pydantic."""
     with config_file.open(encoding="utf-8") as config_handle:
         config_data = yaml.safe_load(config_handle)
     return TestPlan(**config_data)
@@ -63,7 +71,7 @@ def get_test_plan(config_file: Path) -> TestPlan:
 def get_run_configuration(
     name: str, output_file: Path, executable: Executable
 ) -> RunConfiguration:
-    """."""
+    """Construct a run configuration from an executable model."""
     run = RunConfiguration(executable.run_command)
     run.name = name
     run.output_file = output_file

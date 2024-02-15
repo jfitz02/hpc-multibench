@@ -22,9 +22,9 @@ class RunConfiguration:
     def __init__(self, run_command: str):
         """Initialise the run configuration file as a empty bash file."""
         self.name: str = ""
-        self.output_file: Path = (
-            DEFAULT_OUTPUT_FILE  # Less precedence than `sbatch_config`
-        )
+        # Currently less precedent than `sbatch_config`, could just force it
+        # to always be of our schema for convenience...
+        self.output_file: Path = DEFAULT_OUTPUT_FILE
         self.sbatch_config: dict[str, str] = {}
         self.module_loads: list[str] = []
         self.environment_variables: dict[str, str] = {}
