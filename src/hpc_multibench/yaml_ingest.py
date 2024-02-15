@@ -72,9 +72,8 @@ def get_run_configuration(
     name: str, output_file: Path, executable: Executable
 ) -> RunConfiguration:
     """Construct a run configuration from an executable model."""
-    run = RunConfiguration(executable.run_command)
+    run = RunConfiguration(executable.run_command, output_file)
     run.name = name
-    run.output_file = output_file
     run.sbatch_config = executable.sbatch_config
     run.module_loads = executable.module_loads
     run.environment_variables = executable.environment_variables

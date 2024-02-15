@@ -19,12 +19,10 @@ DEFAULT_OUTPUT_FILE = DEFAULT_OUTPUT_DIRECTORY / "slurm_%j.out"
 class RunConfiguration:
     """A builder/runner for a run configuration."""
 
-    def __init__(self, run_command: str):
+    def __init__(self, run_command: str, output_file: Path):
         """Initialise the run configuration file as a empty bash file."""
-        self.name: str = ""
-        # Currently less precedent than `sbatch_config`, could just force it
-        # to always be of our schema for convenience...
-        self.output_file: Path = DEFAULT_OUTPUT_FILE
+        self.name: str | None = None
+        self.output_file: Path = output_file
         self.sbatch_config: dict[str, str] = {}
         self.module_loads: list[str] = []
         self.environment_variables: dict[str, str] = {}
@@ -40,8 +38,11 @@ class RunConfiguration:
 
         for key, value in self.sbatch_config.items():
             sbatch_file += f"#SBATCH --{key}={value}\n"
-        if "output" not in self.sbatch_config:
-            sbatch_file += f"#SBATCH --output={self.output_file}\n"
+        sbatch_file += f"#SBATCH --output={self.output_file}\n"
+        if "output" in self.sbatch_config:
+            # NOTE: The output file will always override this key!
+            # This should probably be a logging statement...
+            print("WARNING: Output file configuration overriden!")
 
         if len(self.module_loads) > 0:
             sbatch_file += "module purge\n"
@@ -60,7 +61,7 @@ class RunConfiguration:
         sbatch_file += "\n".join(self.build_commands) + "\n"
 
         sbatch_file += "\necho '===== RUN"
-        if self.name != "":
+        if self.name is None:
             sbatch_file += f" '{self.name}'"
         sbatch_file += " ====='\n"
         sbatch_file += f"time {self.run_command} {self.args}\n"
@@ -73,13 +74,8 @@ class RunConfiguration:
 
     def run(self) -> int | None:
         """Run the specified run configuration."""
-        # Ensure the output directory before it is used
-        output_file = (
-            Path(self.sbatch_config["output"])
-            if "output" in self.sbatch_config
-            else self.output_file
-        )
-        output_file.parent.mkdir(parents=True, exist_ok=True)
+        # Ensure the output directory exists before it is used
+        self.output_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Create and run the temporary sbatch file
         with NamedTemporaryFile(
