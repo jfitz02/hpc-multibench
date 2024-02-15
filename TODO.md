@@ -4,14 +4,14 @@
   - [x] Ingest YAML of schema
   - [x] Generate sbatch files from YAML
 - [ ] Improvements
-  - [ ] YAML schema
-    - [ ] Multiple nested arguments
-    - [ ] Pairwise arguments
-    - [ ] Default groups for executables
   - [ ] Results analysis
     - [ ] Result aggregation
     - [ ] Result analysis
     - [ ] Statistical re-runs
+  - [ ] YAML schema
+    - [ ] Multiple nested arguments
+    - [ ] Pairwise arguments
+    - [ ] Default groups for executables
   - [ ] Optional extras
     - [ ] Unit tests
     - [ ] Documentations

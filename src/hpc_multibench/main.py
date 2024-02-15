@@ -4,14 +4,14 @@
 
 from pathlib import Path
 
+from hpc_multibench.configuration import wait_till_queue_empty
 from hpc_multibench.yaml_ingest import get_benches
 
 
-def main() -> None:  # pragma: no cover
+def main(yaml_path: Path) -> None:  # pragma: no cover
     """Run the tool."""
-    yaml_path = Path("./yaml_examples/kudu_plan.yaml")
     for bench in get_benches(yaml_path).values():
         for run in bench:
-            print(run)
             run.run()
-            print("\n\n\n")
+    wait_till_queue_empty()
+    print("Done!")

@@ -2,15 +2,18 @@
 # -*- coding: utf-8 -*-
 """A class for test configurations on batch compute."""
 
+from getpass import getuser
 from pathlib import Path
 from re import search as re_search
 from subprocess import PIPE  # nosec
 from subprocess import run as subprocess_run  # nosec
 from tempfile import NamedTemporaryFile
+from time import sleep
 
 BASH_SHEBANG = "#!/bin/sh\n"
 JOB_ID_REGEX = r"Submitted batch job (\d+)"
 OUTPUT_DIRECTORY = Path("results/")
+
 
 class RunConfiguration:
     """A builder/runner for a run configuration."""
@@ -34,7 +37,7 @@ class RunConfiguration:
         for key, value in self.sbatch_config.items():
             sbatch_file += f"#SBATCH --{key}={value}\n"
         if "output" not in self.sbatch_config:
-            name = f"{self.name}_" if self.name != "" else slurm
+            name = f"{self.name}_" if self.name != "" else "slurm"
             sbatch_file += f"#SBATCH --output={OUTPUT_DIRECTORY}/{name}_%j.out\n"
 
         if len(self.module_loads) > 0:
@@ -84,3 +87,31 @@ class RunConfiguration:
             if job_id_search is None:
                 return None
             return int(job_id_search.group(1))
+
+
+def wait_till_queue_empty(
+    max_time_to_wait: int = 172_800, backoff: list[int] | None = None
+) -> bool:
+    """."""
+    if backoff is None or len(backoff) < 1:
+        backoff = [5, 10, 15, 30, 60]
+
+    time_waited = 0
+    backoff_index = 0
+    while time_waited < max_time_to_wait:
+        wait_time = backoff[backoff_index]
+        sleep(wait_time)
+        time_waited += wait_time
+
+        result = subprocess_run(  # nosec
+            ["squeue", "-u", getuser()],  # noqa: S603, S607
+            check=True,
+            stdout=PIPE,
+        )
+        if result.stdout.decode("utf-8").count("\n") > 1:
+            return True
+
+        if backoff_index < len(backoff) - 1:
+            backoff_index += 1
+
+    return False
