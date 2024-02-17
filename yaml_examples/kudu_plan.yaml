@@ -109,28 +109,14 @@ benches:
       # - "rust-rayon"
       # - "rust-mpi"
     matrix:
-      # args:
-      #   - "100 100 100"
-      #   - "200 200 200"
-      # sbatch_config:
-      #   - "nodes": 2
-      #   - "nodes": 4
-      #   - "nodes": 8
-      run_command:
-        - "foo"
-        - "bar"
-      # [args, sbatch_config]:
-      #   - ["100 100 100", {"mem-per-cpu": 1000}]
-      #   - ["200 200 200", {"mem-per-cpu": 2000}]
-
-      # sbatch_config:
-      #   - "nodes": 2
-      #     "mem-per-cpu": 1000
-      #   - "nodes": 1
-      #     "mem-per-cpu": 2000
-      [sbatch_config, sbatch_config]:
-        - [{"nodes": 2}, {"mem-per-cpu": 1000}]
-        - [{"nodes": 1}, {"mem-per-cpu": 2000}]
+      args:
+        - "100 100 100"
+        - "200 200 200"
+      sbatch_config:
+        - "nodes": 2
+          "mem-per-cpu": 1000
+        - "nodes": 1
+          "mem-per-cpu": 2000
     analysis:
       metrics:
         "name": "===== RUN (.*) ====="

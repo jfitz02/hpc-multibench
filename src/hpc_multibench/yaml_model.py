@@ -103,7 +103,6 @@ class BenchModel(BaseModel):
     ) -> Iterator[RunConfiguration]:
         """."""
         for variables in self.matrix_iterator:
-            print(variables)
             for run_configuration_name in self.run_configurations:
                 if run_configuration_name not in run_configurations.keys():
                     raise RuntimeError(
@@ -168,8 +167,8 @@ class TestPlan(BaseModel):
     def run(self) -> None:
         """."""
         for bench_name, bench in self.benches.items():
-            for _run in bench.get_runs(bench_name, self.run_configurations):
-                pass  # print(run)
+            for run in bench.get_runs(bench_name, self.run_configurations):
+                print(run)
 
     def analyse(self) -> None:
         """."""
