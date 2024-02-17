@@ -138,6 +138,18 @@ class BenchModel(BaseModel):
             for key, values in self.matrix.items()
         ]
         for combination in product(*shaped):
+            # # Consider the case
+            # #   [sbatch_config, sbatch_config]:
+            # #     - [{"nodes": 2}, {"mem-per-cpu": 1000}]
+            # #
+            # variables = {}
+            # for items in combination:
+            #     for item in items:
+            #         if item[0] in variables and isinstance(item[1], dict):
+            #             variables[item[0]].update(item[1])
+            #         else:
+            #             variables[item[0]] = item[1]
+            # yield variables
             yield {item[0]: item[1] for items in combination for item in items}
 
 
