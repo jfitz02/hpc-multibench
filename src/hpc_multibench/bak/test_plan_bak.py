@@ -26,7 +26,9 @@ class TestPlan:
     """."""
 
     def __init__(self, model: TestPlanModel) -> None:
-        self.run_configurations: dict[str, RunConfigurationModel] = model.run_configurations
+        self.run_configurations: dict[str, RunConfigurationModel] = (
+            model.run_configurations
+        )
         self.benches: dict[str, BenchModel] = model.benches
 
     def run(self) -> None:
@@ -35,7 +37,9 @@ class TestPlan:
             for run in self.get_bench_runs(*bench):
                 run.run()
 
-    def get_bench_runs(self, bench_name: str, bench: BenchModel) -> Iterator[RunConfiguration]:
+    def get_bench_runs(
+        self, bench_name: str, bench: BenchModel
+    ) -> Iterator[RunConfiguration]:
         """."""
         for matrix_variables in get_matrix_iterator(bench.matrix):
             for run_configuration_name in bench.run_configurations:
@@ -50,10 +54,9 @@ class TestPlan:
                     / f"{bench_name}/{run_configuration_name}__{get_matrix_variables_suffix(matrix_variables)}__%j.out"
                 )
 
-                run_configuration = self.run_configurations[run_configuration_name].realise(
-                    run_configuration_name,
-                    output_file
-                )
+                run_configuration = self.run_configurations[
+                    run_configuration_name
+                ].realise(run_configuration_name, output_file)
 
                 # Fix this to work for more things than args...
                 for key, value in matrix_variables.items():

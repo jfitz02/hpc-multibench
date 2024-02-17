@@ -12,6 +12,7 @@
     - [ ] Multiple nested arguments
     - [ ] Pairwise arguments
     - [ ] Default groups for executables
+    - [ ] Mode top level key, so only param needed is a path to a yaml file
   - [ ] Optional extras
     - [ ] Unit tests
     - [ ] Documentations

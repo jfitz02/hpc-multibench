@@ -12,8 +12,6 @@ from time import sleep
 
 BASH_SHEBANG = "#!/bin/sh\n"
 JOB_ID_REGEX = r"Submitted batch job (\d+)"
-DEFAULT_OUTPUT_DIRECTORY = Path("results/")
-DEFAULT_OUTPUT_FILE = DEFAULT_OUTPUT_DIRECTORY / "slurm_%j.out"
 
 
 class RunConfiguration:
