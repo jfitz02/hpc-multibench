@@ -18,9 +18,10 @@ JOB_ID_REGEX = r"Submitted batch job (\d+)"
 class RunConfiguration:
     """A builder/runner for a run configuration."""
 
-    def __init__(self, run_command: str, output_file: Path):
+    def __init__(self, name: str, run_command: str, output_file: Path):
         """Initialise the run configuration file as a empty bash file."""
-        self.name: str | None = None
+        # TODO: Are name and output file both needed?
+        self.name: str = name
         self.output_file: Path = output_file
         self.sbatch_config: dict[str, str] = {}
         self.module_loads: list[str] = []
@@ -59,10 +60,7 @@ class RunConfiguration:
             sbatch_file += f"cd {self.directory}\n"
         sbatch_file += "\n".join(self.build_commands) + "\n"
 
-        sbatch_file += "\necho '===== RUN"
-        if self.name is None:
-            sbatch_file += f" '{self.name}'"
-        sbatch_file += " ====='\n"
+        sbatch_file += f"\necho '===== RUN {self.name} ====='\n"
         sbatch_file += f"time {self.run_command} {self.args}\n"
 
         return sbatch_file
@@ -94,14 +92,14 @@ class RunConfiguration:
 
     @classmethod
     def get_output_file_name(
-        cls, bench_name: str, run_configuration_name: str, variables: dict[str, Any]
+        cls, run_configuration_name: str, variables: dict[str, Any]
     ) -> str:
         """Construct an output file name for a run."""
         variables_str = ",".join(
             f"{name}={value.replace('/','').replace(' ','_')}"
             for name, value in variables.items()
         )
-        return f"{bench_name}/{run_configuration_name}__{variables_str}__%j.out"
+        return f"{run_configuration_name}__{variables_str}__%j.out"
 
 
 def wait_till_queue_empty(

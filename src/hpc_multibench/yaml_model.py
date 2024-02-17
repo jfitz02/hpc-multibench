@@ -17,6 +17,7 @@ class Defaults(BaseModel):
 
 from collections.abc import Iterator
 from pathlib import Path
+from re import search as re_search
 from typing import Any, Self
 
 import yaml
@@ -25,7 +26,7 @@ from pydantic import BaseModel
 from hpc_multibench.configuration import RunConfiguration
 
 
-DEFAULT_OUTPUT_DIRECTORY = Path("results/")
+BASE_OUTPUT_DIRECTORY = Path("results/")
 
 class RunConfigurationModel(BaseModel):
     """A Pydantic model for an executable."""
@@ -38,16 +39,31 @@ class RunConfigurationModel(BaseModel):
     run_command: str
     args: str | None = None
 
-    def realise(self, name: str, output_file: Path) -> RunConfiguration:
+    def realise(
+        self, bench_name: str, run_configuration_name: str, variables: dict[str, Any]
+    ) -> RunConfiguration:
         """Construct a run configuration from its data model."""
-        run = RunConfiguration(self.run_command, output_file)
-        run.name = name
+        # Get the output file path
+        output_file_name = RunConfiguration.get_output_file_name(
+            run_configuration_name, variables
+        )
+        output_file = BASE_OUTPUT_DIRECTORY / bench_name / output_file_name
+
+        # TODO: Modify contents based on variables keys here
+
+        run = RunConfiguration(run_configuration_name, self.run_command, output_file)
         run.sbatch_config = self.sbatch_config
         run.module_loads = self.module_loads
         run.environment_variables = self.environment_variables
         run.directory = Path(self.directory)
         run.build_commands = self.build_commands
         run.args = self.args
+
+        # Fix this to work for more things than args...
+        for key, value in variables.items():
+            if key == "args":
+                run.args = value
+
         return run
 
 
@@ -57,6 +73,18 @@ class AnalysisModel(BaseModel):
     metrics: dict[str, str]
     plots: dict[str, str]
 
+    def parse_output_file(self, output_file: Path) -> dict[str, str] | None:
+        """."""
+        run_output = output_file.read_text(encoding="utf-8")
+
+        results: dict[str, str] = {}
+        for name, regex in self.metrics.items():
+            metric_search = re_search(regex, run_output)
+            if metric_search is None:
+                return None
+            # TODO: Support multiple groups by lists as keys?
+            results[name] = metric_search.group(1)
+        return results
 
 class BenchModel(BaseModel):
     """A Pydantic model for a test bench."""
@@ -70,7 +98,7 @@ class BenchModel(BaseModel):
         self, bench_name: str, run_configurations: dict[str, RunConfigurationModel]
     ) -> Iterator[RunConfiguration]:
         """."""
-        for matrix_variables in self.matrix_iterator:
+        for variables in self.matrix_iterator:
             for run_configuration_name in run_configurations:
                 if run_configuration_name not in run_configurations.keys():
                     raise RuntimeError(
@@ -78,20 +106,17 @@ class BenchModel(BaseModel):
                         " defined run configurations!"
                     )
 
-                output_file_name = RunConfiguration.get_output_file_name(
-                    bench_name, run_configuration_name, matrix_variables
+                yield run_configurations[run_configuration_name].realise(
+                    bench_name, run_configuration_name, variables
                 )
-                output_file = DEFAULT_OUTPUT_DIRECTORY / output_file_name
-                run_configuration = run_configurations[
-                    run_configuration_name
-                ].realise(run_configuration_name, output_file)
 
-                # Fix this to work for more things than args...
-                for key, value in matrix_variables.items():
-                    if key == "args":
-                        run_configuration.args = value
-
-                yield run_configuration
+    def get_analysis(self, bench_name: str) -> Iterator[dict[str, str]]:
+        """."""
+        output_directory = BASE_OUTPUT_DIRECTORY / bench_name
+        for output_file in output_directory.iterdir():
+            results = self.analysis.parse_output_file(output_file)
+            if results is not None:
+                yield results
 
     @property
     def matrix_iterator(self) -> Iterator[dict[str, Any]]:
@@ -127,3 +152,6 @@ class TestPlan(BaseModel):
 
     def analyse(self) -> None:
         """."""
+        for bench_name, bench in self.benches.items():
+            for result in bench.get_analysis(bench_name):
+                print(result)

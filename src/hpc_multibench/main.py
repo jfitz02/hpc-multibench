@@ -15,7 +15,7 @@ class Mode(Enum):
     ALL = auto()
 
 
-def main(yaml_path: Path, mode: Mode = Mode.RUN) -> None:  # pragma: no cover
+def main(yaml_path: Path, mode: Mode = Mode.ALL) -> None:  # pragma: no cover
     """Run the tool."""
 
     test_plan = TestPlan.from_yaml(yaml_path)
