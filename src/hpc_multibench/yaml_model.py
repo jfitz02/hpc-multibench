@@ -95,7 +95,7 @@ class BenchModel(BaseModel):
 
     run_configurations: list[str]
     # This is a list of dictionaries to preserve matrix ordering!!!
-    matrix: dict[str, list[Any]]
+    matrix: dict[str | tuple[str, ...], list[Any]]
     analysis: AnalysisModel
 
     def get_runs(
@@ -103,6 +103,7 @@ class BenchModel(BaseModel):
     ) -> Iterator[RunConfiguration]:
         """."""
         for variables in self.matrix_iterator:
+            print(variables)
             for run_configuration_name in self.run_configurations:
                 if run_configuration_name not in run_configurations.keys():
                     raise RuntimeError(
@@ -125,14 +126,19 @@ class BenchModel(BaseModel):
     @property
     def matrix_iterator(self) -> Iterator[dict[str, Any]]:
         """Get an iterator of values to update from the test matrix."""
-        # Turn into lists of tuples
-        shaped: list[list[tuple[str, Any]]] = [
-            [(key, value) for value in values] for key, values in self.matrix.items()
+        shaped: list[list[list[tuple[str, Any]]]] = [
+            (
+                [[(key, value)] for value in values]
+                if isinstance(key, str)
+                else [
+                    [(k, v) for k, v in zip(key, setting, strict=True)]
+                    for setting in values
+                ]
+            )
+            for key, values in self.matrix.items()
         ]
-
-        # https://docs.python.org/3/library/itertools.html#itertools.product
         for combination in product(*shaped):
-            yield {item[0]: item[1] for item in combination}
+            yield {item[0]: item[1] for items in combination for item in items}
 
 
 class TestPlan(BaseModel):
@@ -150,8 +156,8 @@ class TestPlan(BaseModel):
     def run(self) -> None:
         """."""
         for bench_name, bench in self.benches.items():
-            for run in bench.get_runs(bench_name, self.run_configurations):
-                print(run)
+            for _run in bench.get_runs(bench_name, self.run_configurations):
+                pass  # print(run)
 
     def analyse(self) -> None:
         """."""

@@ -10,7 +10,7 @@
     - [ ] Statistical re-runs
   - [ ] YAML schema
     - [x] Multiple nested arguments
-    - [ ] Pairwise arguments
+    - [x] Pairwise arguments
     - [ ] Default groups for executables
     - [ ] Mode top level key (or in benches, with "disabled" enum value as well?), so only param needed is a path to a yaml file
   - [ ] Optional extras
