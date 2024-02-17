@@ -5,7 +5,7 @@
   - [x] Generate sbatch files from YAML
 - [ ] Improvements
   - [ ] Results analysis
-    - [ ] Result aggregation
+    - [x] Result aggregation
     - [ ] Result analysis
     - [ ] Statistical re-runs
   - [ ] YAML schema

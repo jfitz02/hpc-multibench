@@ -20,7 +20,8 @@ from pathlib import Path
 from re import search as re_search
 from typing import Any, Self
 
-import yaml
+# from yaml import safe_load
+from ruamel.yaml import YAML
 from pydantic import BaseModel
 
 from hpc_multibench.configuration import RunConfiguration
@@ -140,8 +141,7 @@ class TestPlan(BaseModel):
     def from_yaml(cls, file: Path) -> Self:
         """Construct the model from a YAML file."""
         with file.open(encoding="utf-8") as handle:
-            data = yaml.safe_load(handle)
-        return cls(**data)
+            return cls(**YAML(typ="safe").load(handle))
 
     def run(self) -> None:
         """."""
