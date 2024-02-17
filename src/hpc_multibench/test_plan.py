@@ -22,6 +22,50 @@ from hpc_multibench.yaml_ingest import RunConfigurationModel, BenchModel, TestPl
 from hpc_multibench.configuration import DEFAULT_OUTPUT_DIRECTORY, RunConfiguration
 
 
+class TestPlan:
+    """."""
+
+    def __init__(self, model: TestPlanModel) -> None:
+        self.run_configurations: dict[str, RunConfigurationModel] = model.run_configurations
+        self.benches: dict[str, BenchModel] = model.benches
+
+    def run(self) -> None:
+        """."""
+        for bench in self.benches.items():
+            for run in self.get_bench_runs(*bench):
+                run.run()
+
+    def get_bench_runs(self, bench_name: str, bench: BenchModel) -> Iterator[RunConfiguration]:
+        """."""
+        for matrix_variables in get_matrix_iterator(bench.matrix):
+            for run_configuration_name in bench.run_configurations:
+                if run_configuration_name not in self.run_configurations.keys():
+                    raise RuntimeError(
+                        f"'{run_configuration_name}' not in list of"
+                        " defined run configurations!"
+                    )
+
+                output_file = (
+                    DEFAULT_OUTPUT_DIRECTORY
+                    / f"{bench_name}/{run_configuration_name}__{get_matrix_variables_suffix(matrix_variables)}__%j.out"
+                )
+
+                run_configuration = self.run_configurations[run_configuration_name].realise(
+                    run_configuration_name,
+                    output_file
+                )
+
+                # Fix this to work for more things than args...
+                for key, value in matrix_variables.items():
+                    if key == "args":
+                        run_configuration.args = value
+
+                yield run_configuration
+
+    def analyse(self) -> None:
+        """."""
+
+
 def get_matrix_iterator(matrix: list[dict[str, list[Any]]]) -> Iterator[dict[str, Any]]:
     """
     Get an iterator of values to update from the test matrix.
