@@ -9,6 +9,7 @@ from subprocess import PIPE  # nosec
 from subprocess import run as subprocess_run  # nosec
 from tempfile import NamedTemporaryFile
 from time import sleep
+from typing import Any
 
 BASH_SHEBANG = "#!/bin/sh\n"
 JOB_ID_REGEX = r"Submitted batch job (\d+)"
@@ -90,6 +91,17 @@ class RunConfiguration:
             if job_id_search is None:
                 return None
             return int(job_id_search.group(1))
+
+    @classmethod
+    def get_output_file_name(
+        cls, bench_name: str, run_configuration_name: str, variables: dict[str, Any]
+    ) -> str:
+        """Construct an output file name for a run."""
+        variables_str = ",".join(
+            f"{name}={value.replace('/','').replace(' ','_')}"
+            for name, value in variables.items()
+        )
+        return f"{bench_name}/{run_configuration_name}__{variables_str}__%j.out"
 
 
 def wait_till_queue_empty(

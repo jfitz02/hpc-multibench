@@ -23,8 +23,9 @@ import yaml
 from pydantic import BaseModel
 
 from hpc_multibench.configuration import RunConfiguration
-DEFAULT_OUTPUT_DIRECTORY = Path("results/")
 
+
+DEFAULT_OUTPUT_DIRECTORY = Path("results/")
 
 class RunConfigurationModel(BaseModel):
     """A Pydantic model for an executable."""
@@ -77,10 +78,10 @@ class BenchModel(BaseModel):
                         " defined run configurations!"
                     )
 
-                output_file = BenchModel.get_output_file(
+                output_file_name = RunConfiguration.get_output_file_name(
                     bench_name, run_configuration_name, matrix_variables
                 )
-
+                output_file = DEFAULT_OUTPUT_DIRECTORY / output_file_name
                 run_configuration = run_configurations[
                     run_configuration_name
                 ].realise(run_configuration_name, output_file)
@@ -102,21 +103,6 @@ class BenchModel(BaseModel):
         item = shaped[0]
         for value in item[1]:
             yield {item[0]: value}
-
-    @classmethod
-    def get_output_file(
-        cls, bench_name: str, run_configuration_name: str, variables: dict[str, Any]
-    ) -> Path:
-        """Construct the output file path for a run."""
-        variables_str = ",".join(
-            f"{name}={value.replace('/','').replace(' ','_')}"
-            for name, value in variables.items()
-        )
-        file_name = (
-            f"{bench_name}/{run_configuration_name}__"
-            f"{variables_str}__%j.out"
-        )
-        return DEFAULT_OUTPUT_DIRECTORY / file_name
 
 
 class TestPlan(BaseModel):
