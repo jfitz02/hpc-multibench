@@ -17,6 +17,7 @@ class Defaults(BaseModel):
 """
 
 from collections.abc import Iterator
+from itertools import product
 from pathlib import Path
 from re import search as re_search
 from typing import Any
@@ -102,7 +103,7 @@ class BenchModel(BaseModel):
     ) -> Iterator[RunConfiguration]:
         """."""
         for variables in self.matrix_iterator:
-            for run_configuration_name in run_configurations:
+            for run_configuration_name in self.run_configurations:
                 if run_configuration_name not in run_configurations.keys():
                     raise RuntimeError(
                         f"'{run_configuration_name}' not in list of"
@@ -124,13 +125,16 @@ class BenchModel(BaseModel):
     @property
     def matrix_iterator(self) -> Iterator[dict[str, Any]]:
         """Get an iterator of values to update from the test matrix."""
-        shaped: list[tuple[str, list[Any]]] = [
-            (list(item.keys())[0], list(item.values())[0]) for item in self.matrix
+        # Turn into lists of tuples
+        # If the args is changed to if ordered keys just work, this will need
+        # modification
+        shaped: list[list[tuple[str, Any]]] = [
+            [(list(item.keys())[0], value) for value in list(item.values())[0]]
+            for item in self.matrix
         ]
         # https://docs.python.org/3/library/itertools.html#itertools.product
-        item = shaped[0]
-        for value in item[1]:
-            yield {item[0]: value}
+        for combination in product(*shaped):
+            yield {item[0]: item[1] for item in combination}
 
 
 class TestPlan(BaseModel):

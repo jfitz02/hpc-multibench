@@ -95,8 +95,9 @@ class RunConfiguration:
         cls, run_configuration_name: str, variables: dict[str, Any]
     ) -> str:
         """Construct an output file name for a run."""
+        # TODO: Better representation of sbatch etc than stringifying
         variables_str = ",".join(
-            f"{name}={value.replace('/','').replace(' ','_')}"
+            f"{name}={str(value).replace('/','').replace(' ','_')}"
             for name, value in variables.items()
         )
         return f"{run_configuration_name}__{variables_str}__%j.out"
