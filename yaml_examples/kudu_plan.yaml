@@ -109,12 +109,12 @@ benches:
       # - "rust-rayon"
       # - "rust-mpi"
     matrix:
-      - args:
+      args:
         - "100 100 100"
         - "200 200 200"
         #- "300 300 300"
         #- "400 400 400"
-      - sbatch_config:
+      sbatch_config:
         - "nodes": 2
         - "nodes": 4
         - "nodes": 8

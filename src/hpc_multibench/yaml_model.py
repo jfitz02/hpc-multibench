@@ -95,7 +95,7 @@ class BenchModel(BaseModel):
 
     run_configurations: list[str]
     # This is a list of dictionaries to preserve matrix ordering!!!
-    matrix: list[dict[str, list[Any]]]
+    matrix: dict[str, list[Any]]
     analysis: AnalysisModel
 
     def get_runs(
@@ -126,12 +126,10 @@ class BenchModel(BaseModel):
     def matrix_iterator(self) -> Iterator[dict[str, Any]]:
         """Get an iterator of values to update from the test matrix."""
         # Turn into lists of tuples
-        # If the args is changed to if ordered keys just work, this will need
-        # modification
         shaped: list[list[tuple[str, Any]]] = [
-            [(list(item.keys())[0], value) for value in list(item.values())[0]]
-            for item in self.matrix
+            [(key, value) for value in values] for key, values in self.matrix.items()
         ]
+
         # https://docs.python.org/3/library/itertools.html#itertools.product
         for combination in product(*shaped):
             yield {item[0]: item[1] for item in combination}
