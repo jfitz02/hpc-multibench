@@ -102,11 +102,11 @@ benches:
   "cpp-rust-comp":
     run_configurations:
       - "cpp-reference"
-      - "cpp-openmp"
+      # - "cpp-openmp"
       # - "cpp-mpi"
       # - "cpp-hybrid"
-      - "rust-reference"
-      - "rust-rayon"
+      # - "rust-reference"
+      # - "rust-rayon"
       # - "rust-mpi"
     matrix:
       - args:
@@ -114,6 +114,10 @@ benches:
         #- "200 200 200"
         #- "300 300 300"
         #- "400 400 400"
+      - sbatch_config:
+        - "nodes": 2
+        - "nodes": 4
+        - "nodes": 8
     analysis:
       metrics:
         "name": "===== RUN (.*) ====="

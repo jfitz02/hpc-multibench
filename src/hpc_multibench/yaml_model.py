@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""A set of objects modelling the YAML schema.
+"""
+A set of objects modelling the YAML schema.
 
 Sample code for adding defaults:
 ```python
@@ -18,16 +19,16 @@ class Defaults(BaseModel):
 from collections.abc import Iterator
 from pathlib import Path
 from re import search as re_search
-from typing import Any, Self
+from typing import Any
 
-# from yaml import safe_load
-from ruamel.yaml import YAML
 from pydantic import BaseModel
+from ruamel.yaml import YAML
+from typing_extensions import Self
 
 from hpc_multibench.configuration import RunConfiguration
 
-
 BASE_OUTPUT_DIRECTORY = Path("results/")
+
 
 class RunConfigurationModel(BaseModel):
     """A Pydantic model for an executable."""
@@ -86,6 +87,7 @@ class AnalysisModel(BaseModel):
             # TODO: Support multiple groups by lists as keys?
             results[name] = metric_search.group(1)
         return results
+
 
 class BenchModel(BaseModel):
     """A Pydantic model for a test bench."""
@@ -147,7 +149,6 @@ class TestPlan(BaseModel):
         """."""
         for bench_name, bench in self.benches.items():
             for run in bench.get_runs(bench_name, self.run_configurations):
-                # run.run()
                 print(run)
 
     def analyse(self) -> None:

@@ -86,6 +86,8 @@ ignore = [
     ### Edmund's preferences
     "UP009",  # "UTF-8 encoding declaration is unnecessary". Adding UTF-8 pragmas is best practice
     "T201",   # Allow print statements!
+    "FIX002",
+    "TD",     # Allow TODOs in code (controversial, I know...)
     "INP001", # "Add an `__init__.py`". The `test` directory should be a namespace package (https://stackoverflow.com/a/8450858)!
     "I",      # Ignore import sorting, as we using `isort` instead, as it has more functionality
 ]
