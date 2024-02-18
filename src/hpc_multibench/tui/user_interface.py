@@ -92,19 +92,27 @@ class UserInterface(App[None]):
         tree = self.query_one(TestPlanTree)
         tree.populate()
 
-        plt = self.query_one(RunAnalysisPlot).plt
+        plt = self.query_one("#metrics_plot", RunAnalysisPlot).plt
         plt.title("Scatter Plot")
-        plt.scatter(plt.sin())
+        plt.plot(plt.sin())
 
     def handle_tree_selection(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""
         info_box = self.app.query_one("#information-box", Static)
+        metrics_table = self.app.query_one("#metrics-table", DataTable)
+        metrics_plot = self.query_one("#metrics_plot", RunAnalysisPlot).plt
 
         output_string = f"{type(node.data)} {node.label}"
         if isinstance(node.data, BenchModel):
+            # Run tab
             output_string = "\n".join([str(x) for x in node.data.matrix_iterator])
+            # Metrics tab
+            metrics_table.add_columns(*node.data.analysis.metrics.keys())
+            for results in node.data.get_analysis(str(node.label)):
+                metrics_table.add_row(*[str(x) for x in results.values()])
+            # Plot tab
+            metrics_plot.title("Run time / Mesh width")
+            metrics_plot.plot([100, 200, 300], [100, 200, 300])
         else:
-            # TODO: Could be a text area
             output_string = node.data.realise("", str(node.label), {}).sbatch_contents
-
         info_box.update(output_string)
