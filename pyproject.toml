@@ -38,6 +38,7 @@ mkdocstrings = { extras = ["python"], version = "^0.20.0" }
 
 [tool.poetry.group.tui.dependencies]
 textual = "^0.51.0"
+# textual = {extras = ["syntax"], version = "^0.51.0"}
 textual-plotext = "^0.2.1"
 
 [tool.bandit]
