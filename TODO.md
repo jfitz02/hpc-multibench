@@ -18,7 +18,17 @@
     - [ ] Documentations
     - [ ] Publish to PyPI
     - [ ] Textual TUI
-      - [ ] Visualise YAML schema structure
-      - [ ] Spawn runs for benches/individual executables
-      - [ ] View results/analysis of runs
-      - [ ] Modify YAML via inbuilt editor?
+      - [x] Original ideas
+        - Visualise YAML schema structure
+        - Spawn runs for benches/individual executables
+        - View results/analysis of runs
+        - Modify YAML via inbuilt editor?
+      - [ ] Final plan
+        - [x] Tree-style bench hierarchy explorer
+          - (is this useful? perhaps better as a list?)
+        - [x] Listing argument variations for test bench
+        - [x] Listing sbatch file contents for run configuration
+        - [ ] metric table for parent test bench (even when run config selected), requires improving analysis code
+        - [ ] metric plotting --"--
+        - [ ] run configuration/bench button to send off jobs to slurm
+        - [ ] modal dialog to wait on slurm queue (could be an async function?)
