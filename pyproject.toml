@@ -36,6 +36,10 @@ mkdocs-material = "^9.1.18"
 mkdocstrings = { extras = ["python"], version = "^0.20.0" }
 # mike = "^1.1.2"
 
+[tool.poetry.group.tui.dependencies]
+textual = "^0.51.0"
+textual-plotext = "^0.2.1"
+
 [tool.bandit]
 exclude_dirs = [".venv/"]
 skips = ["B101"]
