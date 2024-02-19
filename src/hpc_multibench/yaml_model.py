@@ -22,11 +22,10 @@ from pathlib import Path
 from re import search as re_search
 from typing import Any
 
+import matplotlib.pyplot as plt
 from pydantic import BaseModel
 from ruamel.yaml import YAML
 from typing_extensions import Self
-# import seaborn as sns
-# import matplotlib.pyplot as plt
 
 from hpc_multibench.configuration import RunConfiguration
 
@@ -72,11 +71,13 @@ class RunConfigurationModel(BaseModel):
 
         return run
 
+
 class PlotModel(BaseModel):
     """A Pydantic model for plotting two variables."""
-    
+
     x: str
     y: str
+
 
 class AnalysisModel(BaseModel):
     """A Pydantic model for a test bench's analysis."""
@@ -133,30 +134,32 @@ class BenchModel(BaseModel):
             if results is not None:
                 yield results
 
-    def comparative_plot_results(self, bench_name: str) -> None:
+    def comparative_plot_results(
+        self, bench_name: str
+    ) -> dict[str, list[tuple[float, float]]]:
         """."""
-        # -> list[tuple[str, Any, Any]]
-        # return [
-        #     (result["name"], result[self.analysis.plot.x], result[self.analysis.plot.y])
-        #     for result in self.get_analysis(bench_name)
-        # ]
-
-        results: dict[str, tuple[list[Any], list[Any]]] = {}
+        results: dict[str, list[tuple[float, float]]] = {}
         for result in self.get_analysis(bench_name):
             if result["name"] not in results:
-                results[result["name"]] = ([], [])
-            results[result["name"]][0].append(result[self.analysis.plot.x])
-            results[result["name"]][1].append(result[self.analysis.plot.y])
-        return results
+                results[result["name"]] = []
+            point = (
+                float(result[self.analysis.plot.x]),
+                float(result[self.analysis.plot.y]),
+            )
+            results[result["name"]].append(point)
+        return {name: sorted(value) for name, value in results.items()}
 
     def plot(self, bench_name: str) -> None:
         """."""
-        # Bar plot ig only one key per item 
-        # sns.lineplot(
-        #     x=self.analysis.plot.x,
-        #     y=self.analysis.plot.y,
-        #     data=self.comparative_plot_results(bench_name),
-        # )
+        results = self.comparative_plot_results(bench_name)
+        for name, result in results.items():
+            print(name, result)
+            plt.plot(*zip(*result, strict=True), marker="x", label=name)
+        plt.xlabel(self.analysis.plot.x)
+        plt.ylabel(self.analysis.plot.y)
+        plt.title("Benchmark analysis")
+        plt.legend()
+        plt.show()
 
     @property
     def matrix_iterator(self) -> Iterator[dict[str, Any]]:
@@ -209,6 +212,4 @@ class TestPlan(BaseModel):
     def analyse(self) -> None:
         """."""
         for bench_name, bench in self.benches.items():
-            # bench.plot(bench_name)
-            for name, result in bench.comparative_plot_results(bench_name).items():
-                print(name, result)
+            bench.plot(bench_name)

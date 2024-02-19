@@ -6,7 +6,7 @@
 - [ ] Improvements
   - [ ] Results analysis
     - [x] Result aggregation
-    - [ ] Result analysis
+    - [x] Result analysis
     - [ ] Statistical re-runs
   - [ ] YAML schema
     - [x] Multiple nested arguments
