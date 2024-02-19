@@ -41,6 +41,10 @@ textual = "^0.51.0"
 # textual = {extras = ["syntax"], version = "^0.51.0"}
 textual-plotext = "^0.2.1"
 
+[tool.poetry.group.plot.dependencies]
+seaborn = "^0.13.2"
+
+
 [tool.bandit]
 exclude_dirs = [".venv/"]
 skips = ["B101"]

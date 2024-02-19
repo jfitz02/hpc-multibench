@@ -25,10 +25,13 @@ from typing import Any
 from pydantic import BaseModel
 from ruamel.yaml import YAML
 from typing_extensions import Self
+# import seaborn as sns
+# import matplotlib.pyplot as plt
 
 from hpc_multibench.configuration import RunConfiguration
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
+NAME_REGEX = r"===== RUN (.*) ====="
 
 
 class RunConfigurationModel(BaseModel):
@@ -69,18 +72,26 @@ class RunConfigurationModel(BaseModel):
 
         return run
 
+class PlotModel(BaseModel):
+    """A Pydantic model for plotting two variables."""
+    
+    x: str
+    y: str
 
 class AnalysisModel(BaseModel):
     """A Pydantic model for a test bench's analysis."""
 
     metrics: dict[str, str]
-    plots: dict[str, str]
+    plot: PlotModel
 
     def parse_output_file(self, output_file: Path) -> dict[str, str] | None:
         """."""
         run_output = output_file.read_text(encoding="utf-8")
-
         results: dict[str, str] = {}
+        name_search = re_search(NAME_REGEX, run_output)
+        if name_search is None:
+            return None
+        results["name"] = name_search.group(1)
         for name, regex in self.metrics.items():
             metric_search = re_search(regex, run_output)
             if metric_search is None:
@@ -121,6 +132,31 @@ class BenchModel(BaseModel):
             results = self.analysis.parse_output_file(output_file)
             if results is not None:
                 yield results
+
+    def comparative_plot_results(self, bench_name: str) -> None:
+        """."""
+        # -> list[tuple[str, Any, Any]]
+        # return [
+        #     (result["name"], result[self.analysis.plot.x], result[self.analysis.plot.y])
+        #     for result in self.get_analysis(bench_name)
+        # ]
+
+        results: dict[str, tuple[list[Any], list[Any]]] = {}
+        for result in self.get_analysis(bench_name):
+            if result["name"] not in results:
+                results[result["name"]] = ([], [])
+            results[result["name"]][0].append(result[self.analysis.plot.x])
+            results[result["name"]][1].append(result[self.analysis.plot.y])
+        return results
+
+    def plot(self, bench_name: str) -> None:
+        """."""
+        # Bar plot ig only one key per item 
+        # sns.lineplot(
+        #     x=self.analysis.plot.x,
+        #     y=self.analysis.plot.y,
+        #     data=self.comparative_plot_results(bench_name),
+        # )
 
     @property
     def matrix_iterator(self) -> Iterator[dict[str, Any]]:
@@ -173,5 +209,6 @@ class TestPlan(BaseModel):
     def analyse(self) -> None:
         """."""
         for bench_name, bench in self.benches.items():
-            for result in bench.get_analysis(bench_name):
-                print(result)
+            # bench.plot(bench_name)
+            for name, result in bench.comparative_plot_results(bench_name).items():
+                print(name, result)
