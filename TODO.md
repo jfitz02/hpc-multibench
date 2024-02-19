@@ -14,6 +14,7 @@
     - [ ] Default groups for executables
     - [ ] Mode top level key (or in benches, with "disabled" enum value as well?), so only param needed is a path to a yaml file
   - [ ] Optional extras
+    - [x] Argument parsing from the command line
     - [ ] Unit tests
     - [ ] Documentations
     - [ ] Publish to PyPI
