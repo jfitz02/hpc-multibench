@@ -12,6 +12,7 @@ from textual.widgets import (
     Label,
     TabbedContent,
     TabPane,
+    TextArea,
     Tree,
 )
 from textual.widgets.tree import TreeNode
@@ -89,7 +90,14 @@ class UserInterface(App[None]):
 
             with TabbedContent(initial=INITIAL_TAB, id="informer"):
                 with TabPane("Run", id="run-tab"):
-                    yield Label("Select a benchmark to start", id="run-information")
+                    yield Label("", id="run-information")
+                    # TODO: Get bash language working
+                    yield TextArea(
+                        "echo hello",
+                        id="sbatch-contents",
+                        read_only=True,
+                        show_line_numbers=True,
+                    )
                     yield Button("Run", id="run-button")
                 with TabPane("Metrics", id="metrics-tab"):
                     yield DataTable(id="metrics-table")
@@ -111,12 +119,23 @@ class UserInterface(App[None]):
     def update_run_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""
         run_information = self.query_one("#run-information", Label)
-        output_string = f"{type(node.data)} {node.label}"
+        sbatch_contents = self.query_one("#sbatch-contents", TextArea)
+
         if isinstance(node.data, BenchModel):
-            output_string = "\n".join([str(x) for x in node.data.matrix_iterator])
+            # TODO: This is a slightly annoying hack - but it works...
+            run_information.visible = True
+            sbatch_contents.visible = False
+            run_information.update(
+                "\n".join([str(x) for x in node.data.matrix_iterator])
+            )
+            sbatch_contents.text = ""
         else:
-            output_string = node.data.realise("", str(node.label), {}).sbatch_contents
-        run_information.update(output_string)
+            sbatch_contents.visible = True
+            run_information.visible = False
+            sbatch_contents.text = node.data.realise(
+                "", str(node.label), {}
+            ).sbatch_contents
+            run_information.update("")
 
     def update_metrics_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""
@@ -127,6 +146,8 @@ class UserInterface(App[None]):
             metrics_table.add_columns(*column_names)
             for results in node.data.get_analysis(str(node.label)):
                 metrics_table.add_row(*results.values())
+            # TODO: Fix sorting
+            # metrics_table.sort("Name", node.data.analysis.plot.x)
         else:
             assert node.parent is not None
             metrics_table.add_columns(*node.parent.data.analysis.metrics.keys())
@@ -135,6 +156,7 @@ class UserInterface(App[None]):
                     metrics_table.add_row(
                         *[value for key, value in results.items() if key != "name"]
                     )
+            # metrics_table.sort(node.parent.data.analysis.plot.x)
 
     def update_plot_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""
