@@ -66,8 +66,10 @@ class RunConfigurationModel(BaseModel):
 
         # Fix this to work for more things than args...
         for key, value in variables.items():
-            if key == "args":
-                run.args = value
+            # TODO: Error checking on keys
+            setattr(run, key, value)
+            # if key == "args":
+            #     run.args = value
 
         return run
 
@@ -209,6 +211,7 @@ class TestPlan(BaseModel):
         for bench_name, bench in self.benches.items():
             for run in bench.get_runs(bench_name, self.run_configurations):
                 print(run)
+                # Run the configurations with `run.run()`
 
     def analyse(self) -> None:
         """."""
