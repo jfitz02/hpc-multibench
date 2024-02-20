@@ -28,7 +28,7 @@ def get_parser() -> ArgumentParser:
     mutex_group.add_argument(
         "-m",
         "--mode",
-        type=Mode,
+        type=Mode,  # TODO: This needs fixing to actually work...
         default=Mode.RUN,
         help="the mode to run the tool in (default: run)",
     )
