@@ -90,7 +90,7 @@ class UserInterface(App[None]):
 
             with TabbedContent(initial=INITIAL_TAB, id="informer"):
                 with TabPane("Run", id="run-tab"):
-                    yield Label("", id="run-information")
+                    yield DataTable(id="run-information")
                     # TODO: Get bash language working
                     yield TextArea(
                         "echo hello",
@@ -118,24 +118,30 @@ class UserInterface(App[None]):
 
     def update_run_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""
-        run_information = self.query_one("#run-information", Label)
+        run_information = self.query_one("#run-information", DataTable)
         sbatch_contents = self.query_one("#sbatch-contents", TextArea)
+        run_information.clear(columns=True)
 
         if isinstance(node.data, BenchModel):
             # TODO: This is a slightly annoying hack - but it works...
-            run_information.visible = True
             sbatch_contents.visible = False
-            run_information.update(
-                "\n".join([str(x) for x in node.data.matrix_iterator])
-            )
             sbatch_contents.text = ""
+            matrix_iterator = node.data.matrix_iterator
         else:
             sbatch_contents.visible = True
-            run_information.visible = False
             sbatch_contents.text = node.data.realise(
                 "", str(node.label), {}
             ).sbatch_contents
-            run_information.update("")
+
+            assert node.parent is not None
+            matrix_iterator = node.parent.data.matrix_iterator
+
+        next_values = next(matrix_iterator, None)
+        if next_values is not None:
+            run_information.add_columns(*next_values.keys())
+            run_information.add_row(*next_values.values())
+            for item in matrix_iterator:
+                run_information.add_row(*item.values())
 
     def update_metrics_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""

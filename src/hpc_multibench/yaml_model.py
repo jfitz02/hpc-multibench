@@ -164,6 +164,7 @@ class BenchModel(BaseModel):
     @property
     def matrix_iterator(self) -> Iterator[dict[str, Any]]:
         """Get an iterator of values to update from the test matrix."""
+        # TODO: How does a property play with iterators?
         shaped: list[list[list[tuple[str, Any]]]] = [
             (
                 [[(key, value)] for value in values]

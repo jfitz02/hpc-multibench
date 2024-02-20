@@ -17,8 +17,11 @@
     content-align: center middle;
 }
 
+#sbatch-contents {
+    margin: 1 0 0 0;
+}
 #run-button {
     align: center bottom;
-    margin: 1;
+    margin: 1 0 0 0;
     width: 100%;
 }
