@@ -25,3 +25,32 @@
     margin: 1 0 0 0;
     width: 100%;
 }
+
+
+
+RunDialogScreen {
+    align: center middle;
+}
+
+#run-dialog {
+    padding: 0 1;
+    width: 60;
+    height: 11;
+    border: thick $background 80%;
+    background: $surface;
+    content-align: center middle;
+}
+#run-dialog-message {
+    width: 1fr;
+    text-align: center;
+    content-align: center middle;
+}
+#run-dialog-progress {
+    margin: 2;
+    text-align: center;
+    content-align: center middle;
+}
+#run-dialog-continue {
+    align: center bottom;
+    content-align: center middle;
+}

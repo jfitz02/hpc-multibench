@@ -3,13 +3,16 @@
 """The definition of the user interface."""
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal
+from textual.containers import Container, Horizontal, Vertical
+from textual.screen import Screen
+from textual.timer import Timer
 from textual.widgets import (
     Button,
     DataTable,
     Footer,
     Header,
     Label,
+    ProgressBar,
     TabbedContent,
     TabPane,
     TextArea,
@@ -23,7 +26,7 @@ from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel, TestPla
 TestPlanTreeType = RunConfigurationModel | BenchModel
 
 PLOTEXT_MARKER = "braille"
-INITIAL_TAB = "metrics-tab"
+INITIAL_TAB = "run-tab"
 
 
 class TestPlanTree(Tree[TestPlanTreeType]):
@@ -60,6 +63,36 @@ class TestPlanTree(Tree[TestPlanTreeType]):
         self.previous_cursor_node = self.cursor_node
 
 
+class RunDialogScreen(Screen[None]):
+    """Screen with a dialog to quit."""
+
+    progress_timer: Timer
+
+    def compose(self) -> ComposeResult:
+        """Compose the structure of the dialog screen."""
+        with Vertical(id="run-dialog"):
+            yield Label(
+                "Waiting for queued jobs to complete.\nYou can continue, but may need to reload once they are complete.",
+                id="run-dialog-message",
+            )
+            yield ProgressBar(id="run-dialog-progress")
+            yield Button("Continue", variant="primary", id="run-dialog-continue")
+
+    def on_mount(self) -> None:
+        """Set up a timer to simulate progess happening."""
+        self.progress_timer = self.set_interval(1 / 10, self.make_progress)
+        self.query_one(ProgressBar).update(total=100)
+
+    def make_progress(self) -> None:
+        """Called automatically to advance the progress bar."""
+        self.query_one(ProgressBar).advance(1)
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Dismiss the modal dialog when the continue button is pressed."""
+        if event.button.id == "run-dialog-continue":
+            self.app.pop_screen()
+
+
 class UserInterface(App[None]):
     """The interactive TUI."""
 
@@ -68,7 +101,8 @@ class UserInterface(App[None]):
     SUB_TITLE = "A Swiss army knife for comparing programs on HPC resources"
 
     BINDINGS = [
-        ("q", "quit", "quit"),
+        ("q", "quit", "Quit"),
+        # TODO: Add button to reload test plan
     ]
 
     def __init__(self, test_plan: TestPlan, *args, **kwargs) -> None:
@@ -109,6 +143,11 @@ class UserInterface(App[None]):
         """Initialise data when the application is created."""
         tree = self.query_one(TestPlanTree)
         tree.populate()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """."""
+        if event.button.id == "run-button":
+            self.push_screen(RunDialogScreen())
 
     def remove_start_pane(self) -> None:
         """Remove the start pane from the screen."""
