@@ -12,7 +12,7 @@
     - [x] Multiple nested arguments
     - [x] Pairwise arguments
     - [ ] Default groups for executables
-    - [ ] Mode top level key (or in benches, with "disabled" enum value as well?), so only param needed is a path to a yaml file
+    - [ ] Optional key to disable test benches in YAML
   - [ ] Optional extras
     - [x] Argument parsing from the command line
     - [ ] Unit tests
@@ -29,7 +29,7 @@
           - (is this useful? perhaps better as a list?)
         - [x] Listing argument variations for test bench
         - [x] Listing sbatch file contents for run configuration
-        - [ ] metric table for parent test bench (even when run config selected), requires improving analysis code
-        - [ ] metric plotting --"--
+        - [x] metric table for parent test bench (even when run config selected), requires improving analysis code
+        - [x] metric plotting --"--
         - [ ] run configuration/bench button to send off jobs to slurm
-        - [ ] modal dialog to wait on slurm queue (could be an async function?)
+        - [x] modal dialog to wait on slurm queue (could be an async function?)
