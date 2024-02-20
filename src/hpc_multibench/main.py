@@ -43,7 +43,7 @@ def get_parser() -> ArgumentParser:
 
 def main() -> None:  # pragma: no cover
     """Run the tool."""
-    # Path("./yaml_examples/kudu_plan.yaml")
+    # We can set yaml_path to `Path("./yaml_examples/kudu_plan.yaml")`
     args: Namespace = get_parser().parse_args()
     test_plan = TestPlan.from_yaml(args.yaml_path)
 

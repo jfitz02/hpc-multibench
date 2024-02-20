@@ -58,7 +58,8 @@ verify: check test
 ### Execution ###
 .PHONY: run
 run: .venv/
-	@poetry run python3 -m hpc_multibench
+	@echo "Run: 'poetry run python3 -m hpc_multibench yaml_examples/kudu_plan.yaml'"
+# @poetry run python3 -m hpc_multibench
 
 
 ### Documentation ###

@@ -2,13 +2,23 @@
     width: 25%;
     height: 100%;
 }
-
-#view-pane {
+#informer {
     width: 75%;
     height: 100%;
 }
 
-.run-button {
+#start-pane {
+    align: center middle;
+    width: 75%;
+    height: 100%;
+}
+#start-pane-label {
+    text-align: center;
+    content-align: center middle;
+}
+
+#run-button {
+    align: center bottom;
     margin: 1;
     width: 100%;
 }

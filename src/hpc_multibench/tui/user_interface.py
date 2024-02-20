@@ -1,12 +1,15 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""The definition of the user interface."""
+
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal
+from textual.containers import Horizontal, Container
 from textual.widgets import (
     Button,
     DataTable,
     Footer,
     Header,
-    Static,
+    Label,
     TabbedContent,
     TabPane,
     Tree,
@@ -17,22 +20,20 @@ from textual_plotext import PlotextPlot
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel, TestPlan
 
 
-class RunAnalysisPlot(PlotextPlot):
-    pass
-
-
 TestPlanTreeType = RunConfigurationModel | BenchModel
 
 
 class TestPlanTree(Tree[TestPlanTreeType]):
+    """A tree showing the hierarchy of benches and runs in a test plan."""
+    
     def __init__(self, *args, **kwargs) -> None:
-        """."""
+        """Instantiate a tree representing a test plan."""
         self.previous_cursor_node: TreeNode[TestPlanTreeType] | None = None
         self._app: "UserInterface" = self.app
         super().__init__(*args, **kwargs)
 
     def populate(self) -> None:
-        """."""
+        """Populate the tree with data from the test plan."""
         for bench_name, bench in self._app.test_plan.benches.items():
             bench_node = self.root.add(bench_name, data=bench)
             for run_configuration_name in bench.run_configurations:
@@ -57,6 +58,8 @@ class TestPlanTree(Tree[TestPlanTreeType]):
 
 
 class UserInterface(App[None]):
+    """The interactive TUI."""
+
     CSS_PATH = "user_interface.tcss"
     TITLE = "HPC MultiBench"
     SUB_TITLE = "A Swiss army knife for comparing programs on HPC resources"
@@ -68,6 +71,7 @@ class UserInterface(App[None]):
     def __init__(self, test_plan: TestPlan, *args, **kwargs) -> None:
         """."""
         self.test_plan: TestPlan = test_plan
+        self.start_pane_shown: bool = True
         super().__init__(*args, **kwargs)
 
     def compose(self) -> ComposeResult:
@@ -75,44 +79,58 @@ class UserInterface(App[None]):
         with Horizontal():
             yield TestPlanTree(label="Test Plan", id="explorer")
 
-            with TabbedContent(initial="run", id="view-pane"):
-                with TabPane("Run", id="run"):
-                    # yield Static("Select a benchmark to start", id="test-node")
-                    yield Static("Select a benchmark to start", id="information-box")
-                    yield Button("Run", classes="run-button")
-                with TabPane("Metrics", id="metrics"):
+            with Container(id="start-pane"):
+                yield Label("Select a benchmark or run to start", id="start-pane-label")
+
+            with TabbedContent(initial="run-tab", id="informer"):
+                with TabPane("Run", id="run-tab"):
+                    yield Label("Select a benchmark to start", id="run-information")
+                    yield Button("Run", id="run-button")
+                with TabPane("Metrics", id="metrics-tab"):
                     yield DataTable(id="metrics-table")
-                    yield Button("Re-run", classes="run-button")
-                with TabPane("Plot", id="plot"):
-                    yield RunAnalysisPlot(id="metrics_plot")
-                    yield Button("Re-run", classes="run-button")
+                with TabPane("Plot", id="plot-tab"):
+                    yield PlotextPlot(id="metrics-plot")
         yield Footer()
 
     def on_mount(self) -> None:
         tree = self.query_one(TestPlanTree)
         tree.populate()
 
-        plt = self.query_one("#metrics_plot", RunAnalysisPlot).plt
-        plt.title("Scatter Plot")
-        plt.plot(plt.sin())
+    def remove_start_pane(self) -> None:
+        """Remove the start pane from the screen."""
+        if self.start_pane_shown:
+            self.query_one("#start-pane", Container).remove()
+            self.start_pane_shown = False
+
+    def update_run_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
+        """."""
+        run_information = self.query_one("#run-information", Label)
+        output_string = f"{type(node.data)} {node.label}"
+        if isinstance(node.data, BenchModel):
+            output_string = "\n".join([str(x) for x in node.data.matrix_iterator])
+        else:
+            output_string = node.data.realise("", str(node.label), {}).sbatch_contents
+        run_information.update(output_string)
+
+    def update_metrics_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
+        """."""
+        metrics_table = self.query_one("#metrics-table", DataTable)
+        if isinstance(node.data, BenchModel):
+            metrics_table.add_columns(*node.data.analysis.metrics.keys())
+            metrics_table.add_row([])
+            # for results in node.data.get_analysis(str(node.label)):
+            #     metrics_table.add_row(*[str(x) for x in results.values()])
+
+    def update_plot_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
+        """."""
+        metrics_plot = self.query_one("#metrics-plot", PlotextPlot).plt
+        metrics_plot.title("Scatter Plot")
+        metrics_plot.plot(metrics_plot.sin())
 
     def handle_tree_selection(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""
-        info_box = self.app.query_one("#information-box", Static)
-        metrics_table = self.app.query_one("#metrics-table", DataTable)
-        metrics_plot = self.query_one("#metrics_plot", RunAnalysisPlot).plt
+        self.remove_start_pane()
 
-        output_string = f"{type(node.data)} {node.label}"
-        if isinstance(node.data, BenchModel):
-            # Run tab
-            output_string = "\n".join([str(x) for x in node.data.matrix_iterator])
-            # Metrics tab
-            metrics_table.add_columns(*node.data.analysis.metrics.keys())
-            for results in node.data.get_analysis(str(node.label)):
-                metrics_table.add_row(*[str(x) for x in results.values()])
-            # Plot tab
-            metrics_plot.title("Run time / Mesh width")
-            metrics_plot.plot([100, 200, 300], [100, 200, 300])
-        else:
-            output_string = node.data.realise("", str(node.label), {}).sbatch_contents
-        info_box.update(output_string)
+        self.update_run_tab(node)
+        self.update_metrics_tab(node)
+        self.update_plot_tab(node)
