@@ -21,6 +21,9 @@ from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel, TestPla
 
 TestPlanTreeType = RunConfigurationModel | BenchModel
 
+PLOTEXT_MARKER = "braille"
+INITIAL_TAB = "metrics-tab"
+
 
 class TestPlanTree(Tree[TestPlanTreeType]):
     """A tree showing the hierarchy of benches and runs in a test plan."""
@@ -84,7 +87,7 @@ class UserInterface(App[None]):
             with Container(id="start-pane"):
                 yield Label("Select a benchmark or run to start", id="start-pane-label")
 
-            with TabbedContent(initial="run-tab", id="informer"):
+            with TabbedContent(initial=INITIAL_TAB, id="informer"):
                 with TabPane("Run", id="run-tab"):
                     yield Label("Select a benchmark to start", id="run-information")
                     yield Button("Run", id="run-button")
@@ -135,12 +138,28 @@ class UserInterface(App[None]):
 
     def update_plot_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""
-        metrics_plot = self.query_one("#metrics-plot", PlotextPlot).plt
-        metrics_plot.title("Scatter Plot")
+        metrics_plot_widget = self.query_one("#metrics-plot", PlotextPlot)
+        metrics_plot = metrics_plot_widget.plt
+        metrics_plot.clear_figure()
+        metrics_plot.title("Benchmark analysis")
         if isinstance(node.data, BenchModel):
-            metrics_plot.plot(metrics_plot.sin())
+            # metrics_plot.plot(metrics_plot.sin())
+            for name, result in node.data.comparative_plot_results(
+                str(node.label)
+            ).items():
+                metrics_plot.plot(
+                    *zip(*result, strict=True), label=name, marker=PLOTEXT_MARKER
+                )
         else:
-            metrics_plot.plot(metrics_plot.sin())
+            assert node.parent is not None
+            for name, result in node.parent.data.comparative_plot_results(
+                str(node.parent.label)
+            ).items():
+                if name == str(node.label):
+                    metrics_plot.plot(
+                        *zip(*result, strict=True), label=name, marker=PLOTEXT_MARKER
+                    )
+        metrics_plot_widget.refresh()
 
     def handle_tree_selection(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""
