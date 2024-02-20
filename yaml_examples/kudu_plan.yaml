@@ -99,56 +99,82 @@ run_configurations:
     run_command: "mpirun -n 2 ./target/release/hpccg-rs"
 
 benches:
-  # "serial":
-  #   run_configurations:
-  #     - "cpp-hybrid"
-  #     - "rust-mpi"  # TODO: Make rust hybrid version
-  #   matrix:
-  #     args:
-  #       - "100 100 100"
-  #       - "200 200 200"
-  #       - "300 300 300"
-  #       - "400 400 400"
-  #       - "500 500 500"
-  #     sbatch_config:
-  #       - "nodes": 2
-  #         "mem-per-cpu": 1000
-  #   analysis:
-  #     metrics:
-  #       "Mesh x size": "nx: (\\d+)"
-  #       "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #     plot:
-  #       x: "Mesh x size"
-  #       y: "Total time (s)"
+  "serial":
+    run_configurations:
+      - "cpp-reference"
+      - "rust-reference"
+    matrix:
+      args:
+        - "100 100 100"
+        - "200 200 200"
+        - "300 300 300"
+        - "400 400 400"
+        - "500 500 500"
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
+        "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
+        "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
+      plot:
+        x: "Mesh x size"
+        y: "Total time (s)"
 
 
-  # "parallel":
-  #   run_configurations:
-  #     - "cpp-hybrid"
-  #     - "rust-mpi"  # TODO: Make rust hybrid version
-  #   matrix:
-  #     args:
-  #       - "100 100 100"
-  #       - "200 200 200"
-  #       - "300 300 300"
-  #       - "400 400 400"
-  #       - "500 500 500"
-  #     sbatch_config:
-  #       - "nodes": 2
-  #         "mem-per-cpu": 1000
-  #   analysis:
-  #     metrics:
-  #       "Mesh x size": "nx: (\\d+)"
-  #       "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #     plot:
-  #       x: "Mesh x size"
-  #       y: "Total time (s)"
-
+  "parallel":
+    run_configurations:
+      - "cpp-openmp"
+      - "rust-rayon"
+    matrix:
+      args:
+        - "100 100 100"
+        - "200 200 200"
+        - "300 300 300"
+        - "400 400 400"
+        - "500 500 500"
+      environment_variables:
+        - {"OMP_NUM_THREADS": 1}
+        - {"OMP_NUM_THREADS": 4}
+        - {"OMP_NUM_THREADS": 16}
+        - {"OMP_NUM_THREADS": 64}
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
+        "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
+        "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
+      plot:
+        x: "Mesh x size"
+        y: "Total time (s)"
 
   # "rust-techniques":
   #   run_configurations:
-  #     - "cpp-hybrid"
-  #     - "rust-mpi"  # TODO: Make rust hybrid version
+  #     # TODO: Make run configurations for all other rust versions
+  #     - "rust-reference"
+  #     - "rust-rayon"
+  #     - "rust-mpi"
   #   matrix:
   #     args:
   #       - "100 100 100"
@@ -156,9 +182,6 @@ benches:
   #       - "300 300 300"
   #       - "400 400 400"
   #       - "500 500 500"
-  #     sbatch_config:
-  #       - "nodes": 2
-  #         "mem-per-cpu": 1000
   #   analysis:
   #     metrics:
   #       "Mesh x size": "nx: (\\d+)"
@@ -167,29 +190,43 @@ benches:
   #       x: "Mesh x size"
   #       y: "Total time (s)"
 
+  "mpi":
+    run_configurations:
+      - "cpp-mpi"
+      - "rust-mpi"  # TODO: Make and switch to rust hybrid version
+    matrix:
+      args:
+        - "500 500 500"
+      [sbatch_config, environment_variables]:
+        - [{"nodes": 1}, {"OMP_NUM_THREADS": 40}]
+        - [{"nodes": 2}, {"OMP_NUM_THREADS": 20}]
+        - [{"nodes": 4}, {"OMP_NUM_THREADS": 10}]
+        - [{"nodes": 10}, {"OMP_NUM_THREADS": 4}]
+        - [{"nodes": 20}, {"OMP_NUM_THREADS": 2}]
+        - [{"nodes": 40}, {"OMP_NUM_THREADS": 1}]
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
+        "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
+        "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
+      plot:
+        x: "Mesh x size"
+        y: "Total time (s)"
 
-  # "mpi":
-  #   run_configurations:
-  #     - "cpp-hybrid"
-  #     - "rust-mpi"  # TODO: Make rust hybrid version
-  #   matrix:
-  #     args:
-  #       - "100 100 100"
-  #       - "200 200 200"
-  #       - "300 300 300"
-  #       - "400 400 400"
-  #       - "500 500 500"
-  #     sbatch_config:
-  #       - "nodes": 2
-  #         "mem-per-cpu": 1000
-  #   analysis:
-  #     metrics:
-  #       "Mesh x size": "nx: (\\d+)"
-  #       "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #     plot:
-  #       x: "Mesh x size"
-  #       y: "Total time (s)"
-
+  # TODO: Add stream benchmark run config (submodule/build/run it, not HPCCG)
+  # TODO: Add size stretching tests informed by stream to break out of cache
 
   "strong-scaling":
     run_configurations:
