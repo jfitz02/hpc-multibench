@@ -104,7 +104,7 @@ benches:
       - "cpp-reference"
       - "cpp-openmp"
       - "cpp-mpi"
-      - "cpp-hybrid"
+      # - "cpp-hybrid"
       - "rust-reference"
       - "rust-rayon"
       - "rust-mpi"

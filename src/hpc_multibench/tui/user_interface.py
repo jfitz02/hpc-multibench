@@ -3,7 +3,7 @@
 """The definition of the user interface."""
 
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, Container
+from textual.containers import Container, Horizontal
 from textual.widgets import (
     Button,
     DataTable,
@@ -19,13 +19,12 @@ from textual_plotext import PlotextPlot
 
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel, TestPlan
 
-
 TestPlanTreeType = RunConfigurationModel | BenchModel
 
 
 class TestPlanTree(Tree[TestPlanTreeType]):
     """A tree showing the hierarchy of benches and runs in a test plan."""
-    
+
     def __init__(self, *args, **kwargs) -> None:
         """Instantiate a tree representing a test plan."""
         self.previous_cursor_node: TreeNode[TestPlanTreeType] | None = None
@@ -52,7 +51,7 @@ class TestPlanTree(Tree[TestPlanTreeType]):
         """Pass the selection back and only toggle if already selected."""
         if self.cursor_node is not None:
             self._app.handle_tree_selection(self.cursor_node)
-            if self.cursor_node == self.previous_cursor_node:
+            if self.cursor_node in (self.previous_cursor_node, self.root):
                 self.cursor_node.toggle()
         self.previous_cursor_node = self.cursor_node
 
@@ -75,10 +74,13 @@ class UserInterface(App[None]):
         super().__init__(*args, **kwargs)
 
     def compose(self) -> ComposeResult:
+        """Compose the structure of the application."""
         yield Header()
         with Horizontal():
+            # The navigation bar for the test plan
             yield TestPlanTree(label="Test Plan", id="explorer")
 
+            # The starting pane that conceals the data pane when nothing selected
             with Container(id="start-pane"):
                 yield Label("Select a benchmark or run to start", id="start-pane-label")
 
@@ -93,6 +95,7 @@ class UserInterface(App[None]):
         yield Footer()
 
     def on_mount(self) -> None:
+        """Initialise data when the application is created."""
         tree = self.query_one(TestPlanTree)
         tree.populate()
 
@@ -115,20 +118,35 @@ class UserInterface(App[None]):
     def update_metrics_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""
         metrics_table = self.query_one("#metrics-table", DataTable)
+        metrics_table.clear(columns=True)
         if isinstance(node.data, BenchModel):
-            metrics_table.add_columns(*node.data.analysis.metrics.keys())
-            metrics_table.add_row([])
-            # for results in node.data.get_analysis(str(node.label)):
-            #     metrics_table.add_row(*[str(x) for x in results.values()])
+            column_names = ["Name", *list(node.data.analysis.metrics.keys())]
+            metrics_table.add_columns(*column_names)
+            for results in node.data.get_analysis(str(node.label)):
+                metrics_table.add_row(*results.values())
+        else:
+            assert node.parent is not None
+            metrics_table.add_columns(*node.parent.data.analysis.metrics.keys())
+            for results in node.parent.data.get_analysis(str(node.parent.label)):
+                if results["name"] == str(node.label):
+                    metrics_table.add_row(
+                        *[value for key, value in results.items() if key != "name"]
+                    )
 
     def update_plot_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""
         metrics_plot = self.query_one("#metrics-plot", PlotextPlot).plt
         metrics_plot.title("Scatter Plot")
-        metrics_plot.plot(metrics_plot.sin())
+        if isinstance(node.data, BenchModel):
+            metrics_plot.plot(metrics_plot.sin())
+        else:
+            metrics_plot.plot(metrics_plot.sin())
 
     def handle_tree_selection(self, node: TreeNode[TestPlanTreeType]) -> None:
         """."""
+        if node == self.query_one(TestPlanTree).root:
+            return
+
         self.remove_start_pane()
 
         self.update_run_tab(node)
