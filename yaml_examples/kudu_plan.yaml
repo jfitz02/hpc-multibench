@@ -144,9 +144,10 @@ benches:
         - "400 400 400"
         - "500 500 500"
       environment_variables:
-        - {"OMP_NUM_THREADS": 1}
+        - {"OMP_NUM_THREADS": 1} ## TODO: RAYON_NUM_THREADS needs to be set
         - {"OMP_NUM_THREADS": 4}
         - {"OMP_NUM_THREADS": 16}
+        - {"OMP_NUM_THREADS": 32}
         - {"OMP_NUM_THREADS": 64}
     analysis:
       metrics:
@@ -198,7 +199,7 @@ benches:
       args:
         - "500 500 500"
       [sbatch_config, environment_variables]:
-        - [{"nodes": 1}, {"OMP_NUM_THREADS": 40}]
+        - [{"nodes": 1}, {"OMP_NUM_THREADS": 40}]  ## TODO: Figure out best for one MPI node, then duplicate across many
         - [{"nodes": 2}, {"OMP_NUM_THREADS": 20}]
         - [{"nodes": 4}, {"OMP_NUM_THREADS": 10}]
         - [{"nodes": 10}, {"OMP_NUM_THREADS": 4}]
