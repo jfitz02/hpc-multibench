@@ -1,0 +1,94 @@
+run_configurations:
+  "cpp-mpi":
+    sbatch_config:
+      "nodes": 1
+      "cpus-per-task": 2
+      "mem-per-cpu": 1500
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../0_cpp_versions/2_mpi"
+    build_commands:
+      - "make -j 8"
+    run_command: "mpirun ./test_HPCCG"
+
+  "cpp-hybrid":
+    sbatch_config:
+      "nodes": 1
+      "cpus-per-task": 2
+      "mem-per-cpu": 1500
+    module_loads:
+      - "cs402-mpi"
+    environment_variables:
+      "OMP_NUM_THREADS": 2
+    directory: "../0_cpp_versions/3_hybrid"
+    build_commands:
+      - "make -j 8"
+    run_command: "mpirun ./test_HPCCG"
+
+benches:
+  "strong-scaling":
+    run_configurations:
+      - "cpp-hybrid"
+    matrix:
+      [args, run_command]:
+        - ["64 64 1024", "mpirun -np 1 ./test_HPCCG"]
+        - ["64 64 512", "mpirun -np 2 ./test_HPCCG"]
+        - ["64 64 256", "mpirun -np 4 ./test_HPCCG"]
+        - ["64 64 128", "mpirun -np 8 ./test_HPCCG"]
+        - ["64 64 64", "mpirun -np 16 ./test_HPCCG"]
+        - ["64 64 32", "mpirun -np 32 ./test_HPCCG"]
+        - ["64 64 16", "mpirun -np 64 ./test_HPCCG"]
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
+        "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
+        "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
+      plot:
+        x: "Mesh x size"
+        y: "Total time (s)"
+
+  "weak-scaling":
+    run_configurations:
+      - "cpp-hybrid"
+    matrix:
+      run_command:
+        - "mpirun -np 1 ./test_HPCCG"
+        - "mpirun -np 2 ./test_HPCCG"
+        - "mpirun -np 4 ./test_HPCCG"
+        - "mpirun -np 8 ./test_HPCCG"
+        - "mpirun -np 16 ./test_HPCCG"
+        - "mpirun -np 32 ./test_HPCCG"
+        - "mpirun -np 64 ./test_HPCCG"
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
+        "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
+        "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
+      plot:
+        x: "Mesh x size"
+        y: "Total time (s)"
