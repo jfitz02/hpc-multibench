@@ -4,6 +4,7 @@ run_configurations:
       "nodes": 1
       "ntasks-per-node": 1
       "cpus-per-task": 1
+      "exclusive": "mcs"
       "mem-per-cpu": 1500
     module_loads: []
     environment_variables: {}
@@ -17,6 +18,7 @@ run_configurations:
       "nodes": 1
       "ntasks-per-node": 1
       "cpus-per-task": 16
+      "exclusive": "mcs"
       "mem-per-cpu": 1500
     module_loads: []
     environment_variables:
@@ -31,6 +33,7 @@ run_configurations:
   #     "nodes": 2
   #     "ntasks-per-node": 8
   #     "cpus-per-task": 1
+  #     "exclusive": "mcs"
   #     "mem-per-cpu": 1500
   #   module_loads:
   #     - "cs402-mpi"
@@ -45,6 +48,7 @@ run_configurations:
   #     "nodes": 2
   #     "ntasks-per-node": 4
   #     "cpus-per-task": 2
+  #     "exclusive": "mcs"
   #     "mem-per-cpu": 1500
   #   module_loads:
   #     - "cs402-mpi"
@@ -60,6 +64,7 @@ run_configurations:
       "nodes": 1
       "ntasks-per-node": 1
       "cpus-per-task": 1
+      "exclusive": "mcs"
       "mem-per-cpu": 1500
     module_loads: []
     environment_variables: {}
@@ -73,6 +78,7 @@ run_configurations:
       "nodes": 1
       "ntasks-per-node": 1
       "cpus-per-task": 16
+      "exclusive": "mcs"
       "mem-per-cpu": 1500
     module_loads: []
     environment_variables:
@@ -87,6 +93,7 @@ run_configurations:
   #     "nodes": 2
   #     "ntasks-per-node": 8
   #     "cpus-per-task": 1
+  #     "exclusive": "mcs"
   #     "mem-per-cpu": 1500
   #   module_loads:
   #     - "cs402-mpi"
@@ -101,6 +108,7 @@ run_configurations:
   #     "nodes": 2
   #     "ntasks-per-node": 4
   #     "cpus-per-task": 2
+  #     "exclusive": "mcs"
   #     "mem-per-cpu": 1500
   #   module_loads:
   #     - "cs402-mpi"

@@ -52,7 +52,12 @@ class RunConfiguration:
             sbatch_file += f"export {key}={value}\n"
 
         sbatch_file += "\necho '===== ENVIRONMENT ====='\n"
+        sbatch_file += "echo '=== CPU ARCHITECTURE ==='\n"
         sbatch_file += "lscpu\n"
+        sbatch_file += "echo '=== HOSTNAME ==='\n"
+        sbatch_file += "hostname\n"
+        sbatch_file += "echo '=== SLURM CONFIG ==='\n"
+        sbatch_file += "scontrol show job $SLURM_JOB_ID\n"
         sbatch_file += "echo\n"
 
         sbatch_file += "\necho '===== BUILD ====='\n"

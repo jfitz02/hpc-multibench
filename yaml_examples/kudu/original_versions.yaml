@@ -3,7 +3,8 @@ run_configurations:
     sbatch_config:
       "nodes": 1
       "ntasks-per-node": 1
-      "cpus-per-task": 1
+      "cpus-per-task": 16
+      "exclusive": "mcs"
       "mem-per-cpu": 1500
     module_loads: []
     environment_variables: {}
@@ -17,6 +18,7 @@ run_configurations:
       "nodes": 1
       "ntasks-per-node": 1
       "cpus-per-task": 16
+      "exclusive": "mcs"
       "mem-per-cpu": 1500
     module_loads: []
     environment_variables:
@@ -28,9 +30,10 @@ run_configurations:
 
   "cpp-mpi":
     sbatch_config:
-      "nodes": 2
-      "ntasks-per-node": 8
-      "cpus-per-task": 1
+      "nodes": 1
+      "ntasks-per-node": 16
+      "cpus-per-task": 2
+      "exclusive": "mcs"
       "mem-per-cpu": 1500
     module_loads:
       - "cs402-mpi"
@@ -38,13 +41,14 @@ run_configurations:
     directory: "../0_cpp_versions/2_mpi"
     build_commands:
       - "make -j 8"
-    run_command: "mpirun -n 16 ./test_HPCCG"  # TODO: Select best MPI config
+    run_command: "mpirun -np 16 ./test_HPCCG"  # TODO: Select best MPI config
 
   "cpp-hybrid":
     sbatch_config:
-      "nodes": 2
-      "ntasks-per-node": 4
+      "nodes": 1
+      "ntasks-per-node": 16
       "cpus-per-task": 2
+      "exclusive": "mcs"
       "mem-per-cpu": 1500
     module_loads:
       - "cs402-mpi"
@@ -53,7 +57,7 @@ run_configurations:
     directory: "../0_cpp_versions/3_hybrid"
     build_commands:
       - "make -j 8"
-    run_command: "mpirun -n 16 ./test_HPCCG"  # TODO: Select best MPI config
+    run_command: "mpirun -np 16 ./test_HPCCG"  # TODO: Select best MPI config
 
 
 benches:
@@ -66,8 +70,8 @@ benches:
     matrix:
       args:
         - "100 100 100"
-        - "300 300 300"
-        - "500 500 500"
+        # - "300 300 300"
+        # - "500 500 500"
     analysis:
       metrics:
         "Mesh x size": "nx: (\\d+)"
