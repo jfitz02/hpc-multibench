@@ -2,6 +2,7 @@ run_configurations:
   "cpp-mpi":
     sbatch_config:
       "nodes": 1
+      "ntasks-per-node": 16
       "cpus-per-task": 2
       "mem-per-cpu": 3700
     module_loads:
@@ -16,6 +17,7 @@ run_configurations:
   "cpp-hybrid":
     sbatch_config:
       "nodes": 1
+      "ntasks-per-node": 16
       "cpus-per-task": 2
       "mem-per-cpu": 3700
     module_loads:
@@ -31,6 +33,7 @@ run_configurations:
 benches:
   "strong-scaling":
     run_configurations:
+      # - "cpp-mpi"
       - "cpp-hybrid"
     matrix:
       [args, run_command]:
@@ -39,8 +42,8 @@ benches:
         - ["64 64 256", "mpirun -np 4 ./test_HPCCG"]
         - ["64 64 128", "mpirun -np 8 ./test_HPCCG"]
         - ["64 64 64", "mpirun -np 16 ./test_HPCCG"]
-        - ["64 64 32", "mpirun -np 32 ./test_HPCCG"]
-        - ["64 64 16", "mpirun -np 64 ./test_HPCCG"]
+        # - ["64 64 32", "mpirun -np 32 ./test_HPCCG"]  # Exceeds Avon's resource capacity...
+        # - ["64 64 16", "mpirun -np 64 ./test_HPCCG"]
     analysis:
       metrics:
         "Mesh x size": "nx: (\\d+)"
@@ -64,16 +67,19 @@ benches:
 
   "weak-scaling":
     run_configurations:
+      # - "cpp-mpi"
       - "cpp-hybrid"
     matrix:
+      args:
+        - "64 64 64"
       run_command:
         - "mpirun -np 1 ./test_HPCCG"
         - "mpirun -np 2 ./test_HPCCG"
         - "mpirun -np 4 ./test_HPCCG"
         - "mpirun -np 8 ./test_HPCCG"
         - "mpirun -np 16 ./test_HPCCG"
-        - "mpirun -np 32 ./test_HPCCG"
-        - "mpirun -np 64 ./test_HPCCG"
+        # - "mpirun -np 32 ./test_HPCCG"  # Exceeds Avon's resource capacity...
+        # - "mpirun -np 64 ./test_HPCCG"
     analysis:
       metrics:
         "Mesh x size": "nx: (\\d+)"

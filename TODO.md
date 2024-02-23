@@ -14,6 +14,7 @@
     - [ ] Default groups for executables
     - [ ] Optional key to disable test benches in YAML
   - [ ] Optional extras
+    - [ ] dry run flag
     - [x] Argument parsing from the command line
     - [ ] Unit tests
     - [ ] Documentations

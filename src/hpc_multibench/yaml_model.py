@@ -211,6 +211,7 @@ class TestPlan(BaseModel):
         for bench_name, bench in self.benches.items():
             for run in bench.get_runs(bench_name, self.run_configurations):
                 print(run)
+                run.run()
                 # Run the configurations with `run.run()`
 
     def analyse(self) -> None:
