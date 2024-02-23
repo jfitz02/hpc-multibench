@@ -1,0 +1,122 @@
+run_configurations:
+  "cpp-openmp":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 16
+      "mem-per-cpu": 1500
+    module_loads: []
+    environment_variables:
+      "OMP_NUM_THREADS": 16
+    directory: "../0_cpp_versions/1_openmp"
+    build_commands:
+      - "make -j 8"
+    run_command: "./test_HPCCG"
+
+  "cpp-hybrid":
+    sbatch_config:
+      "nodes": 2
+      "ntasks-per-node": 4
+      "cpus-per-task": 2
+      "mem-per-cpu": 1500
+    module_loads:
+      - "cs402-mpi"
+    environment_variables:
+      "OMP_NUM_THREADS": 2
+    directory: "../0_cpp_versions/3_hybrid"
+    build_commands:
+      - "make -j 8"
+    run_command: "mpirun -n 16 ./test_HPCCG"  # TODO: Select best MPI config
+
+  "cpp-kokkos":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 16
+      "mem-per-cpu": 1500
+    module_loads: []
+    environment_variables:
+      "OMP_NUM_THREADS": 16
+    directory: "../0_cpp_versions/5_kokkos"
+    build_commands:
+      - "make -j 8"
+    run_command: "./test_HPCCG"
+
+  "cpp-kokkos-mpi":
+    sbatch_config:
+      "nodes": 2
+      "ntasks-per-node": 4
+      "cpus-per-task": 2
+      "mem-per-cpu": 1500
+    module_loads:
+      - "cs402-mpi"
+    environment_variables:
+      "OMP_NUM_THREADS": 2
+    directory: "../0_cpp_versions/5_kokkos_mpi"
+    build_commands:
+      - "make -j 8"
+    run_command: "mpirun -n 16 ./test_HPCCG"  # TODO: Select best MPI config
+
+  "rust-rayon":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 16
+      "mem-per-cpu": 1500
+    module_loads: []
+    environment_variables:
+      "RAYON_NUM_THREADS": 16
+    directory: "../6_parallel"
+    build_commands:
+      - "cargo build --release"
+    run_command: "./target/release/hpccg-rs"
+
+  "rust-hybrid":
+    sbatch_config:
+      "nodes": 2
+      "ntasks-per-node": 4
+      "cpus-per-task": 2
+      "mem-per-cpu": 1500
+    module_loads:
+      - "cs402-mpi"
+    environment_variables:
+      "RAYON_NUM_THREADS": 2
+    directory: "../8_hybrid"
+    build_commands:
+      - "cargo build --release"
+    run_command: "mpirun -n 16 ./target/release/hpccg-rs"  # TODO: Select best MPI config
+
+benches:
+  "cpp-kokkos-rust":
+    run_configurations:
+      - "cpp-openmp"
+      - "cpp-hybrid"
+      - "cpp-kokkos"
+      - "cpp-kokkos-mpi"
+      - "rust-rayon"
+      - "rust-hybrid"
+    matrix:
+      args:
+        - "100 100 100"
+        - "300 300 300"
+        - "500 500 500"
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
+        "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
+        "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
+      plot:
+        x: "Mesh x size"
+        y: "Total time (s)"
