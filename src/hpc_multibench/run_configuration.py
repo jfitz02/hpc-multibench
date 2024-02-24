@@ -17,8 +17,9 @@ SLURM_UNQUEUED_SUBSTRING = "Invalid job id specified"
 class RunConfiguration:
     """A builder class for a test run on batch compute."""
 
-    def __init__(self, run_command: str, output_file: Path):
+    def __init__(self, name: str, run_command: str, output_file: Path):
         """Initialise the run configuration file as a empty bash file."""
+        self.name = name
         self.output_file: Path = output_file
         self.sbatch_config: dict[str, str] = {}
         self.module_loads: list[str] = []
@@ -69,6 +70,24 @@ class RunConfiguration:
         sbatch_file += f"time {self.run_command} {self.args}\n"
 
         return sbatch_file
+
+    @classmethod
+    def get_output_file_name(
+        cls, run_configuration_name: str, instantiation: dict[str, Any] | None = None
+    ) -> str:
+        """Construct an output file name for a run."""
+        # TODO: If instantiation is now class member, can this be a true method/property?
+        #  -> Would remove parameter into __init__...
+        if instantiation is not None:
+            # TODO: Better representation of sbatch etc than stringifying
+            # Could be worth making this stringify a class method of bench model
+            instantation_str = "__" + ",".join(
+                f"{name}={str(value).replace('/','').replace(' ','_')}"
+                for name, value in instantiation.items()
+            )
+        else:
+            instantation_str = ""
+        return f"{run_configuration_name}{instantation_str}__%j.out"
 
     def run(self) -> int | None:
         """Run the specified run configuration."""

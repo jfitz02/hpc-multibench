@@ -9,6 +9,8 @@ from pydantic import BaseModel
 from ruamel.yaml import YAML
 from typing_extensions import Self
 
+from hpc_multibench.run_configuration import RunConfiguration
+
 
 class RunConfigurationModel(BaseModel):
     """A Pydantic model for an executable."""
@@ -21,7 +23,32 @@ class RunConfigurationModel(BaseModel):
     run_command: str
     args: str | None = None
 
-    # TODO: Could provide `realise()`?
+    def realise(
+        self, bench_name: str, run_configuration_name: str, variables: dict[str, Any]
+    ) -> RunConfiguration:
+        """Construct a run configuration from its data model."""
+        # Get the output file path
+        output_file_name = RunConfiguration.get_output_file_name(
+            run_configuration_name, variables
+        )
+        output_file = BASE_OUTPUT_DIRECTORY / bench_name / output_file_name
+
+        # TODO: Modify contents based on variables keys here
+
+        run = RunConfiguration(run_configuration_name, self.run_command, output_file)
+        run.sbatch_config = self.sbatch_config
+        run.module_loads = self.module_loads
+        run.environment_variables = self.environment_variables
+        run.directory = Path(self.directory)
+        run.build_commands = self.build_commands
+        run.args = self.args
+
+        # Fix this to work for more things than args...
+        for key, value in variables.items():
+            # TODO: Error checking on keys
+            setattr(run, key, value)
+
+        return run
 
 
 class PlotModel(BaseModel):

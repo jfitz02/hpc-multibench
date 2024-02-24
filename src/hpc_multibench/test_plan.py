@@ -5,8 +5,8 @@
 from copy import deepcopy
 from pathlib import Path
 
-from hpc_multibench.yaml_model import TestPlanModel
 from hpc_multibench.test_bench import TestBench
+from hpc_multibench.yaml_model import TestPlanModel
 
 
 class TestPlan:
