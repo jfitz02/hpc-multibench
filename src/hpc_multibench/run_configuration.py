@@ -28,7 +28,7 @@ class RunConfiguration:
         self.build_commands: list[str] = []
         self.run_command: str = run_command
         self.args: str | None = None
-        self.instantiation: Any | None = None
+        self.instantiation: dict[str, Any] | None = None
 
     @property
     def sbatch_contents(self) -> str:
@@ -78,16 +78,21 @@ class RunConfiguration:
         """Construct an output file name for a run."""
         # TODO: If instantiation is now class member, can this be a true method/property?
         #  -> Would remove parameter into __init__...
-        if instantiation is not None:
-            # TODO: Better representation of sbatch etc than stringifying
-            # Could be worth making this stringify a class method of bench model
-            instantation_str = "__" + ",".join(
-                f"{name}={str(value).replace('/','').replace(' ','_')}"
-                for name, value in instantiation.items()
-            )
-        else:
-            instantation_str = ""
+        instantation_str = (
+            f"__{BenchModel.get_instantiation_repr(instantiation)}"
+            if instantiation is not None
+            else ""
+        )
         return f"{run_configuration_name}{instantation_str}__%j.out"
+
+    @classmethod
+    def get_instantiation_repr(cls, instantiation: dict[str, Any]) -> str:
+        """Get a string representation of a run instantiation."""
+        # TODO: Better representation of sbatch etc than stringifying
+        return ",".join(
+            f"{name}={str(value).replace('/','').replace(' ','_')}"
+            for name, value in instantiation.items()
+        )
 
     def run(self) -> int | None:
         """Run the specified run configuration."""

@@ -54,6 +54,9 @@ class RunConfigurationModel(BaseModel):
 class PlotModel(BaseModel):
     """A Pydantic model for plotting two values against each other."""
 
+    x: str
+    y: str
+    
     # TODO: Needs work to expand capability
 
 

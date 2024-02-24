@@ -101,6 +101,10 @@ class TestBench:
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
         print(f"Reporting data from test bench '{self.name}'")
+        print(
+            f"x: {self.bench_model.analysis.plot.x}, "
+            f"y: {self.bench_model.analysis.plot.y}"
+        )
         # Load mappings from run config/args to slurm job ids
         # Collect outputs of all slurm job ids
         # Print outputs/do analysis
