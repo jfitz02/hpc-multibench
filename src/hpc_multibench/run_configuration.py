@@ -17,10 +17,12 @@ SLURM_UNQUEUED_SUBSTRING = "Invalid job id specified"
 class RunConfiguration:
     """A builder class for a test run on batch compute."""
 
-    def __init__(self, name: str, run_command: str, output_file: Path):
+    def __init__(
+        self, name: str, run_command: str, output_directory: Path = Path("./")
+    ):
         """Initialise the run configuration file as a empty bash file."""
         self.name = name
-        self.output_file: Path = output_file
+        self.output_directory: Path = output_directory
         self.sbatch_config: dict[str, str] = {}
         self.module_loads: list[str] = []
         self.environment_variables: dict[str, str] = {}
@@ -71,19 +73,15 @@ class RunConfiguration:
 
         return sbatch_file
 
-    @classmethod
-    def get_output_file_name(
-        cls, run_configuration_name: str, instantiation: dict[str, Any] | None = None
-    ) -> str:
-        """Construct an output file name for a run."""
-        # TODO: If instantiation is now class member, can this be a true method/property?
-        #  -> Would remove parameter into __init__...
+    @property
+    def output_file(self) -> Path:
+        """Get the path to the output file to write to."""
         instantation_str = (
-            f"__{BenchModel.get_instantiation_repr(instantiation)}"
-            if instantiation is not None
+            f"__{RunConfiguration.get_instantiation_repr(self.instantiation)}"
+            if self.instantiation is not None
             else ""
         )
-        return f"{run_configuration_name}{instantation_str}__%j.out"
+        return self.output_directory / f"{self.name}{instantation_str}__%j.out"
 
     @classmethod
     def get_instantiation_repr(cls, instantiation: dict[str, Any]) -> str:
@@ -125,6 +123,7 @@ class RunConfiguration:
         )
         if SLURM_UNQUEUED_SUBSTRING in result.stdout.decode("utf-8"):
             return None
+
         # Return the contents of the specified output file
         output_file = (
             self.output_file.parent / f"{self.output_file.name[:-8]}__{slurm_id}.out"

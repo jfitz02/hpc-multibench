@@ -32,7 +32,7 @@ class TestPlan:
         """Run all the enabled test benches in the plan."""
         for bench in self.benches:
             if bench.bench_model.enabled:
-                bench.record()
+                bench.record(dry_run=True)
 
     def report_all(self) -> None:
         """Analyse all the enabled test benches in the plan."""

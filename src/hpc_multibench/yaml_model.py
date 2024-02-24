@@ -24,18 +24,13 @@ class RunConfigurationModel(BaseModel):
     args: str | None = None
 
     def realise(
-        self, bench_name: str, run_configuration_name: str, variables: dict[str, Any]
+        self,
+        name: str,
+        output_directory: Path,
+        instantiation: dict[str, Any],
     ) -> RunConfiguration:
         """Construct a run configuration from its data model."""
-        # Get the output file path
-        output_file_name = RunConfiguration.get_output_file_name(
-            run_configuration_name, variables
-        )
-        output_file = BASE_OUTPUT_DIRECTORY / bench_name / output_file_name
-
-        # TODO: Modify contents based on variables keys here
-
-        run = RunConfiguration(run_configuration_name, self.run_command, output_file)
+        run = RunConfiguration(name, self.run_command, output_directory)
         run.sbatch_config = self.sbatch_config
         run.module_loads = self.module_loads
         run.environment_variables = self.environment_variables
@@ -43,8 +38,8 @@ class RunConfigurationModel(BaseModel):
         run.build_commands = self.build_commands
         run.args = self.args
 
-        # Fix this to work for more things than args...
-        for key, value in variables.items():
+        # Update the run configuration based on the instantiation
+        for key, value in instantiation.items():
             # TODO: Error checking on keys
             setattr(run, key, value)
 
@@ -56,7 +51,7 @@ class PlotModel(BaseModel):
 
     x: str
     y: str
-    
+
     # TODO: Needs work to expand capability
 
 

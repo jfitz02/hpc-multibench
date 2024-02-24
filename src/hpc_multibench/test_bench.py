@@ -64,7 +64,10 @@ class TestBench:
         ]
 
     def record(
-        self, clobber: bool = False, dry_run: bool = False, no_wait: bool = False
+        self,
+        clobber: bool = False,  # noqa: FBT001, FBT002
+        dry_run: bool = False,  # noqa: FBT001, FBT002
+        no_wait: bool = False,  # noqa: FBT001, FBT002
     ) -> None:
         """Spawn run configurations for the test bench."""
         print(f"Recording data from test bench '{self.name}'")
@@ -73,12 +76,9 @@ class TestBench:
         if clobber:
             rmtree(self.output_directory)
 
-        # Get instantiations from variable matrix
-        print(self.instantiations)
-
         # Realise run configurations from list of instantiations
         self.run_configurations = [
-            run_model.realise(self.name, run_name, instantiation)
+            run_model.realise(run_name, self.output_directory, instantiation)
             for instantiation in self.instantiations
             for run_name, run_model in self.run_configuration_models.items()
         ]
@@ -97,6 +97,8 @@ class TestBench:
         # Store slurm job id mappings
 
         # TODO: Optionally wait for all run configurations to dequeue/terminate
+        if not no_wait:
+            pass
 
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
