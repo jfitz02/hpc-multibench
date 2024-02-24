@@ -24,4 +24,4 @@ def main() -> None:  # pragma: no cover
     args: Namespace = get_parser().parse_args()
 
     test_plan = TestPlan(args.yaml_path)
-    test_plan.record()
+    test_plan.record_all()

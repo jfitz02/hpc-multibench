@@ -17,6 +17,7 @@ run_configurations:
 
 benches:
   "strong-scaling":
+    enabled: True
     run_configurations:
       - "cpp-hybrid"
     matrix:

@@ -43,6 +43,7 @@ class BenchModel(BaseModel):
     run_configurations: list[str]
     matrix: dict[str | tuple[str, ...], list[Any]]
     analysis: AnalysisModel
+    enabled: bool = True
 
 
 class TestPlanModel(BaseModel):

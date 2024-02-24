@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 """A class representing the test plan defined from YAML for a tool run."""
 
+from copy import deepcopy
 from pathlib import Path
 
 from hpc_multibench.yaml_model import TestPlanModel
+from hpc_multibench.test_bench import TestBench
 
 
 class TestPlan:
@@ -12,11 +14,28 @@ class TestPlan:
 
     def __init__(self, yaml_path: Path) -> None:
         """Instantiate the test plan from a YAML file."""
-        self.test_plan_model = TestPlanModel.from_yaml(yaml_path)
+        test_plan_model = TestPlanModel.from_yaml(yaml_path)
+        self.benches = [
+            TestBench(
+                name=bench_name,
+                run_configuration_models={
+                    name: deepcopy(config)
+                    for name, config in test_plan_model.run_configurations.items()
+                    if name in bench_model.run_configurations
+                },
+                bench_model=bench_model,
+            )
+            for bench_name, bench_model in test_plan_model.benches.items()
+        ]
 
-    def record(self) -> None:
-        """Run all the test benches in the plan."""
-        print(self.test_plan_model)
+    def record_all(self) -> None:
+        """Run all the enabled test benches in the plan."""
+        for bench in self.benches:
+            if bench.bench_model.enabled:
+                bench.record()
 
-    def report(self) -> None:
-        """Analyse all the test benches in the plan."""
+    def report_all(self) -> None:
+        """Analyse all the enabled test benches in the plan."""
+        for bench in self.benches:
+            if bench.bench_model.enabled:
+                bench.report()
