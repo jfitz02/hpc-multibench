@@ -25,3 +25,4 @@ def main() -> None:  # pragma: no cover
 
     test_plan = TestPlan(args.yaml_path)
     test_plan.record_all()
+    test_plan.report_all()

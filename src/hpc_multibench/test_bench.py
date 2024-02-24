@@ -2,17 +2,27 @@
 # -*- coding: utf-8 -*-
 """A class representing a test bench composing part of a test plan."""
 
+from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
+from pickle import dump as pickle_dump  # nosec
+from pickle import load as pickle_load  # nosec
 from shutil import rmtree
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
 
-if TYPE_CHECKING:
-    from hpc_multibench.run_configuration import RunConfiguration
-
 BASE_OUTPUT_DIRECTORY = Path("results/")
+
+
+@dataclass
+class RunConfigurationMetadata:
+    """Data about run configurations to persist between program instances."""
+
+    job_id: int
+    name: str
+    output_file_name: str
+    instantiation: dict[str, Any] | None
 
 
 class TestBench:
@@ -28,7 +38,6 @@ class TestBench:
         self.name = name
         self.run_configuration_models = run_configuration_models
         self.bench_model = bench_model
-        self.run_configurations: list[RunConfiguration] | None = None
 
         # Validate that all configurations named in the test bench are defined
         # in the test plan
@@ -63,6 +72,28 @@ class TestBench:
             for combination in product(*shaped)
         ]
 
+    @property
+    def _run_configurations_metadata_file(self) -> Path:
+        """Get the path to the file to save the run configuration metadata."""
+        return self.output_directory / "run_configs.pickle"
+
+    @property
+    def run_configurations_metadata(self) -> list[RunConfigurationMetadata]:
+        """Retrieve the run configuration metadata from its file."""
+        # if not self._run_configurations_metadata_file.exists():
+        #     pass
+        # TODO: Could store in human-readable format, pickling only instantations
+        with self._run_configurations_metadata_file.open("rb") as metadata_file:
+            return pickle_load(metadata_file)  # type: ignore # noqa: PGH003, S301 # nosec
+
+    @run_configurations_metadata.setter
+    def run_configurations_metadata(
+        self, metadata: list[RunConfigurationMetadata]
+    ) -> None:
+        """Write out the run configuration metadata to its file."""
+        with self._run_configurations_metadata_file.open("wb+") as metadata_file:
+            pickle_dump(metadata, metadata_file)
+
     def record(
         self,
         clobber: bool = False,  # noqa: FBT001, FBT002
@@ -77,24 +108,34 @@ class TestBench:
             rmtree(self.output_directory)
 
         # Realise run configurations from list of instantiations
-        self.run_configurations = [
+        run_configurations = [
             run_model.realise(run_name, self.output_directory, instantiation)
             for instantiation in self.instantiations
             for run_name, run_model in self.run_configuration_models.items()
         ]
 
-        # Optionally dry run then return
+        # Optionally dry run then stop before actually running
         if dry_run:
-            for run_configuration in self.run_configurations:
+            for run_configuration in run_configurations:
                 print(run_configuration, end="\n\n")
             return
 
-        # Run all run configurations
-        for run_configuration in self.run_configurations:
-            # TODO: Need to store slurm job id mappings
-            run_configuration.run()
+        # Run all run configurations and store their slurm job ids
+        run_configuration_job_ids = {
+            run_configuration: 12345  # run_configuration.run()
+            for run_configuration in run_configurations
+        }
 
         # Store slurm job id mappings
+        self.run_configurations_metadata = [
+            RunConfigurationMetadata(
+                job_id,
+                run_configuration.name,
+                run_configuration.get_true_output_file_name(job_id),
+                run_configuration.instantiation,
+            )
+            for run_configuration, job_id in run_configuration_job_ids.items()
+        ]
 
         # TODO: Optionally wait for all run configurations to dequeue/terminate
         if not no_wait:
@@ -107,6 +148,7 @@ class TestBench:
             f"x: {self.bench_model.analysis.plot.x}, "
             f"y: {self.bench_model.analysis.plot.y}"
         )
+        print("\n".join(str(x) for x in self.run_configurations_metadata))
         # Load mappings from run config/args to slurm job ids
         # Collect outputs of all slurm job ids
         # Print outputs/do analysis

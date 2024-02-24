@@ -60,7 +60,7 @@ class RunConfiguration:
         sbatch_file += "scontrol show job $SLURM_JOB_ID\n"
         if self.instantiation is not None:
             sbatch_file += "echo '=== RUN INSTANTIATION ==='\n"
-            sbatch_file += f"echo '{self.instantiation!s}'\n"
+            sbatch_file += f"echo '{self.instantiation}'\n"
         sbatch_file += "echo\n"
 
         sbatch_file += "\necho '===== BUILD ====='\n"
@@ -91,6 +91,10 @@ class RunConfiguration:
             f"{name}={str(value).replace('/','').replace(' ','_')}"
             for name, value in instantiation.items()
         )
+
+    def get_true_output_file_name(self, slurm_id: int) -> str:
+        """Get the actual output file name with substituted slurm job id."""
+        return f"{self.output_file.name[:-8]}__{slurm_id}.out"
 
     def run(self) -> int | None:
         """Run the specified run configuration."""
@@ -125,9 +129,7 @@ class RunConfiguration:
             return None
 
         # Return the contents of the specified output file
-        output_file = (
-            self.output_file.parent / f"{self.output_file.name[:-8]}__{slurm_id}.out"
-        )
+        output_file = self.output_file.parent / self.get_true_output_file_name(slurm_id)
         if not output_file.exists():
             return None
         return output_file.read_text(encoding="utf-8")

@@ -37,6 +37,7 @@ class RunConfigurationModel(BaseModel):
         run.directory = Path(self.directory)
         run.build_commands = self.build_commands
         run.args = self.args
+        run.instantiation = instantiation
 
         # Update the run configuration based on the instantiation
         for key, value in instantiation.items():
