@@ -148,7 +148,7 @@ class TestBench:
         print(f"Recording data from test bench '{self.name}'")
 
         # Optionally clobber directory
-        if args.clobber:
+        if not args.no_clobber:
             rmtree(self.output_directory)
 
         # Realise run configurations from list of instantiations
@@ -182,7 +182,7 @@ class TestBench:
             if job_id is not None
         ]
 
-        if not args.no_wait:
+        if args.wait:
             raise NotImplementedError("Waiting for queue not yet implemented")
 
     def extract_metrics(self, output: str) -> dict[str, str] | None:

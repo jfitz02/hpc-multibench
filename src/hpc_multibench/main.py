@@ -36,16 +36,16 @@ def get_parser() -> ArgumentParser:  # pragma: no cover
         help="print but don't submit the generated sbatch files",
     )
     parser_record.add_argument(
-        "-n",
-        "--no-wait",
+        "-w",
+        "--wait",
         action="store_true",
-        help="don't wait for the submitted jobs to finish to exit",
+        help="wait for the submitted jobs to finish to exit",
     )
     parser_record.add_argument(
-        "-c",
-        "--clobber",
+        "-nc",
+        "--no-clobber",
         action="store_true",
-        help="delete any previous run results of the test benches",
+        help="don't delete any previous run results of the test benches",
     )
     _parser_report = sub_parsers.add_parser(
         "report", help="report analysis about completed test bench runs"
