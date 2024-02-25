@@ -5,7 +5,7 @@ run_configurations:
       "ntasks-per-node": 1
       "cpus-per-task": 1
       "exclusive": "mcs"
-      "mem-per-cpu": 1500
+      "mem": 60000
     module_loads: []
     environment_variables: {}
     directory: "../0_cpp_versions/0_ref"
@@ -19,7 +19,7 @@ run_configurations:
       "ntasks-per-node": 1
       "cpus-per-task": 32
       "exclusive": "mcs"
-      "mem-per-cpu": 1500
+      "mem-per-cpu": 1875
     module_loads: []
     environment_variables: {}
     directory: "../0_cpp_versions/1_openmp"
@@ -33,7 +33,7 @@ run_configurations:
       "ntasks-per-node": 1
       "cpus-per-task": 1
       "exclusive": "mcs"
-      "mem-per-cpu": 1500
+      "mem": 60000  # Rust seems to use more memory, this heavily bottlenecks if too small
     module_loads: []
     environment_variables: {}
     directory: "../5_iterators"
@@ -47,7 +47,7 @@ run_configurations:
       "ntasks-per-node": 1
       "cpus-per-task": 32
       "exclusive": "mcs"
-      "mem-per-cpu": 1500
+      "mem-per-cpu": 1875
     module_loads: []
     environment_variables: {}
     directory: "../6_parallel"
@@ -57,7 +57,6 @@ run_configurations:
 
 benches:
   "serial":
-    enabled: False
     run_configurations:
       - "cpp-reference"
       - "rust-reference"
