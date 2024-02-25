@@ -13,35 +13,6 @@ run_configurations:
       - "make -j 8"
     run_command: "./test_HPCCG"
 
-  "cpp-openmp":
-    sbatch_config:
-      "nodes": 1
-      "ntasks-per-node": 1
-      "cpus-per-task": 32
-      "exclusive": "mcs"
-      "mem-per-cpu": 1875
-    module_loads: []
-    environment_variables: {}
-    directory: "../0_cpp_versions/1_openmp"
-    build_commands:
-      - "make -j 8"
-    run_command: "./test_HPCCG"
-
-  "cpp-mpi":
-    sbatch_config:
-      "nodes": 2
-      "ntasks-per-node": 8
-      "cpus-per-task": 1
-      "exclusive": "mcs"
-      "mem-per-cpu": 1875
-    module_loads:
-      - "cs402-mpi"
-    environment_variables: {}
-    directory: "../0_cpp_versions/2_mpi"
-    build_commands:
-      - "make -j 8"
-    run_command: "mpirun ./test_HPCCG"
-
   "rust-reference":
     sbatch_config:
       "nodes": 1
@@ -56,13 +27,27 @@ run_configurations:
       - "cargo build --release"
     run_command: "./target/release/hpccg-rs"
 
+  "cpp-openmp":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 32
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../0_cpp_versions/1_openmp"
+    build_commands:
+      - "make -j 8"
+    run_command: "./test_HPCCG"
+
   "rust-rayon":
     sbatch_config:
       "nodes": 1
       "ntasks-per-node": 1
       "cpus-per-task": 32
       "exclusive": "mcs"
-      "mem-per-cpu": 1875
+      "mem": 60000
     module_loads: []
     environment_variables: {}
     directory: "../6_parallel"
@@ -70,17 +55,54 @@ run_configurations:
       - "cargo build --release"
     run_command: "./target/release/hpccg-rs"
 
-  "rust-mpi":
+  "cpp-mpi":
     sbatch_config:
-      "nodes": 2
-      "ntasks-per-node": 8
       "cpus-per-task": 1
       "exclusive": "mcs"
-      "mem-per-cpu": 1875
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../0_cpp_versions/2_mpi"
+    build_commands:
+      - "make -j 8"
+    run_command: "mpirun ./test_HPCCG"
+
+  "rust-mpi":
+    sbatch_config:
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem": 60000
     module_loads:
       - "cs402-mpi"
     environment_variables: {}
     directory: "../7_mpi"
+    build_commands:
+      - "cargo build --release"
+    run_command: "mpirun ./target/release/hpccg-rs"
+
+  "cpp-hybrid":
+    sbatch_config:
+      "nodes": 1
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../0_cpp_versions/2_mpi"
+    build_commands:
+      - "make -j 8"
+    run_command: "mpirun ./test_HPCCG"
+
+  "rust-hybrid":
+    sbatch_config:
+      "nodes": 1
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../8_hybrid"
     build_commands:
       - "cargo build --release"
     run_command: "mpirun ./target/release/hpccg-rs"
@@ -143,21 +165,50 @@ benches:
           x: "Mesh x size"
           y: "Wall time (s)"
 
-
-  "mpi-single-node-config-sweep":
+  "mpi-config-sweep":
+    enabled: False
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"
     matrix:
       args:
         - "100 100 100"
-      # [sbatch_config, environment_variables]:
-      #   - [{"ntasks-per-node": 1}, {"OMP_NUM_THREADS": 40}]  ## TODO: Figure out best for one MPI node, then duplicate across many
-      #   - [{"ntasks-per-node": 2}, {"OMP_NUM_THREADS": 20}]
-      #   - [{"ntasks-per-node": 4}, {"OMP_NUM_THREADS": 10}]
-      #   - [{"ntasks-per-node": 10}, {"OMP_NUM_THREADS": 4}]
-      #   - [{"ntasks-per-node": 20}, {"OMP_NUM_THREADS": 2}]
-      #   - [{"ntasks-per-node": 40}, {"OMP_NUM_THREADS": 1}]
+      sbatch_config:
+        - {"nodes": 1, "ntasks-per-node": 1}
+        - {"nodes": 1, "ntasks-per-node": 2}
+        - {"nodes": 1, "ntasks-per-node": 4}
+        - {"nodes": 1, "ntasks-per-node": 8}
+        - {"nodes": 2, "ntasks-per-node": 1}
+        - {"nodes": 2, "ntasks-per-node": 2}
+        - {"nodes": 2, "ntasks-per-node": 4}
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+      line_plots:
+        - title: "MPI Configuration Sweep"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+
+  "hybrid-single-node-config-sweep":
+    run_configurations:
+      - "cpp-hybrid"
+      - "rust-hybrid"
+    matrix:
+      args:
+        - "100 100 100"
+      [sbatch_config, environment_variables]:
+        - [{"ntasks-per-node": 1, "cpus-per-task": 40}, {"OMP_NUM_THREADS": 40, "RAYON_NUM_THREADS": 40}]
+        - [{"ntasks-per-node": 2, "cpus-per-task": 20}, {"OMP_NUM_THREADS": 20, "RAYON_NUM_THREADS": 20}]
+        - [{"ntasks-per-node": 4, "cpus-per-task": 10}, {"OMP_NUM_THREADS": 10, "RAYON_NUM_THREADS": 10}]
+        - [{"ntasks-per-node": 10, "cpus-per-task": 4}, {"OMP_NUM_THREADS": 4, "RAYON_NUM_THREADS": 4}]
+        - [{"ntasks-per-node": 20, "cpus-per-task": 2}, {"OMP_NUM_THREADS": 2, "RAYON_NUM_THREADS": 2}]
+        - [{"ntasks-per-node": 40, "cpus-per-task": 1}, {"OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1}]
     analysis:
       metrics:
         "Mesh x size": "nx: (\\d+)"

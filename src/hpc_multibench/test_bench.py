@@ -176,6 +176,10 @@ class TestBench:
 
         # TODO: Need to account for case where build commands is in the
         # matrix, then just needs to be a long chain of dependencies
+        # TODO: Could spawn an extra job to just build then not run, which
+        # everything else depends on? Probably better to document that fastest
+        # job should be first, avoids spawning extraneous jobs which could all
+        # fail if the configuration is wrong...
 
         # Run all run configurations and store their slurm job ids
         run_configuration_job_ids: dict[RunConfiguration, int | None] = {}
