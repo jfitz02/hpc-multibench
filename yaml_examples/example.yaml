@@ -31,10 +31,11 @@ benches:
         "Mesh z size": "nz: (\\d+)"
         "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*run_command: mpirun -np (\\d+).*\\}"
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
       line_plots:
         - title: "Strong Scaling Plot"
           x: "Mesh z size"
-          y: "Total time (s)"
+          y: "Wall time (s)"
       # roofline_plots:
       #   - title: "Strong Scaling Roofline"
       #     gflops_per_sec: "Mesh z size"
@@ -67,7 +68,8 @@ benches:
       metrics:
         "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*run_command: mpirun -np (\\d+).*\\}"
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
       line_plots:
         - title: "Weak Scaling Plot"
           x: "MPI Ranks"
-          y: "Total time (s)"
+          y: "Wall time (s)"

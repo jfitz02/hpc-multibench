@@ -123,7 +123,8 @@ benches:
         "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
         "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
         "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
       line_plots:
         - title: "C++, Kokkos, and Rust Version Comparison"
           x: "Mesh x size"
-          y: "Total time (s)"
+          y: "Wall time (s)"

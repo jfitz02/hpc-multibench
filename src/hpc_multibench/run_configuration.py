@@ -69,7 +69,7 @@ class RunConfiguration:
         sbatch_file += "\n".join(self.build_commands) + "\n"
 
         sbatch_file += "\necho '===== RUN ====='\n"
-        sbatch_file += f"time {self.run_command} {self.args}\n"
+        sbatch_file += f"time -p {self.run_command} {self.args}\n"
 
         return sbatch_file
 
