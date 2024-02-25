@@ -27,7 +27,7 @@ class RunConfigurationModel(BaseModel):
         self,
         name: str,
         output_directory: Path,
-        instantiation: dict[str, Any],
+        instantiation: dict[str, Any] | None,
     ) -> RunConfiguration:
         """Construct a run configuration from its data model."""
         run = RunConfiguration(name, self.run_command, output_directory)
@@ -40,9 +40,10 @@ class RunConfigurationModel(BaseModel):
         run.instantiation = instantiation
 
         # Update the run configuration based on the instantiation
-        for key, value in instantiation.items():
-            # TODO: Error checking on keys
-            setattr(run, key, value)
+        if instantiation is not None:
+            for key, value in instantiation.items():
+                # TODO: Error checking on keys
+                setattr(run, key, value)
 
         return run
 

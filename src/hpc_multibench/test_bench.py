@@ -3,21 +3,23 @@
 """A class representing a test bench composing part of a test plan."""
 
 from argparse import Namespace
-from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
 from pickle import dump as pickle_dump  # nosec
 from pickle import load as pickle_load  # nosec
 from shutil import rmtree
-from typing import Any
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
+
+if TYPE_CHECKING:
+    from hpc_multibench.run_configuration import RunConfiguration
+
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
 
 
-@dataclass
-class RunConfigurationMetadata:
+class RunConfigurationMetadata(NamedTuple):
     """Data about run configurations to persist between program instances."""
 
     job_id: int
@@ -79,10 +81,10 @@ class TestBench:
         return self.output_directory / "run_configs.pickle"
 
     @property
-    def run_configurations_metadata(self) -> list[RunConfigurationMetadata]:
+    def run_configurations_metadata(self) -> list[RunConfigurationMetadata] | None:
         """Retrieve the run configuration metadata from its file."""
-        # if not self._run_configurations_metadata_file.exists():
-        #     pass
+        if not self._run_configurations_metadata_file.exists():
+            return None
         # TODO: Could store in human-readable format, pickling only instantations
         with self._run_configurations_metadata_file.open("rb") as metadata_file:
             return pickle_load(metadata_file)  # type: ignore # noqa: PGH003, S301 # nosec
@@ -92,6 +94,7 @@ class TestBench:
         self, metadata: list[RunConfigurationMetadata]
     ) -> None:
         """Write out the run configuration metadata to its file."""
+        # TODO: Is this actually the right abstraction for passing between program runs?
         with self._run_configurations_metadata_file.open("wb+") as metadata_file:
             pickle_dump(metadata, metadata_file)
 
@@ -104,7 +107,7 @@ class TestBench:
             rmtree(self.output_directory)
 
         # Realise run configurations from list of instantiations
-        run_configurations = [
+        run_configurations: list[RunConfiguration] = [
             run_model.realise(run_name, self.output_directory, instantiation)
             for instantiation in self.instantiations
             for run_name, run_model in self.run_configuration_models.items()
@@ -117,7 +120,7 @@ class TestBench:
             return
 
         # Run all run configurations and store their slurm job ids
-        run_configuration_job_ids = {
+        run_configuration_job_ids: dict[RunConfiguration, int | None] = {
             run_configuration: run_configuration.run()
             for run_configuration in run_configurations
         }
@@ -139,13 +142,41 @@ class TestBench:
 
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
-        print(f"Reporting data from test bench '{self.name}'")
-        print(
-            f"x: {self.bench_model.analysis.plot.x}, "
-            f"y: {self.bench_model.analysis.plot.y}"
-        )
-        # TODO: Add better error message...
-        print("\n".join(str(x) for x in self.run_configurations_metadata))
+        # print(f"Reporting data from test bench '{self.name}'")
+        # print(
+        #     f"x: {self.bench_model.analysis.plot.x}, "
+        #     f"y: {self.bench_model.analysis.plot.y}"
+        # )
+
+        if self.run_configurations_metadata is None:
+            print(f"Metadata file does not exist for test bench '{self.name}'!")
+            return
+
+        # Print out `data: dict[str, list[tuple[float, float]]]`
+
+        # - Construct realised run configurations from metadata (mapping from metadata to run_config?)
+        # TODO: Error handling for name not being in models?
+        reconstructed_run_configurations: dict[
+            RunConfigurationMetadata, RunConfiguration
+        ] = {
+            metadata: self.run_configuration_models[metadata.name].realise(
+                metadata.name, self.output_directory, metadata.instantiation
+            )
+            for metadata in self.run_configurations_metadata
+        }
+
+        # - Collect results from runs (mapping from metadata to results string?)
+        run_results: dict[RunConfigurationMetadata, str | None] = {
+            metadata: run_configuration.collect(metadata.job_id)
+            for metadata, run_configuration in reconstructed_run_configurations.items()
+        }
+
+        # - Reshape results into required formats for line plot
+        for metadata, result in run_results.items():
+            if result is not None:
+                print(f"{metadata.name}, {result[:10]}")
+
+        # print("\n".join(str(x) for x in self.run_configurations_metadata))
         # Load mappings from run config/args to slurm job ids
-        # Collect outputs of all slurm job ids
+        # Collect outputs of all slurm job ids, waiting if needed?
         # Print outputs/do analysis
