@@ -151,24 +151,43 @@ class TestBench:
         if not args.no_clobber and self.output_directory.exists():
             rmtree(self.output_directory)
 
-        # Realise run configurations from list of instantiations
-        run_configurations: list[RunConfiguration] = [
-            run_model.realise(run_name, self.output_directory, instantiation)
-            for instantiation in self.instantiations
+        # Realise run configurations from list of instantiations, split up
+        # by model so they only get built once
+        realised_run_configurations: dict[str, list[RunConfiguration]] = {
+            run_name: [
+                run_model.realise(run_name, self.output_directory, instantiation)
+                for instantiation in self.instantiations
+            ]
             for run_name, run_model in self.run_configuration_models.items()
-        ]
+        }
 
         # Optionally dry run then stop before actually running
         if args.dry_run:
-            for run_configuration in run_configurations:
-                print(run_configuration, end="\n\n")
+            # TODO: Could be closer inside the running logic
+            for run_configurations in realised_run_configurations.values():
+                first_flag: bool = True
+                for run_configuration in run_configurations:
+                    if first_flag:
+                        first_flag = False
+                    else:
+                        run_configuration.pre_built = True
+                    print(run_configuration, end="\n\n")
             return
 
         # Run all run configurations and store their slurm job ids
-        run_configuration_job_ids: dict[RunConfiguration, int | None] = {
-            run_configuration: run_configuration.run()
-            for run_configuration in run_configurations
-        }
+        run_configuration_job_ids: dict[RunConfiguration, int | None] = {}
+        for run_configurations in realised_run_configurations.values():
+            # Add dependencies on the first job of that run configuration, so
+            # you only need to build it once!
+            first_job_id: int | None = None
+            for run_configuration in run_configurations:
+                if first_job_id is None:
+                    job_id = run_configuration.run()
+                    first_job_id = job_id
+                else:
+                    run_configuration.pre_built = True
+                    job_id = run_configuration.run(dependencies=[first_job_id])
+                run_configuration_job_ids[run_configuration] = job_id
 
         # Store slurm job id mappings, excluding ones which failed to launch
         self.run_configurations_metadata = [

@@ -28,6 +28,7 @@ class RunConfiguration:
         self.environment_variables: dict[str, str] = {}
         self.directory: Path | None = None
         self.build_commands: list[str] = []
+        self.pre_built: bool = False
         self.run_command: str = run_command
         self.args: str | None = None
         self.instantiation: dict[str, Any] | None = None
@@ -66,7 +67,11 @@ class RunConfiguration:
         sbatch_file += "\necho '===== BUILD ====='\n"
         if self.directory is not None:
             sbatch_file += f"cd {self.directory}\n"
-        sbatch_file += "\n".join(self.build_commands) + "\n"
+        if self.pre_built:
+            sbatch_file += "echo 'run configuration was pre-built'\n"
+        else:
+            sbatch_file += "\n".join(self.build_commands) + "\n"
+        sbatch_file += "echo\n"
 
         sbatch_file += "\necho '===== RUN ====='\n"
         sbatch_file += f"time -p {self.run_command} {self.args}\n"
@@ -96,7 +101,7 @@ class RunConfiguration:
         """Get the actual output file name with substituted slurm job id."""
         return f"{self.output_file.name[:-8]}__{slurm_id}.out"
 
-    def run(self) -> int | None:
+    def run(self, dependencies: list[int] | None = None) -> int | None:
         """Run the specified run configuration."""
         # Ensure the output directory exists before it is used
         self.output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -107,8 +112,12 @@ class RunConfiguration:
         ) as sbatch_tmp:
             sbatch_tmp.write(self.sbatch_contents)
             sbatch_tmp.flush()
+            command_list = ["sbatch", Path(sbatch_tmp.name)]
+            if dependencies is not None:
+                dependencies_string = ",".join(str(job_id) for job_id in dependencies)
+                command_list.insert(1, f"--dependency=afterok:{dependencies_string}")
             result = subprocess_run(  # nosec
-                ["sbatch", Path(sbatch_tmp.name)],  # noqa: S603, S607
+                command_list,  # noqa: S603, S607
                 check=True,
                 stdout=PIPE,
             )
