@@ -27,6 +27,21 @@ run_configurations:
       - "make -j 8"
     run_command: "./test_HPCCG"
 
+  "cpp-mpi":
+    sbatch_config:
+      "nodes": 2
+      "ntasks-per-node": 8
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem-per-cpu": 1875
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../0_cpp_versions/2_mpi"
+    build_commands:
+      - "make -j 8"
+    run_command: "mpirun -n 16 ./test_HPCCG"
+
   "rust-reference":
     sbatch_config:
       "nodes": 1
@@ -54,6 +69,22 @@ run_configurations:
     build_commands:
       - "cargo build --release"
     run_command: "./target/release/hpccg-rs"
+
+  "rust-mpi":
+    sbatch_config:
+      "nodes": 2
+      "ntasks-per-node": 8
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem-per-cpu": 1875
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../7_mpi"
+    build_commands:
+      - "cargo build --release"
+    run_command: "mpirun -n 16 ./target/release/hpccg-rs"
+
 
 benches:
   "serial":
@@ -96,6 +127,28 @@ benches:
         - {"OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1}
         - {"OMP_NUM_THREADS": 16, "RAYON_NUM_THREADS": 16}
         - {"OMP_NUM_THREADS": 32, "RAYON_NUM_THREADS": 32}
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+      line_plots:
+        - title: "Parallel Implementation Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+
+
+  "mpi-config-sweep":
+    run_configurations:
+      - "cpp-mpi"
+      - "rust-mpi"
+    matrix:
+      args:
+        - "100 100 100"
     analysis:
       metrics:
         "Mesh x size": "nx: (\\d+)"

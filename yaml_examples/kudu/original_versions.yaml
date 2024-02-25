@@ -5,7 +5,7 @@ run_configurations:
       "ntasks-per-node": 1
       "cpus-per-task": 16
       "exclusive": "mcs"
-      "mem-per-cpu": 1500
+      "mem": 60000
     module_loads: []
     environment_variables: {}
     directory: "../0_cpp_versions/0_ref"
@@ -19,7 +19,7 @@ run_configurations:
       "ntasks-per-node": 1
       "cpus-per-task": 16
       "exclusive": "mcs"
-      "mem-per-cpu": 1500
+      "mem-per-cpu": 1875
     module_loads: []
     environment_variables:
       "OMP_NUM_THREADS": 16
@@ -34,7 +34,7 @@ run_configurations:
       "ntasks-per-node": 16
       "cpus-per-task": 2
       "exclusive": "mcs"
-      "mem-per-cpu": 1500
+      "mem-per-cpu": 1875
     module_loads:
       - "cs402-mpi"
     environment_variables: {}
@@ -49,7 +49,7 @@ run_configurations:
       "ntasks-per-node": 16
       "cpus-per-task": 2
       "exclusive": "mcs"
-      "mem-per-cpu": 1500
+      "mem-per-cpu": 1875
     module_loads:
       - "cs402-mpi"
     environment_variables:
@@ -73,6 +73,7 @@ benches:
         - "150 150 150"
         - "200 200 200"
         - "250 250 250"
+        - "300 300 300"
     analysis:
       metrics:
         "Mesh x size": "nx: (\\d+)"
