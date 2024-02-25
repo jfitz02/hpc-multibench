@@ -148,7 +148,7 @@ class TestBench:
         print(f"Recording data from test bench '{self.name}'")
 
         # Optionally clobber directory
-        if not args.no_clobber:
+        if not args.no_clobber and self.output_directory.exists():
             rmtree(self.output_directory)
 
         # Realise run configurations from list of instantiations
