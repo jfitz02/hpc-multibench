@@ -4,7 +4,7 @@
   - [x] Ingest YAML of schema
   - [x] Generate sbatch files from YAML
 - [ ] Improvements
-  - [ ] Results analysis
+  - [x] Results analysis
     - [x] Result aggregation
     - [x] Result analysis
     - [ ] Statistical re-runs
@@ -14,12 +14,12 @@
     - [ ] Default groups for executables
     - [x] Optional key to disable test benches in YAML
   - [ ] Optional extras
-    - [ ] dry run flag
+    - [x] dry run flag
     - [x] Argument parsing from the command line
     - [ ] Unit tests
     - [ ] Documentations
     - [ ] Publish to PyPI
-    - [ ] Textual TUI
+    - [x] Textual TUI
       - [x] Original ideas
         - Visualise YAML schema structure
         - Spawn runs for benches/individual executables

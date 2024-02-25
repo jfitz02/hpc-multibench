@@ -147,9 +147,10 @@ benches:
         "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
         "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
         "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
-      plot:
-        x: "Mesh x size"
-        y: "Total time (s)"
+      line_plots:
+        - title: "Reference Implementation Comparison"
+          x: "Mesh x size"
+          y: "Total time (s)"
 
   "parallel":
     run_configurations:
@@ -183,9 +184,10 @@ benches:
         "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
         "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
         "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
-      plot:
-        x: "Mesh x size"
-        y: "Total time (s)"
+      line_plots:
+        - title: "Parallel Implementation Comparison"
+          x: "Mesh x size"
+          y: "Total time (s)"
 
   # "mpi":
   #   run_configurations:
@@ -213,9 +215,10 @@ benches:
   #       "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
   #       "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
   #       "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
-  #     plot:
-  #       x: "Mesh x size"
-  #       y: "Total time (s)"
+      # line_plots:
+      #   - title: "MPI Implementation Comparison"
+      #     x: "Mesh x size"
+      #     y: "Total time (s)"
 
   # "hybrid":
   #   run_configurations:
@@ -250,6 +253,7 @@ benches:
   #       "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
   #       "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
   #       "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
-  #     plot:
-  #       x: "Mesh x size"
-  #       y: "Total time (s)"
+      # line_plots:
+      #   - title: "MPI & Parallel Implementation Comparison"
+      #     x: "Mesh x size"
+      #     y: "Total time (s)"

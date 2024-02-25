@@ -48,21 +48,45 @@ class RunConfigurationModel(BaseModel):
         return run
 
 
-class PlotModel(BaseModel):
-    """A Pydantic model for plotting two values against each other."""
+class LinePlotModel(BaseModel):
+    """A Pydantic model for a line plot of two variables."""
 
+    title: str
     x: str
     y: str
-    title: str = "Performance Plot"
 
-    # TODO: Needs work to expand capability
+
+# class RooflinePlotModel(BaseModel):
+#     """A Pydantic model for a roofline plot from two metrics."""
+
+#     title: str
+#     gflops_per_sec: str
+#     flops_per_byte: str
+
+
+# class BarChartModel(BaseModel):
+#     """A Pydantic model for a bar chart of a single variable."""
+
+#     title: str
+#     y: str
+
+
+# class ExportModel(BaseModel):
+#     """A Pydantic model for a exporting a set of metrics."""
+
+#     metrics: list[str]
+#     filename: Path | None = None
 
 
 class AnalysisModel(BaseModel):
     """A Pydantic model for a test bench's analysis operations."""
 
     metrics: dict[str, str]
-    plot: PlotModel
+    # TODO: Offer singular interface `line_plot` which is just one plot
+    line_plots: list[LinePlotModel] = []
+    # rooflines: list[RooflinePlotModel] = []
+    # bar_charts: list[BarChartModel] = []
+    # exports: list[BarChartModel] = []
 
 
 class BenchModel(BaseModel):

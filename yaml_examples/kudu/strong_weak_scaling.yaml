@@ -49,10 +49,10 @@ benches:
         "Mesh z size": "nz: (\\d+)"
         "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*run_command: mpirun -np (\\d+).*\\}"
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-      plot:
-        title: "Strong Scaling Plot"
-        x: "Mesh z size"
-        y: "Total time (s)"
+      line_plots:
+        - title: "Strong Scaling Plot"
+          x: "Mesh z size"
+          y: "Total time (s)"
 
   "weak-scaling":
     run_configurations:
@@ -73,7 +73,7 @@ benches:
       metrics:
         "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*run_command: mpirun -np (\\d+).*\\}"
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-      plot:
-        title: "Weak Scaling Plot"
-        x: "MPI Ranks"
-        y: "Total time (s)"
+      line_plots:
+        - title: "Weak Scaling Plot"
+          x: "MPI Ranks"
+          y: "Total time (s)"

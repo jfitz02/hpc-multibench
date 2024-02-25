@@ -17,7 +17,6 @@ run_configurations:
 
 benches:
   "strong-scaling":
-    enabled: True
     run_configurations:
       - "cpp-hybrid"
     matrix:
@@ -30,7 +29,45 @@ benches:
     analysis:
       metrics:
         "Mesh z size": "nz: (\\d+)"
+        "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*run_command: mpirun -np (\\d+).*\\}"
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-      plot:
-        x: "Mesh z size"
-        y: "Total time (s)"
+      line_plots:
+        - title: "Strong Scaling Plot"
+          x: "Mesh z size"
+          y: "Total time (s)"
+      # roofline_plots:
+      #   - title: "Strong Scaling Roofline"
+      #     gflops_per_sec: "Mesh z size"
+      #     flops_per_byte: "Total time (s)"
+      # bar_charts:
+      #   - title: "Strong Scaling Chart"
+      #     y: "Total time (s)"
+      # exports:
+      #   - filename: "./export.csv"
+      #     metrics:
+      #       - "Mesh z size"
+      #       - "Total time (s)"
+
+
+
+  "weak-scaling":
+    enabled: False
+    run_configurations:
+      - "cpp-hybrid"
+    matrix:
+      args:
+        - "64 64 64"
+      run_command:
+        - "mpirun -np 1 ./test_HPCCG"
+        - "mpirun -np 2 ./test_HPCCG"
+        - "mpirun -np 4 ./test_HPCCG"
+        - "mpirun -np 8 ./test_HPCCG"
+        - "mpirun -np 16 ./test_HPCCG"
+    analysis:
+      metrics:
+        "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*run_command: mpirun -np (\\d+).*\\}"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+      line_plots:
+        - title: "Weak Scaling Plot"
+          x: "MPI Ranks"
+          y: "Total time (s)"

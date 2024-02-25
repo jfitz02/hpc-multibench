@@ -89,6 +89,7 @@ benches:
         "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
         "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
         "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
-      plot:
-        x: "Mesh x size"
-        y: "Total time (s)"
+      line_plots:
+        - title: "C++ Versions Comparison"
+          x: "Mesh x size"
+          y: "Total time (s)"

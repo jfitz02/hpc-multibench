@@ -184,30 +184,31 @@ class TestBench:
         }
 
         # Extract the outputs into the data format needed for the line plot
-        # TODO: Could pull out into analysis file?
-        data: dict[str, list[tuple[float, float]]] = {
-            run_name: [] for run_name in self.run_configuration_models
-        }
-        for run_configuration, output in run_outputs.values():
-            if output is not None:
-                metrics = self.extract_metrics(output)
-                if metrics is None:
-                    continue
-                data[run_configuration.name].append(
-                    (
-                        float(metrics[self.bench_model.analysis.plot.x]),
-                        float(metrics[self.bench_model.analysis.plot.y]),
+        for plot in self.bench_model.analysis.line_plots:
+            # TODO: Could extraction function out into analysis file?
+            data: dict[str, list[tuple[float, float]]] = {
+                run_name: [] for run_name in self.run_configuration_models
+            }
+            for run_configuration, output in run_outputs.values():
+                if output is not None:
+                    metrics = self.extract_metrics(output)
+                    if metrics is None:
+                        continue
+                    data[run_configuration.name].append(
+                        (
+                            float(metrics[plot.x]),
+                            float(metrics[plot.y]),
+                        )
                     )
-                )
 
-        for name, results in data.items():
-            print(name, results)
-            plt.plot(*zip(*results, strict=True), marker="x", label=name)
-        plt.xlabel(self.bench_model.analysis.plot.x)
-        plt.ylabel(self.bench_model.analysis.plot.y)
-        plt.title(self.bench_model.analysis.plot.title)
-        plt.legend()
-        plt.show()
+            for name, results in data.items():
+                print(name, results)
+                plt.plot(*zip(*results, strict=True), marker="x", label=name)
+            plt.xlabel(plot.x)
+            plt.ylabel(plot.y)
+            plt.title(plot.title)
+            plt.legend()
+            plt.show()
 
         # print("\n".join(str(x) for x in self.run_configurations_metadata))
         # Load mappings from run config/args to slurm job ids
