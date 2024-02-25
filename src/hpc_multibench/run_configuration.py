@@ -48,14 +48,18 @@ class RunConfiguration:
             sbatch_file += f"#SBATCH --{key}={value}\n"
         sbatch_file += f"#SBATCH --output={self.output_file}\n"
 
+        sbatch_file += "\necho '===== CONFIGURATION ====='\n"
         if len(self.module_loads) > 0:
+            sbatch_file += "echo '=== MODULE LOADS ==='\n"
             sbatch_file += "module purge\n"
             sbatch_file += f"module load {' '.join(self.module_loads)}\n"
 
+        if len(self.environment_variables) > 0:
+            sbatch_file += "echo '=== ENVIRONMENT VARIABLES ==='\n"
         for key, value in self.environment_variables.items():
             sbatch_file += f"export {key}={value}\n"
+            sbatch_file += f"echo '{key}={value}'\n"
 
-        sbatch_file += "\necho '===== CONFIGURATION ====='\n"
         sbatch_file += "echo '=== CPU ARCHITECTURE ==='\n"
         sbatch_file += "lscpu\n"
         sbatch_file += "echo '=== SLURM CONFIG ==='\n"
@@ -109,6 +113,7 @@ class RunConfiguration:
 
         # Create and run the temporary sbatch file via slurm
         with NamedTemporaryFile(
+            prefix=self.name,
             suffix=".sbatch", dir=Path("./"), mode="w+"
         ) as sbatch_tmp:
             sbatch_tmp.write(self.sbatch_contents)

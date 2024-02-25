@@ -57,6 +57,7 @@ run_configurations:
 
 benches:
   "serial":
+    enabled: False
     run_configurations:
       - "cpp-reference"
       - "rust-reference"
@@ -68,7 +69,6 @@ benches:
         - "100 100 100"
         - "150 150 150"
         - "200 200 200"
-        # - "250 250 250"
     analysis:
       metrics:
         "Mesh x size": "nx: (\\d+)"
@@ -84,22 +84,19 @@ benches:
           y: "Wall time (s)"
 
   "parallel":
-    enabled: False
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
     matrix:
       args:
+        - "50 50 50"
         - "100 100 100"
-        - "150 150 150"
         - "200 200 200"
-        - "250 250 250"
+        - "300 300 300"
       environment_variables:
         - {"OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1}
-        # - {"OMP_NUM_THREADS": 4, "RAYON_NUM_THREADS": 4}
         - {"OMP_NUM_THREADS": 16, "RAYON_NUM_THREADS": 16}
         - {"OMP_NUM_THREADS": 32, "RAYON_NUM_THREADS": 32}
-        # - {"OMP_NUM_THREADS": 64, "RAYON_NUM_THREADS": 64}
     analysis:
       metrics:
         "Mesh x size": "nx: (\\d+)"
