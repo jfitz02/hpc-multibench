@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """A class representing a test bench composing part of a test plan."""
 
+from argparse import Namespace
 from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
@@ -94,17 +95,12 @@ class TestBench:
         with self._run_configurations_metadata_file.open("wb+") as metadata_file:
             pickle_dump(metadata, metadata_file)
 
-    def record(
-        self,
-        clobber: bool = False,  # noqa: FBT001, FBT002
-        dry_run: bool = False,  # noqa: FBT001, FBT002
-        no_wait: bool = False,  # noqa: FBT001, FBT002
-    ) -> None:
+    def record(self, args: Namespace) -> None:
         """Spawn run configurations for the test bench."""
         print(f"Recording data from test bench '{self.name}'")
 
         # Optionally clobber directory
-        if clobber:
+        if args.clobber:
             rmtree(self.output_directory)
 
         # Realise run configurations from list of instantiations
@@ -115,18 +111,18 @@ class TestBench:
         ]
 
         # Optionally dry run then stop before actually running
-        if dry_run:
+        if args.dry_run:
             for run_configuration in run_configurations:
                 print(run_configuration, end="\n\n")
             return
 
         # Run all run configurations and store their slurm job ids
         run_configuration_job_ids = {
-            run_configuration: 12345  # run_configuration.run()
+            run_configuration: run_configuration.run()
             for run_configuration in run_configurations
         }
 
-        # Store slurm job id mappings
+        # Store slurm job id mappings, excluding ones which failed to launch
         self.run_configurations_metadata = [
             RunConfigurationMetadata(
                 job_id,
@@ -135,11 +131,11 @@ class TestBench:
                 run_configuration.instantiation,
             )
             for run_configuration, job_id in run_configuration_job_ids.items()
+            if job_id is not None
         ]
 
-        # TODO: Optionally wait for all run configurations to dequeue/terminate
-        if not no_wait:
-            pass
+        if not args.no_wait:
+            raise NotImplementedError("Waiting for queue not yet implemented")
 
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
@@ -148,6 +144,7 @@ class TestBench:
             f"x: {self.bench_model.analysis.plot.x}, "
             f"y: {self.bench_model.analysis.plot.y}"
         )
+        # TODO: Add better error message...
         print("\n".join(str(x) for x in self.run_configurations_metadata))
         # Load mappings from run config/args to slurm job ids
         # Collect outputs of all slurm job ids

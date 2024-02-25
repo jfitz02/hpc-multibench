@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """A class representing the test plan defined from YAML for a tool run."""
 
+from argparse import Namespace
 from copy import deepcopy
 from pathlib import Path
 
@@ -28,13 +29,13 @@ class TestPlan:
             for bench_name, bench_model in test_plan_model.benches.items()
         ]
 
-    def record_all(self) -> None:
+    def record_all(self, args: Namespace) -> None:
         """Run all the enabled test benches in the plan."""
         for bench in self.benches:
             if bench.bench_model.enabled:
-                bench.record(dry_run=False)
+                bench.record(args)
 
-    def report_all(self) -> None:
+    def report_all(self, _args: Namespace) -> None:
         """Analyse all the enabled test benches in the plan."""
         for bench in self.benches:
             if bench.bench_model.enabled:
