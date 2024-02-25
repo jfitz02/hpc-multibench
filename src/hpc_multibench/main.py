@@ -8,9 +8,23 @@ from pathlib import Path
 from hpc_multibench.test_plan import TestPlan
 
 
-def get_parser() -> ArgumentParser:
+def get_parser() -> ArgumentParser:  # pragma: no cover
     """Get the argument parser for the tool."""
     parser = ArgumentParser(description="A tool to spawn and analyse HPC jobs.")
+    parser.add_argument(
+        "-y",
+        "--yaml-path",
+        required=True,
+        type=Path,
+        help="the path to the configuration YAML file",
+    )
+    # # Consider ergonomics of `subcommand yaml_path`, when running `record`
+    # # then `report` on same yaml file in sequence
+    # for sub_parser in (parser_record, parser_report, parser_interactive):
+    #     sub_parser.add_argument(
+    #         "yaml_path", type=Path, help="the path to the configuration YAML file"
+    #     )
+
     sub_parsers = parser.add_subparsers(dest="command", required=True)
     parser_record = sub_parsers.add_parser(
         "record", help="record data from running the test benches"
@@ -33,18 +47,12 @@ def get_parser() -> ArgumentParser:
         action="store_true",
         help="delete any previous run results of the test benches",
     )
-    parser_report = sub_parsers.add_parser(
+    _parser_report = sub_parsers.add_parser(
         "report", help="report analysis about completed test bench runs"
     )
-    parser_interactive = sub_parsers.add_parser(
+    _parser_interactive = sub_parsers.add_parser(
         "interactive", help="launch interactive mode"
     )
-    # TODO: Consider ergonomics of `subcommand yaml_path`, when running `record`
-    # then `report` on same yaml file in sequence
-    for sub_parser in (parser_record, parser_report, parser_interactive):
-        sub_parser.add_argument(
-            "yaml_path", type=Path, help="the path to the configuration YAML file"
-        )
     return parser
 
 
