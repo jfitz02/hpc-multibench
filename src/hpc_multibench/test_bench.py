@@ -3,16 +3,19 @@
 """A class representing a test bench composing part of a test plan."""
 
 from argparse import Namespace
+from base64 import b64decode, b64encode
+from csv import DictReader, DictWriter
 from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
-from pickle import dump as pickle_dump  # nosec
-from pickle import load as pickle_load  # nosec
+from pickle import dumps as pickle_dumps  # nosec
+from pickle import loads as pickle_loads  # nosec
 from re import search as re_search
 from shutil import rmtree
 from typing import TYPE_CHECKING, Any
 
 import matplotlib.pyplot as plt
+from typing_extensions import Self
 
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
 
@@ -31,6 +34,27 @@ class RunConfigurationMetadata:
     name: str
     output_file_name: str
     instantiation: dict[str, Any] | None
+
+    def as_csv_row(self) -> dict[str, Any]:
+        """Get a representation of the data able to be written to a CSV file."""
+        row = self.__dict__
+        row["instantiation"] = b64encode(pickle_dumps(row["instantiation"])).decode(
+            "ascii"
+        )
+        return row
+
+    @classmethod
+    def from_csv_row(cls, row: dict[str, Any]) -> Self:
+        """Construct the object from a representation usable in CSV files."""
+        row["instantiation"] = pickle_loads(  # noqa: S301 # nosec
+            b64decode(row["instantiation"])
+        )
+        return cls(**row)
+
+    @classmethod
+    def fields(cls) -> list[str]:
+        """Return the field names of the dataclass."""
+        return list(cls.__annotations__)
 
 
 class TestBench:
@@ -83,25 +107,41 @@ class TestBench:
     @property
     def _run_configurations_metadata_file(self) -> Path:
         """Get the path to the file to save the run configuration metadata."""
-        return self.output_directory / "run_configs.pickle"
+        return self.output_directory / "runs_metadata.csv"
 
     @property
     def run_configurations_metadata(self) -> list[RunConfigurationMetadata] | None:
         """Retrieve the run configuration metadata from its file."""
         if not self._run_configurations_metadata_file.exists():
             return None
-        # TODO: Could store in human-readable format, pickling only instantations
-        with self._run_configurations_metadata_file.open("rb") as metadata_file:
-            return pickle_load(metadata_file)  # type: ignore # noqa: PGH003, S301 # nosec
+
+        with self._run_configurations_metadata_file.open("r") as metadata_file:
+            metadata_reader = DictReader(metadata_file)
+            return [
+                RunConfigurationMetadata.from_csv_row(row) for row in metadata_reader
+            ]
 
     @run_configurations_metadata.setter
     def run_configurations_metadata(
         self, metadata: list[RunConfigurationMetadata]
     ) -> None:
-        """Write out the run configuration metadata to its file."""
-        # TODO: Is this actually the right abstraction for passing between program runs?
-        with self._run_configurations_metadata_file.open("wb+") as metadata_file:
-            pickle_dump(metadata, metadata_file)
+        """
+        Write out the run configuration metadata to its file.
+
+        TODO: Consider whether this is actually right abstraction for passing
+        between program runs.
+        """
+        existing_metadata = self.run_configurations_metadata
+        with self._run_configurations_metadata_file.open("w+") as metadata_file:
+            metadata_writer = DictWriter(
+                metadata_file, fieldnames=RunConfigurationMetadata.fields()
+            )
+            metadata_writer.writeheader()
+            if existing_metadata is not None:
+                metadata_writer.writerows(
+                    item.as_csv_row() for item in existing_metadata
+                )
+            metadata_writer.writerows(item.as_csv_row() for item in metadata)
 
     def record(self, args: Namespace) -> None:
         """Spawn run configurations for the test bench."""
