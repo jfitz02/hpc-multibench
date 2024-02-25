@@ -86,17 +86,29 @@ class RunConfiguration:
     @property
     def output_file(self) -> Path:
         """Get the path to the output file to write to."""
-        instantation_str = (
-            f"__{RunConfiguration.get_instantiation_repr(self.instantiation)}"
-            if self.instantiation is not None
-            else ""
-        )
-        return self.output_directory / f"{self.name}{instantation_str}__%j.out"
+        # instantation_str = (
+        #     f"__{RunConfiguration.get_instantiation_repr(self.instantiation)}"
+        #     if self.instantiation is not None
+        #     else ""
+        # )
+        return self.output_directory / f"{self.name}__%j.out"
 
     @classmethod
     def get_instantiation_repr(cls, instantiation: dict[str, Any]) -> str:
         """Get a string representation of a run instantiation."""
         # TODO: Better representation of sbatch etc than stringifying
+        # instantiation_items: list[str] = []
+        # for name, value in instantiation.items():
+        #     if name == "args":
+        #         instantiation_items.append(
+        #             f"{name}={str(value).replace('/','').replace(' ','_')}"
+        #         )
+        #     # elif name == "run_command":
+        #     # elif name == "build_commands":
+        #     # elif name == "module_loads":
+        #     # elif name == "sbatch_config":
+        #     # elif name == "environment_variables":
+        # return ",".join(instantiation_items)
         return ",".join(
             f"{name}={str(value).replace('/','').replace(' ','_')}"
             for name, value in instantiation.items()
@@ -113,8 +125,7 @@ class RunConfiguration:
 
         # Create and run the temporary sbatch file via slurm
         with NamedTemporaryFile(
-            prefix=self.name,
-            suffix=".sbatch", dir=Path("./"), mode="w+"
+            prefix=self.name, suffix=".sbatch", dir=Path("./"), mode="w+"
         ) as sbatch_tmp:
             sbatch_tmp.write(self.sbatch_contents)
             sbatch_tmp.flush()
@@ -123,7 +134,7 @@ class RunConfiguration:
                 dependencies_string = ",".join(str(job_id) for job_id in dependencies)
                 command_list.insert(1, f"--dependency=afterok:{dependencies_string}")
             result = subprocess_run(  # nosec
-                command_list,  # noqa: S603, S607
+                command_list,  # type: ignore # noqa: S603, PGH003
                 check=True,
                 stdout=PIPE,
             )
