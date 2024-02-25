@@ -1,5 +1,6 @@
 ### Project specific ignores
 results*/
+src_bak
 
 ### Python ignores
 # Byte-compiled / optimized / DLL files
