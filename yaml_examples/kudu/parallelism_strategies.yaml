@@ -28,36 +28,36 @@ run_configurations:
       - "make -j 8"
     run_command: "./test_HPCCG"
 
-  # "cpp-mpi":
-  #   sbatch_config:
-  #     "nodes": 2
-  #     "ntasks-per-node": 8
-  #     "cpus-per-task": 1
-  #     "exclusive": "mcs"
-  #     "mem-per-cpu": 1500
-  #   module_loads:
-  #     - "cs402-mpi"
-  #   environment_variables: {}
-  #   directory: "../0_cpp_versions/2_mpi"
-  #   build_commands:
-  #     - "make -j 8"
-  #   run_command: "mpirun -n 16 ./test_HPCCG"  # TODO: Select best MPI config
+  "cpp-mpi":
+    sbatch_config:
+      "nodes": 2
+      "ntasks-per-node": 8
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem-per-cpu": 1500
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../0_cpp_versions/2_mpi"
+    build_commands:
+      - "make -j 8"
+    run_command: "mpirun -n 16 ./test_HPCCG"  # TODO: Select best MPI config
 
-  # "cpp-hybrid":
-  #   sbatch_config:
-  #     "nodes": 2
-  #     "ntasks-per-node": 4
-  #     "cpus-per-task": 2
-  #     "exclusive": "mcs"
-  #     "mem-per-cpu": 1500
-  #   module_loads:
-  #     - "cs402-mpi"
-  #   environment_variables:
-  #     "OMP_NUM_THREADS": 2
-  #   directory: "../0_cpp_versions/3_hybrid"
-  #   build_commands:
-  #     - "make -j 8"
-  #   run_command: "mpirun -n 16 ./test_HPCCG"  # TODO: Select best MPI config
+  "cpp-hybrid":
+    sbatch_config:
+      "nodes": 2
+      "ntasks-per-node": 4
+      "cpus-per-task": 2
+      "exclusive": "mcs"
+      "mem-per-cpu": 1500
+    module_loads:
+      - "cs402-mpi"
+    environment_variables:
+      "OMP_NUM_THREADS": 2
+    directory: "../0_cpp_versions/3_hybrid"
+    build_commands:
+      - "make -j 8"
+    run_command: "mpirun -n 16 ./test_HPCCG"  # TODO: Select best MPI config
 
   "rust-reference":
     sbatch_config:
@@ -88,36 +88,36 @@ run_configurations:
       - "cargo build --release"
     run_command: "./target/release/hpccg-rs"
 
-  # "rust-mpi":
-  #   sbatch_config:
-  #     "nodes": 2
-  #     "ntasks-per-node": 8
-  #     "cpus-per-task": 1
-  #     "exclusive": "mcs"
-  #     "mem-per-cpu": 1500
-  #   module_loads:
-  #     - "cs402-mpi"
-  #   environment_variables: {}
-  #   directory: "../7_mpi"
-  #   build_commands:
-  #     - "cargo build --release"
-  #   run_command: "mpirun -n 16 ./target/release/hpccg-rs"  # TODO: Select best MPI config
+  "rust-mpi":
+    sbatch_config:
+      "nodes": 2
+      "ntasks-per-node": 8
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem-per-cpu": 1500
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../7_mpi"
+    build_commands:
+      - "cargo build --release"
+    run_command: "mpirun -n 16 ./target/release/hpccg-rs"  # TODO: Select best MPI config
 
-  # "rust-hybrid":
-  #   sbatch_config:
-  #     "nodes": 2
-  #     "ntasks-per-node": 4
-  #     "cpus-per-task": 2
-  #     "exclusive": "mcs"
-  #     "mem-per-cpu": 1500
-  #   module_loads:
-  #     - "cs402-mpi"
-  #   environment_variables:
-  #     "RAYON_NUM_THREADS": 2
-  #   directory: "../8_hybrid"
-  #   build_commands:
-  #     - "cargo build --release"
-  #   run_command: "mpirun -n 16 ./target/release/hpccg-rs"  # TODO: Select best MPI config
+  "rust-hybrid":
+    sbatch_config:
+      "nodes": 2
+      "ntasks-per-node": 4
+      "cpus-per-task": 2
+      "exclusive": "mcs"
+      "mem-per-cpu": 1500
+    module_loads:
+      - "cs402-mpi"
+    environment_variables:
+      "RAYON_NUM_THREADS": 2
+    directory: "../8_hybrid"
+    build_commands:
+      - "cargo build --release"
+    run_command: "mpirun -n 16 ./target/release/hpccg-rs"  # TODO: Select best MPI config
 
 
 benches:
@@ -128,8 +128,9 @@ benches:
     matrix:
       args:
         - "100 100 100"
-        - "300 300 300"
-        - "500 500 500"
+        - "150 150 150"
+        - "200 200 200"
+        - "250 250 250"
     analysis:
       metrics:
         "Mesh x size": "nx: (\\d+)"
@@ -160,8 +161,9 @@ benches:
     matrix:
       args:
         - "100 100 100"
-        - "300 300 300"
-        - "500 500 500"
+        - "150 150 150"
+        - "200 200 200"
+        - "250 250 250"
       environment_variables:
         - {"OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1}
         - {"OMP_NUM_THREADS": 4, "RAYON_NUM_THREADS": 4}
@@ -191,73 +193,75 @@ benches:
           x: "Mesh x size"
           y: "Wall time (s)"
 
-  # "mpi":
-  #   run_configurations:
-  #     - "cpp-mpi"
-  #     - "rust-mpi"
-  #   matrix:
-  #     args:
-  #       - "100 100 100"
-  #       - "300 300 300"
-  #       - "500 500 500"  ## TODO: Figure out best for one MPI node, then duplicate across many
-  #   analysis:
-  #     metrics:
-  #       "Mesh x size": "nx: (\\d+)"
-  #       "Mesh y size": "ny: (\\d+)"
-  #       "Mesh z size": "nz: (\\d+)"
-  #       "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #       "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #       "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #       "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #       "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-  #       "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-  #       "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-  #       "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-  #       "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-  #       "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
-  #       "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
-  #       "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
-  #       "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
-      # line_plots:
-      #   - title: "MPI Implementation Comparison"
-      #     x: "Mesh x size"
-      #     y: "Wall time (s)"
+  "mpi":
+    run_configurations:
+      - "cpp-mpi"
+      - "rust-mpi"
+    matrix:  ## TODO: Figure out best for one MPI node, then duplicate across many
+      args:
+        - "100 100 100"
+        - "150 150 150"
+        - "200 200 200"
+        - "250 250 250"
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
+        "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
+        "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+      line_plots:
+        - title: "MPI Implementation Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
 
-  # "hybrid":
-  #   run_configurations:
-  #     - "cpp-hybrid"
-  #     - "rust-hybrid"
-  #   matrix:
-  #     args:
-  #       - "100 100 100"
-  #       - "300 300 300"
-  #       - "500 500 500"
-  #     [sbatch_config, environment_variables]:
-  #       - [{"ntasks-per-node": 1}, {"OMP_NUM_THREADS": 40}]  ## TODO: Figure out best for one MPI node, then duplicate across many
-  #       - [{"ntasks-per-node": 2}, {"OMP_NUM_THREADS": 20}]
-  #       - [{"ntasks-per-node": 4}, {"OMP_NUM_THREADS": 10}]
-  #       - [{"ntasks-per-node": 10}, {"OMP_NUM_THREADS": 4}]
-  #       - [{"ntasks-per-node": 20}, {"OMP_NUM_THREADS": 2}]
-  #       - [{"ntasks-per-node": 40}, {"OMP_NUM_THREADS": 1}]
-  #   analysis:
-  #     metrics:
-  #       "Mesh x size": "nx: (\\d+)"
-  #       "Mesh y size": "ny: (\\d+)"
-  #       "Mesh z size": "nz: (\\d+)"
-  #       "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #       "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #       "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #       "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #       "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-  #       "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-  #       "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-  #       "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-  #       "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-  #       "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
-  #       "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
-  #       "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
-  #       "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
-      # line_plots:
-      #   - title: "MPI & Parallel Implementation Comparison"
-      #     x: "Mesh x size"
-      #     y: "Wall time (s)"
+  "hybrid":
+    run_configurations:
+      - "cpp-hybrid"
+      - "rust-hybrid"
+    matrix:
+      args:
+        - "100 100 100"
+        - "150 150 150"
+        - "200 200 200"
+        - "250 250 250"
+      [sbatch_config, environment_variables]:
+        - [{"ntasks-per-node": 1}, {"OMP_NUM_THREADS": 40}]  ## TODO: Figure out best for one MPI node, then duplicate across many
+        - [{"ntasks-per-node": 2}, {"OMP_NUM_THREADS": 20}]
+        - [{"ntasks-per-node": 4}, {"OMP_NUM_THREADS": 10}]
+        - [{"ntasks-per-node": 10}, {"OMP_NUM_THREADS": 4}]
+        - [{"ntasks-per-node": 20}, {"OMP_NUM_THREADS": 2}]
+        - [{"ntasks-per-node": 40}, {"OMP_NUM_THREADS": 1}]
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
+        "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
+        "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+      line_plots:
+        - title: "MPI & Parallel Implementation Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
