@@ -221,6 +221,7 @@ class TestBench:
 
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
+        print(f"Reporting data from test bench '{self.name}'")
         if self.run_configurations_metadata is None:
             print(f"Metadata file does not exist for test bench '{self.name}'!")
             return

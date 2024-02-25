@@ -12,6 +12,7 @@ from typing import Any
 SHELL_SHEBANG = "#!/bin/sh\n"
 SLURM_JOB_ID_REGEX = r"Submitted batch job (\d+)"
 SLURM_UNQUEUED_SUBSTRING = "Invalid job id specified"
+TIME_COMMAND = "time -p "
 
 
 class RunConfiguration:
@@ -74,7 +75,7 @@ class RunConfiguration:
         sbatch_file += "echo\n"
 
         sbatch_file += "\necho '===== RUN ====='\n"
-        sbatch_file += f"time -p {self.run_command} {self.args}\n"
+        sbatch_file += f"{TIME_COMMAND}{self.run_command} {self.args}\n"
 
         return sbatch_file
 
