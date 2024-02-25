@@ -117,16 +117,19 @@ class RunConfiguration:
                 return None
             return int(job_id_search.group(1))
 
-    def collect(self, slurm_id: int) -> str | None:
+    def collect(
+        self, slurm_id: int, check_queue: bool = False  # noqa: FBT001, FBT002
+    ) -> str | None:
         """Collect the output from a completed job with a given slurm id."""
         # Check the job is completed in the queue
-        result = subprocess_run(  # nosec
-            ["squeue", "-j", str(slurm_id)],  # noqa: S603, S607
-            check=True,
-            stdout=PIPE,
-        )
-        if SLURM_UNQUEUED_SUBSTRING in result.stdout.decode("utf-8"):
-            return None
+        if check_queue:
+            result = subprocess_run(  # nosec
+                ["squeue", "-j", str(slurm_id)],  # noqa: S603, S607
+                check=True,
+                stdout=PIPE,
+            )
+            if SLURM_UNQUEUED_SUBSTRING in result.stdout.decode("utf-8"):
+                return None
 
         # Return the contents of the specified output file
         output_file = self.output_file.parent / self.get_true_output_file_name(slurm_id)

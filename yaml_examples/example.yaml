@@ -29,8 +29,8 @@ benches:
         - ["64 64 64", "mpirun -np 16 ./test_HPCCG"]
     analysis:
       metrics:
-        "Mesh x size": "nx: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
       plot:
-        x: "Mesh x size"
+        x: "Mesh z size"
         y: "Total time (s)"

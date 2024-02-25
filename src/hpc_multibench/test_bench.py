@@ -3,12 +3,16 @@
 """A class representing a test bench composing part of a test plan."""
 
 from argparse import Namespace
+from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
 from pickle import dump as pickle_dump  # nosec
 from pickle import load as pickle_load  # nosec
+from re import search as re_search
 from shutil import rmtree
-from typing import TYPE_CHECKING, Any, NamedTuple
+from typing import TYPE_CHECKING, Any
+
+import matplotlib.pyplot as plt
 
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
 
@@ -19,7 +23,8 @@ if TYPE_CHECKING:
 BASE_OUTPUT_DIRECTORY = Path("results/")
 
 
-class RunConfigurationMetadata(NamedTuple):
+@dataclass(frozen=True)
+class RunConfigurationMetadata:
     """Data about run configurations to persist between program instances."""
 
     job_id: int
@@ -140,41 +145,69 @@ class TestBench:
         if not args.no_wait:
             raise NotImplementedError("Waiting for queue not yet implemented")
 
+    def extract_metrics(self, output: str) -> dict[str, str] | None:
+        """
+        Extract the specified metrics from the output file.
+
+        Note that run instantiations can be extracted via regex from output.
+        """
+        metrics: dict[str, str] = {}
+        for metric, regex in self.bench_model.analysis.metrics.items():
+            metric_search = re_search(regex, output)
+            if metric_search is None:
+                return None
+            # TODO: Support multiple groups by lists as keys?
+            metrics[metric] = metric_search.group(1)
+        return metrics
+
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
-        # print(f"Reporting data from test bench '{self.name}'")
-        # print(
-        #     f"x: {self.bench_model.analysis.plot.x}, "
-        #     f"y: {self.bench_model.analysis.plot.y}"
-        # )
-
         if self.run_configurations_metadata is None:
             print(f"Metadata file does not exist for test bench '{self.name}'!")
             return
 
-        # Print out `data: dict[str, list[tuple[float, float]]]`
-
-        # - Construct realised run configurations from metadata (mapping from metadata to run_config?)
+        # TODO: Could type alias for slurm job id?
         # TODO: Error handling for name not being in models?
-        reconstructed_run_configurations: dict[
-            RunConfigurationMetadata, RunConfiguration
-        ] = {
-            metadata: self.run_configuration_models[metadata.name].realise(
+        # Reconstruct realised run configurations from the metadata file
+        reconstructed_run_configurations: dict[int, RunConfiguration] = {
+            metadata.job_id: self.run_configuration_models[metadata.name].realise(
                 metadata.name, self.output_directory, metadata.instantiation
             )
             for metadata in self.run_configurations_metadata
         }
 
-        # - Collect results from runs (mapping from metadata to results string?)
-        run_results: dict[RunConfigurationMetadata, str | None] = {
-            metadata: run_configuration.collect(metadata.job_id)
-            for metadata, run_configuration in reconstructed_run_configurations.items()
+        # Collect outputs from the run configurations
+        # TODO: Add async wait for incomplete jobs
+        run_outputs: dict[int, tuple[RunConfiguration, str | None]] = {
+            job_id: (run_configuration, run_configuration.collect(job_id))
+            for job_id, run_configuration in reconstructed_run_configurations.items()
         }
 
-        # - Reshape results into required formats for line plot
-        for metadata, result in run_results.items():
-            if result is not None:
-                print(f"{metadata.name}, {result[:10]}")
+        # Extract the outputs into the data format needed for the line plot
+        # TODO: Could pull out into analysis file?
+        data: dict[str, list[tuple[float, float]]] = {
+            run_name: [] for run_name in self.run_configuration_models
+        }
+        for run_configuration, output in run_outputs.values():
+            if output is not None:
+                metrics = self.extract_metrics(output)
+                if metrics is None:
+                    continue
+                data[run_configuration.name].append(
+                    (
+                        float(metrics[self.bench_model.analysis.plot.x]),
+                        float(metrics[self.bench_model.analysis.plot.y]),
+                    )
+                )
+
+        for name, results in data.items():
+            print(name, results)
+            plt.plot(*zip(*results, strict=True), marker="x", label=name)
+        plt.xlabel(self.bench_model.analysis.plot.x)
+        plt.ylabel(self.bench_model.analysis.plot.y)
+        plt.title(self.bench_model.analysis.plot.title)
+        plt.legend()
+        plt.show()
 
         # print("\n".join(str(x) for x in self.run_configurations_metadata))
         # Load mappings from run config/args to slurm job ids

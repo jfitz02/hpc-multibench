@@ -53,6 +53,7 @@ class PlotModel(BaseModel):
 
     x: str
     y: str
+    title: str = "Performance Plot"
 
     # TODO: Needs work to expand capability
 

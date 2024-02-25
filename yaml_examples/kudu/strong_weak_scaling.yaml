@@ -46,23 +46,12 @@ benches:
         # - ["64 64 16", "mpirun -np 64 ./test_HPCCG"]
     analysis:
       metrics:
-        "Mesh x size": "nx: (\\d+)"
-        "Mesh y size": "ny: (\\d+)"
         "Mesh z size": "nz: (\\d+)"
+        "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*run_command: mpirun -np (\\d+).*\\}"
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-        "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-        "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-        "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-        "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-        "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-        "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
-        "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
-        "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
       plot:
-        x: "Mesh x size"
+        title: "Strong Scaling Plot"
+        x: "Mesh z size"
         y: "Total time (s)"
 
   "weak-scaling":
@@ -82,21 +71,9 @@ benches:
         # - "mpirun -np 64 ./test_HPCCG"
     analysis:
       metrics:
-        "Mesh x size": "nx: (\\d+)"
-        "Mesh y size": "ny: (\\d+)"
-        "Mesh z size": "nz: (\\d+)"
+        "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*run_command: mpirun -np (\\d+).*\\}"
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-        "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-        "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-        "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-        "ddot flops": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-        "waxpby flops": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-        "sparsemv flops": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "ddot mflops": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
-        "waxpby mflops": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
-        "sparsemv mflops": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
       plot:
-        x: "Mesh x size"
+        title: "Weak Scaling Plot"
+        x: "MPI Ranks"
         y: "Total time (s)"
