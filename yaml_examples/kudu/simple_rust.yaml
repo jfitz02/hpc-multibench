@@ -40,7 +40,7 @@ run_configurations:
     directory: "../0_cpp_versions/2_mpi"
     build_commands:
       - "make -j 8"
-    run_command: "mpirun -n 16 ./test_HPCCG"
+    run_command: "mpirun ./test_HPCCG"
 
   "rust-reference":
     sbatch_config:
@@ -83,11 +83,12 @@ run_configurations:
     directory: "../7_mpi"
     build_commands:
       - "cargo build --release"
-    run_command: "mpirun -n 16 ./target/release/hpccg-rs"
+    run_command: "mpirun ./target/release/hpccg-rs"
 
 
 benches:
   "serial":
+    enabled: False
     run_configurations:
       - "cpp-reference"
       - "rust-reference"
@@ -114,6 +115,7 @@ benches:
           y: "Wall time (s)"
 
   "parallel":
+    enabled: False
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
@@ -142,13 +144,20 @@ benches:
           y: "Wall time (s)"
 
 
-  "mpi-config-sweep":
+  "mpi-single-node-config-sweep":
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"
     matrix:
       args:
         - "100 100 100"
+      # [sbatch_config, environment_variables]:
+      #   - [{"ntasks-per-node": 1}, {"OMP_NUM_THREADS": 40}]  ## TODO: Figure out best for one MPI node, then duplicate across many
+      #   - [{"ntasks-per-node": 2}, {"OMP_NUM_THREADS": 20}]
+      #   - [{"ntasks-per-node": 4}, {"OMP_NUM_THREADS": 10}]
+      #   - [{"ntasks-per-node": 10}, {"OMP_NUM_THREADS": 4}]
+      #   - [{"ntasks-per-node": 20}, {"OMP_NUM_THREADS": 2}]
+      #   - [{"ntasks-per-node": 40}, {"OMP_NUM_THREADS": 1}]
     analysis:
       metrics:
         "Mesh x size": "nx: (\\d+)"
