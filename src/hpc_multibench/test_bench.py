@@ -15,7 +15,6 @@ from re import search as re_search
 from shutil import rmtree
 from typing import Any
 
-import matplotlib.pyplot as plt
 from typing_extensions import Self
 
 from hpc_multibench.run_configuration import RunConfiguration
@@ -27,13 +26,21 @@ from hpc_multibench.yaml_model import (
 )
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
-PLOT_BACKEND: str = "seaborn"
+PLOT_BACKEND: str = "plotext"
 
-if PLOT_BACKEND == "seaborn":
-    import pandas as pd
-    import seaborn as sns
+if PLOT_BACKEND == "plotext":
+    import plotext as plt
 
-    sns.set_theme()
+    PLOTEXT_MARKER = "braille"
+    PLOTEXT_THEME = "pro"
+else:
+    import matplotlib.pyplot as plt
+
+    if PLOT_BACKEND == "seaborn":
+        import pandas as pd
+        import seaborn as sns
+
+        sns.set_theme()
 
 
 @dataclass(frozen=True)
@@ -315,13 +322,23 @@ class TestBench:
             )
             plt.xticks(rotation=45, ha="right")
             plt.gcf().subplots_adjust(bottom=0.25)
-        else:
+        elif PLOT_BACKEND == "plotext":
+            plt.clear_figure()
             shaped_data: list[tuple[str, float]] = sorted(
+                [(", ".join(name), metric) for name, metric in data.items()],
+                key=lambda x: x[1],
+            )
+            plt.bar(
+                *zip(*shaped_data, strict=True), orientation="horizontal", width=3 / 5
+            )
+            plt.ylabel(plot.y)
+            plt.theme(PLOTEXT_THEME)
+        else:
+            newline_shaped_data: list[tuple[str, float]] = sorted(
                 [(",\n".join(name), metric) for name, metric in data.items()],
                 key=lambda x: x[1],
             )
-
-            plt.bar(*zip(*shaped_data, strict=True))
+            plt.bar(*zip(*newline_shaped_data, strict=True))
             plt.ylabel(plot.y)
             plt.xticks(rotation=45, ha="right")
             plt.gcf().subplots_adjust(bottom=0.25)
@@ -329,7 +346,7 @@ class TestBench:
         plt.title(plot.title)
         plt.show()
 
-    def draw_line_plot(
+    def draw_line_plot(  # noqa: C901
         self,
         plot: LinePlotModel,
         run_outputs: dict[int, tuple[RunConfiguration, str | None]],
@@ -388,9 +405,19 @@ class TestBench:
                 hue="Run Configurations",
                 data=dataframe,
             )
+        elif PLOT_BACKEND == "plotext":
+            plt.clear_figure()
+            for name, results in data.items():
+                plt.plot(
+                    *zip(*sorted(results), strict=True),
+                    marker=PLOTEXT_MARKER,
+                    label=",".join(name),
+                )
+            plt.xlabel(plot.x)
+            plt.ylabel(plot.y)
+            plt.theme(PLOTEXT_THEME)
         else:
             for name, results in data.items():
-                print(name, results)
                 plt.plot(
                     *zip(*sorted(results), strict=True),
                     marker="x",
