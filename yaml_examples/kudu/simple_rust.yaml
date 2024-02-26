@@ -195,7 +195,7 @@ benches:
         - title: "MPI Configuration Sweep"
           x: "Mesh x size"
           y: "Wall time (s)"
-          split_by:
+          split_metrics:
             - "Nodes"
             - "Tasks per Node"
 
@@ -229,6 +229,6 @@ benches:
         - title: "Parallel Implementation Comparison"
           x: "Mesh x size"
           y: "Wall time (s)"
-          split_by:
+          split_metrics:
             - "Tasks per Node"
             - "Threads"

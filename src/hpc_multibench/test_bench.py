@@ -263,7 +263,7 @@ class TestBench:
 
                     split_data: list[str] = [
                         f"{split_metric}={metrics[split_metric]}"
-                        for split_metric in plot.split_by
+                        for split_metric in plot.split_metrics
                     ]
                     series_name = (run_configuration.name, *split_data)
 
