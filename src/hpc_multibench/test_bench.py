@@ -18,15 +18,17 @@ from typing import Any
 from typing_extensions import Self
 
 from hpc_multibench.run_configuration import RunConfiguration
+from hpc_multibench.roofline_model import RooflineDataModel
 from hpc_multibench.yaml_model import (
     BarChartModel,
     BenchModel,
     LinePlotModel,
+    RooflinePlotModel,
     RunConfigurationModel,
 )
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
-PLOT_BACKEND: str = "plotext"
+PLOT_BACKEND: str = "matplotlib"  # "plotext"
 
 if PLOT_BACKEND == "plotext":
     import plotext as plt
@@ -273,6 +275,50 @@ class TestBench:
 
         for bar_chart in self.bench_model.analysis.bar_charts:
             self.draw_bar_chart(bar_chart, run_outputs)
+
+        for roofline_plot in self.bench_model.analysis.roofline_plots:
+            self.draw_roofline_plot(roofline_plot, run_outputs)
+
+    def draw_roofline_plot(
+        self,
+        plot: RooflinePlotModel,
+        run_outputs: dict[int, tuple[RunConfiguration, str | None]],
+    ) -> None:
+        """Draw a specified roofline plots for a set of run outputs."""
+        print(plot)
+        roofline_data = RooflineDataModel.from_json(plot.ert_json)
+        print(roofline_data)
+
+        # for name, results in data.items():
+        #     plt.plot(
+        #         *zip(*sorted(results), strict=True),
+        #         marker="x",
+        #         label=",".join(name),
+        #     )
+        for ceiling in roofline_data.gflops_per_sec.values():
+            for slope_name, slope in roofline_data.flops_per_byte.items():
+                plt.plot(
+                    [0, slope],
+                    [ceiling - slope, ceiling],
+                    label=f"{slope_name} = {slope} GB/s",
+                )
+        for ceiling_name, ceiling in roofline_data.gflops_per_sec.items():
+            min_x = min(roofline_data.flops_per_byte.values())
+            max_x = max(roofline_data.flops_per_byte.values()) + min_x
+            plt.plot(
+                [min_x, max_x],
+                [ceiling, ceiling],
+                label=f"{ceiling} {ceiling_name} (Maximum)",
+            )
+
+        plt.xlabel("FLOPs/Byte")
+        # plt.xscale("log")
+        plt.ylabel("GFLOPs/sec")
+        # plt.yscale("log")
+        plt.legend()
+
+        plt.title(plot.title)
+        plt.show()
 
     def draw_bar_chart(
         self,
