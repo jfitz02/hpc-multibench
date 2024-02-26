@@ -253,15 +253,23 @@ class TestBench:
         # Extract the outputs into the data format needed for the line plot
         for plot in self.bench_model.analysis.line_plots:
             # TODO: Could extraction function out into analysis file?
-            data: dict[str, list[tuple[float, float]]] = {
-                run_name: [] for run_name in self.run_configuration_models
-            }
+            data: dict[tuple[str, ...], list[tuple[float, float]]] = {}
+
             for run_configuration, output in run_outputs.values():
                 if output is not None:
                     metrics = self.extract_metrics(output)
                     if metrics is None:
                         continue
-                    data[run_configuration.name].append(
+
+                    split_data: list[str] = [
+                        f"{split_metric}={metrics[split_metric]}"
+                        for split_metric in plot.split_by
+                    ]
+                    series_name = (run_configuration.name, *split_data)
+
+                    if series_name not in data:
+                        data[series_name] = []
+                    data[series_name].append(
                         (
                             float(metrics[plot.x]),
                             float(metrics[plot.y]),
@@ -270,7 +278,7 @@ class TestBench:
 
             for name, results in data.items():
                 print(name, results)
-                plt.plot(*zip(*results, strict=True), marker="x", label=name)
+                plt.plot(*zip(*results, strict=True), marker="x", label=",".join(name))
             plt.xlabel(plot.x)
             plt.ylabel(plot.y)
             plt.title(plot.title)

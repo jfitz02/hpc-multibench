@@ -54,6 +54,7 @@ class LinePlotModel(BaseModel):
     title: str
     x: str
     y: str
+    split_by: list[str] = []
 
 
 # class RooflinePlotModel(BaseModel):

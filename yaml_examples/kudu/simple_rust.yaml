@@ -166,7 +166,6 @@ benches:
           y: "Wall time (s)"
 
   "mpi-config-sweep":
-    enabled: False
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"
@@ -190,12 +189,18 @@ benches:
         "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
         "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
         "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+        "Nodes": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*nodes: (\\d+).*\\}"
+        "Tasks per Node": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks-per-node: (\\d+).*\\}"
       line_plots:
         - title: "MPI Configuration Sweep"
           x: "Mesh x size"
           y: "Wall time (s)"
+          split_by:
+            - "Nodes"
+            - "Tasks per Node"
 
   "hybrid-single-node-config-sweep":
+    enabled: False
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
@@ -218,7 +223,12 @@ benches:
         "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
         "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
         "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+        "Tasks per Node": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks-per-node: (\\d+).*\\}"
+        "Threads": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*cpus-per-task: (\\d+).*\\}"
       line_plots:
         - title: "Parallel Implementation Comparison"
           x: "Mesh x size"
           y: "Wall time (s)"
+          split_by:
+            - "Tasks per Node"
+            - "Threads"
