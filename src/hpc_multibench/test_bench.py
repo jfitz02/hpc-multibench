@@ -6,6 +6,7 @@ from argparse import Namespace
 from base64 import b64decode, b64encode
 from csv import DictReader, DictWriter
 from dataclasses import dataclass
+from functools import reduce
 from itertools import product
 from pathlib import Path
 from pickle import dumps as pickle_dumps  # nosec
@@ -15,8 +16,6 @@ from shutil import rmtree
 from typing import Any
 
 import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
 from typing_extensions import Self
 
 from hpc_multibench.run_configuration import RunConfiguration
@@ -27,9 +26,14 @@ from hpc_multibench.yaml_model import (
     RunConfigurationModel,
 )
 
-sns.set_theme()
-
 BASE_OUTPUT_DIRECTORY = Path("results/")
+PLOT_BACKEND: str = "seaborn"
+
+if PLOT_BACKEND == "seaborn":
+    import pandas as pd
+    import seaborn as sns
+
+    sns.set_theme()
 
 
 @dataclass(frozen=True)
@@ -295,21 +299,34 @@ class TestBench:
 
                 data[series_name] = float(metrics[plot.y])
 
-        dataframe = pd.DataFrame(
-            {
-                "Run Configuration": [",\n".join(key) for key in data],
-                plot.y: list(data.values()),
-                "hue": [key[0] for key in data],
-            }
-        )
-        sns.barplot(
-            data=dataframe.sort_values(plot.y),
-            x="Run Configuration",
-            y=plot.y,
-            hue="hue",
-        )
-        plt.xticks(rotation=45, ha="right")
-        plt.gcf().subplots_adjust(bottom=0.25)
+        if PLOT_BACKEND == "seaborn":
+            dataframe = pd.DataFrame(
+                {
+                    "Run Configuration": [",\n".join(key) for key in data],
+                    plot.y: list(data.values()),
+                    "Run Type": [key[0] for key in data],
+                }
+            )
+            sns.barplot(
+                data=dataframe.sort_values(plot.y),
+                x="Run Configuration",
+                y=plot.y,
+                hue="Run Type",
+            )
+            plt.xticks(rotation=45, ha="right")
+            plt.gcf().subplots_adjust(bottom=0.25)
+        else:
+            shaped_data: list[tuple[str, float]] = sorted(
+                [(",\n".join(name), metric) for name, metric in data.items()],
+                key=lambda x: x[1],
+            )
+
+            plt.bar(*zip(*shaped_data, strict=True))
+            plt.ylabel(plot.y)
+            plt.xticks(rotation=45, ha="right")
+            plt.gcf().subplots_adjust(bottom=0.25)
+
+        plt.title(plot.title)
         plt.show()
 
     def draw_line_plot(
@@ -356,15 +373,32 @@ class TestBench:
                     )
                 )
 
-        for name, results in data.items():
-            print(name, results)
-            plt.plot(
-                *zip(*sorted(results), strict=True),
-                marker="x",
-                label=",".join(name),
+        if PLOT_BACKEND == "seaborn":
+            dataframes = []
+            for name, results in data.items():
+                x, y = zip(*sorted(results), strict=True)
+                dataframes.append(pd.DataFrame({plot.x: x, ", ".join(name): y}))
+            dataframe = reduce(
+                lambda left, right: left.merge(right, on=[plot.x], how="outer"),
+                dataframes,
+            ).melt(plot.x, var_name="Run Configurations", value_name=plot.y)
+            sns.lineplot(
+                x=plot.x,
+                y=plot.y,
+                hue="Run Configurations",
+                data=dataframe,
             )
-        plt.xlabel(plot.x)
-        plt.ylabel(plot.y)
+        else:
+            for name, results in data.items():
+                print(name, results)
+                plt.plot(
+                    *zip(*sorted(results), strict=True),
+                    marker="x",
+                    label=",".join(name),
+                )
+            plt.xlabel(plot.x)
+            plt.ylabel(plot.y)
+            plt.legend()
+
         plt.title(plot.title)
-        plt.legend()
         plt.show()
