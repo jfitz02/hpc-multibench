@@ -58,19 +58,21 @@ class LinePlotModel(BaseModel):
     fix_metrics: dict[str, Any] = {}
 
 
+class BarChartModel(BaseModel):
+    """A Pydantic model for a bar chart of a single variable."""
+
+    title: str
+    y: str
+    split_metrics: list[str] = []
+    fix_metrics: dict[str, Any] = {}
+
+
 # class RooflinePlotModel(BaseModel):
 #     """A Pydantic model for a roofline plot from two metrics."""
 
 #     title: str
 #     gflops_per_sec: str
 #     flops_per_byte: str
-
-
-# class BarChartModel(BaseModel):
-#     """A Pydantic model for a bar chart of a single variable."""
-
-#     title: str
-#     y: str
 
 
 # class ExportModel(BaseModel):
@@ -86,8 +88,8 @@ class AnalysisModel(BaseModel):
     metrics: dict[str, str]
     # TODO: Offer singular interface `line_plot` which is just one plot
     line_plots: list[LinePlotModel] = []
+    bar_charts: list[BarChartModel] = []
     # rooflines: list[RooflinePlotModel] = []
-    # bar_charts: list[BarChartModel] = []
     # exports: list[BarChartModel] = []
 
 

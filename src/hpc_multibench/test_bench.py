@@ -12,16 +12,18 @@ from pickle import dumps as pickle_dumps  # nosec
 from pickle import loads as pickle_loads  # nosec
 from re import search as re_search
 from shutil import rmtree
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import matplotlib.pyplot as plt
 from typing_extensions import Self
 
-from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
-
-if TYPE_CHECKING:
-    from hpc_multibench.run_configuration import RunConfiguration
-
+from hpc_multibench.run_configuration import RunConfiguration
+from hpc_multibench.yaml_model import (
+    BarChartModel,
+    BenchModel,
+    LinePlotModel,
+    RunConfigurationModel,
+)
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
 
@@ -250,50 +252,110 @@ class TestBench:
             for job_id, run_configuration in reconstructed_run_configurations.items()
         }
 
+        # Draw the specified line plots
+        for line_plot in self.bench_model.analysis.line_plots:
+            self.draw_line_plot(line_plot, run_outputs)
+
+        for bar_chart in self.bench_model.analysis.bar_charts:
+            self.draw_bar_chart(bar_chart, run_outputs)
+
+    def draw_bar_chart(
+        self,
+        plot: BarChartModel,
+        run_outputs: dict[int, tuple[RunConfiguration, str | None]],
+    ) -> None:
+        """Draw a specified bar chart for a set of run outputs."""
+        data: dict[tuple[str, ...], float] = {}  # {("a", "b"): 1.0, ("a", "c"): 2.0}
+
         # Extract the outputs into the data format needed for the line plot
-        for plot in self.bench_model.analysis.line_plots:
-            # TODO: Could extraction function out into analysis file?
-            data: dict[tuple[str, ...], list[tuple[float, float]]] = {}
+        for run_configuration, output in run_outputs.values():
+            if output is not None:
+                metrics = self.extract_metrics(output)
+                if metrics is None:
+                    continue
 
-            for run_configuration, output in run_outputs.values():
-                if output is not None:
-                    metrics = self.extract_metrics(output)
-                    if metrics is None:
-                        continue
+                split_names: list[str] = [
+                    f"{split_metric}={metrics[split_metric]}"
+                    for split_metric in plot.split_metrics
+                    if split_metric not in plot.fix_metrics
+                ]
+                fix_names: list[str] = [
+                    f"{metric}={value}" for metric, value in plot.fix_metrics.items()
+                ]
+                series_name = (run_configuration.name, *fix_names, *split_names)
+                if any(
+                    metrics[metric] != str(value)
+                    for metric, value in plot.fix_metrics.items()
+                ):
+                    continue
 
-                    split_names: list[str] = [
-                        f"{split_metric}={metrics[split_metric]}"
-                        for split_metric in plot.split_metrics
-                        if split_metric not in plot.fix_metrics
-                    ]
-                    fix_names: list[str] = [
-                        f"{metric}={value}"
-                        for metric, value in plot.fix_metrics.items()
-                    ]
-                    series_name = (run_configuration.name, *fix_names, *split_names)
+                data[series_name] = float(metrics[plot.y])
 
-                    if any(metrics[metric] != str(value) for metric, value in plot.fix_metrics.items()):
-                        continue
+        shaped_data: list[tuple[str, float]] = sorted(
+            [(",\n".join(name), metric) for name, metric in data.items()],
+            key=lambda x: x[1],
+        )
 
-                    if series_name not in data:
-                        data[series_name] = []
-                    data[series_name].append(
-                        (
-                            float(metrics[plot.x]),
-                            float(metrics[plot.y]),
-                        )
+        plt.bar(*zip(*shaped_data, strict=True))
+        plt.ylabel(plot.y)
+        plt.xticks(rotation=45, ha="right")
+        plt.gcf().subplots_adjust(bottom=0.25)
+        plt.title(plot.title)
+        plt.show()
+
+    def draw_line_plot(
+        self,
+        plot: LinePlotModel,
+        run_outputs: dict[int, tuple[RunConfiguration, str | None]],
+    ) -> None:
+        """
+        Draw a specified line plot for a set of run outputs.
+
+        TODO: Could extract function out into analysis file?
+        """
+        data: dict[tuple[str, ...], list[tuple[float, float]]] = {}
+
+        # Extract the outputs into the data format needed for the line plot
+        for run_configuration, output in run_outputs.values():
+            if output is not None:
+                metrics = self.extract_metrics(output)
+                if metrics is None:
+                    continue
+
+                split_names: list[str] = [
+                    f"{split_metric}={metrics[split_metric]}"
+                    for split_metric in plot.split_metrics
+                    if split_metric not in plot.fix_metrics
+                ]
+                fix_names: list[str] = [
+                    f"{metric}={value}" for metric, value in plot.fix_metrics.items()
+                ]
+                series_name = (run_configuration.name, *fix_names, *split_names)
+
+                if any(
+                    metrics[metric] != str(value)
+                    for metric, value in plot.fix_metrics.items()
+                ):
+                    continue
+
+                if series_name not in data:
+                    data[series_name] = []
+                data[series_name].append(
+                    (
+                        float(metrics[plot.x]),
+                        float(metrics[plot.y]),
                     )
+                )
 
-            for name, results in data.items():
-                print(name, results)
-                plt.plot(*zip(*sorted(results), strict=True), marker="x", label=",".join(name))
-            plt.xlabel(plot.x)
-            plt.ylabel(plot.y)
-            plt.title(plot.title)
-            plt.legend()
-            plt.show()
-
-        # print("\n".join(str(x) for x in self.run_configurations_metadata))
-        # Load mappings from run config/args to slurm job ids
-        # Collect outputs of all slurm job ids, waiting if needed?
-        # Print outputs/do analysis
+        for name, results in data.items():
+            print(name, results)
+            plt.plot(
+                *zip(*sorted(results), strict=True),
+                marker="x",
+                label=",".join(name),
+            )
+        plt.xlabel(plot.x)
+        plt.ylabel(plot.y)
+        plt.title(plot.title)
+        plt.legend()
+        plt.show()

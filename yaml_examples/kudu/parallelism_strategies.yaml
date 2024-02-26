@@ -135,6 +135,7 @@ benches:
           y: "Wall time (s)"
 
   "parallel":
+    enabled: False
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
@@ -192,15 +193,28 @@ benches:
         "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
         "Nodes": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*nodes: (\\d+).*\\}"
         "Tasks per Node": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks-per-node: (\\d+).*\\}"
-      line_plots:
+      # line_plots:
+      #   - title: "MPI Configuration Sweep"
+      #     x: "Mesh x size"
+      #     y: "Wall time (s)"
+      #     split_metrics:
+      #       - "Nodes"
+      #       - "Tasks per Node"
+      #     # fix_metrics:
+      #       # "Nodes": 1
+      #       # "Tasks per Node": 1
+      bar_charts:
         - title: "MPI Configuration Sweep"
-          x: "Mesh x size"
           y: "Wall time (s)"
           split_metrics:
             - "Nodes"
             - "Tasks per Node"
+          # fix_metrics:
+            # "Nodes": 1
+            # "Tasks per Node": 1
 
   "hybrid-single-node-config-sweep":
+    enabled: False
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
