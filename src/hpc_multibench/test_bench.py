@@ -15,6 +15,8 @@ from shutil import rmtree
 from typing import Any
 
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 from typing_extensions import Self
 
 from hpc_multibench.run_configuration import RunConfiguration
@@ -24,6 +26,8 @@ from hpc_multibench.yaml_model import (
     LinePlotModel,
     RunConfigurationModel,
 )
+
+sns.set_theme()
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
 
@@ -291,16 +295,21 @@ class TestBench:
 
                 data[series_name] = float(metrics[plot.y])
 
-        shaped_data: list[tuple[str, float]] = sorted(
-            [(",\n".join(name), metric) for name, metric in data.items()],
-            key=lambda x: x[1],
+        dataframe = pd.DataFrame(
+            {
+                "Run Configuration": [",\n".join(key) for key in data],
+                plot.y: list(data.values()),
+                "hue": [key[0] for key in data],
+            }
         )
-
-        plt.bar(*zip(*shaped_data, strict=True))
-        plt.ylabel(plot.y)
+        sns.barplot(
+            data=dataframe.sort_values(plot.y),
+            x="Run Configuration",
+            y=plot.y,
+            hue="hue",
+        )
         plt.xticks(rotation=45, ha="right")
         plt.gcf().subplots_adjust(bottom=0.25)
-        plt.title(plot.title)
         plt.show()
 
     def draw_line_plot(
