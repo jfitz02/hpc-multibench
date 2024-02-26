@@ -63,7 +63,7 @@ class RunConfiguration:
         sbatch_file += "echo '=== CPU ARCHITECTURE ==='\n"
         sbatch_file += "lscpu\n"
         sbatch_file += "echo '=== SLURM CONFIG ==='\n"
-        sbatch_file += "scontrol show job $SLURM_JOB_ID"
+        sbatch_file += "scontrol show job $SLURM_JOB_ID\n"
         if self.instantiation is not None:
             sbatch_file += "echo '=== RUN INSTANTIATION ==='\n"
             sbatch_file += f"echo '{self.instantiation}'\n"

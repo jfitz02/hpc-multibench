@@ -11,6 +11,7 @@ run_configurations:
       "OMP_NUM_THREADS": 2
     directory: "../0_cpp_versions/3_hybrid"
     build_commands:
+      - "make no_yaml"
       - "make -j 8"
     run_command: "mpirun ./test_HPCCG"
 

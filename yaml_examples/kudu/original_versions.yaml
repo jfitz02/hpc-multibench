@@ -10,6 +10,7 @@ run_configurations:
     environment_variables: {}
     directory: "../0_cpp_versions/0_ref"
     build_commands:
+      - "make no_yaml"
       - "make -j 8"
     run_command: "./test_HPCCG"
 
@@ -25,6 +26,7 @@ run_configurations:
       "OMP_NUM_THREADS": 16
     directory: "../0_cpp_versions/1_openmp"
     build_commands:
+      - "make no_yaml"
       - "make -j 8"
     run_command: "./test_HPCCG"
 
@@ -40,6 +42,7 @@ run_configurations:
     environment_variables: {}
     directory: "../0_cpp_versions/2_mpi"
     build_commands:
+      - "make no_yaml"
       - "make -j 8"
     run_command: "mpirun -np 16 ./test_HPCCG"  # TODO: Select best MPI config
 
@@ -56,6 +59,7 @@ run_configurations:
       "OMP_NUM_THREADS": 2
     directory: "../0_cpp_versions/3_hybrid"
     build_commands:
+      - "make no_yaml"
       - "make -j 8"
     run_command: "mpirun -np 16 ./test_HPCCG"  # TODO: Select best MPI config
 
