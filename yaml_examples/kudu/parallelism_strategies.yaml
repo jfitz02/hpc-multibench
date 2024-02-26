@@ -116,9 +116,7 @@ benches:
       - "rust-reference"
     matrix:
       args:
-        - "25 25 25"
         - "50 50 50"
-        - "75 75 75"
         - "100 100 100"
         - "150 150 150"
         - "200 200 200"
@@ -145,8 +143,9 @@ benches:
       args:
         - "50 50 50"
         - "100 100 100"
+        - "150 150 150"
         - "200 200 200"
-        - "300 300 300"
+        - "400 400 400"
       environment_variables:
         - {"OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1}
         - {"OMP_NUM_THREADS": 16, "RAYON_NUM_THREADS": 16}
@@ -171,7 +170,10 @@ benches:
       - "rust-mpi"
     matrix:
       args:
+        - "50 50 50"
         - "100 100 100"
+        - "150 150 150"
+        - "200 200 200"
       sbatch_config:
         - {"nodes": 1, "ntasks-per-node": 1}
         - {"nodes": 1, "ntasks-per-node": 2}
@@ -206,7 +208,10 @@ benches:
       - "rust-hybrid"
     matrix:
       args:
+        - "50 50 50"
         - "100 100 100"
+        - "150 150 150"
+        - "200 200 200"
       [sbatch_config, environment_variables]:
         - [{"ntasks-per-node": 1, "cpus-per-task": 40}, {"OMP_NUM_THREADS": 40, "RAYON_NUM_THREADS": 40}]
         - [{"ntasks-per-node": 2, "cpus-per-task": 20}, {"OMP_NUM_THREADS": 20, "RAYON_NUM_THREADS": 20}]
