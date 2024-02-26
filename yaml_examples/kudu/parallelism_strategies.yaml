@@ -135,7 +135,6 @@ benches:
           y: "Wall time (s)"
 
   "parallel":
-    enabled: False
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
@@ -202,7 +201,6 @@ benches:
             - "Tasks per Node"
 
   "hybrid-single-node-config-sweep":
-    enabled: False
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
