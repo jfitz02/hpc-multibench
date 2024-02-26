@@ -20,20 +20,20 @@ benches:
       - "cpp-hybrid"
     matrix:
       [args, sbatch_config]:
-        - ["64 64 1024", {"ntasks-per-node": 1}]
-        - ["64 64 512", {"ntasks-per-node": 2}]
-        - ["64 64 256", {"ntasks-per-node": 4}]
-        - ["64 64 128", {"ntasks-per-node": 8}]
-        - ["64 64 64", {"ntasks-per-node": 16}]
-        - ["64 64 32", {"ntasks-per-node": 32}]
-        - ["64 64 16", {"ntasks-per-node": 64}]
+        - ["64 64 1024", {"ntasks": 1}]
+        - ["64 64 512", {"ntasks": 2}]
+        - ["64 64 256", {"ntasks": 4}]
+        - ["64 64 128", {"ntasks": 8}]
+        - ["64 64 64", {"ntasks": 16}]
+        - ["64 64 32", {"ntasks": 32}]
+          #- ["64 64 16", {"ntasks": 64}]
     analysis:
       metrics:
         "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
-        "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks-per-node: (\\d+).*\\}"
+        "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
       line_plots:
         - title: "Strong Scaling Plot"
-          x: "Mesh z size"
+          x: "MPI Ranks"
           y: "Wall time (s)"
 
   "weak-scaling":
@@ -43,17 +43,17 @@ benches:
       args:
         - "64 64 64"
       sbatch_config:
-        - {"ntasks-per-node": 1}
-        - {"ntasks-per-node": 2}
-        - {"ntasks-per-node": 4}
-        - {"ntasks-per-node": 8}
-        - {"ntasks-per-node": 16}
-        - {"ntasks-per-node": 32}
-        - {"ntasks-per-node": 64}
+        - {"ntasks": 1}
+        - {"ntasks": 2}
+        - {"ntasks": 4}
+        - {"ntasks": 8}
+        - {"ntasks": 16}
+        - {"ntasks": 32}
+          #- {"ntasks": 64}
     analysis:
       metrics:
         "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
-        "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks-per-node: (\\d+).*\\}"
+        "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
       line_plots:
         - title: "Weak Scaling Plot"
           x: "MPI Ranks"
