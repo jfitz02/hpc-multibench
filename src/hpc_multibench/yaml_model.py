@@ -55,7 +55,7 @@ class LinePlotModel(BaseModel):
     x: str
     y: str
     split_metrics: list[str] = []
-    # fix_metrics: dict[str, Any] = {}
+    fix_metrics: dict[str, Any] = {}
 
 
 # class RooflinePlotModel(BaseModel):

@@ -261,11 +261,19 @@ class TestBench:
                     if metrics is None:
                         continue
 
-                    split_data: list[str] = [
+                    split_names: list[str] = [
                         f"{split_metric}={metrics[split_metric]}"
                         for split_metric in plot.split_metrics
+                        if split_metric not in plot.fix_metrics
                     ]
-                    series_name = (run_configuration.name, *split_data)
+                    fix_names: list[str] = [
+                        f"{metric}={value}"
+                        for metric, value in plot.fix_metrics.items()
+                    ]
+                    series_name = (run_configuration.name, *fix_names, *split_names)
+
+                    if any(metrics[metric] != str(value) for metric, value in plot.fix_metrics.items()):
+                        continue
 
                     if series_name not in data:
                         data[series_name] = []
@@ -278,7 +286,7 @@ class TestBench:
 
             for name, results in data.items():
                 print(name, results)
-                plt.plot(*zip(*results, strict=True), marker="x", label=",".join(name))
+                plt.plot(*zip(*sorted(results), strict=True), marker="x", label=",".join(name))
             plt.xlabel(plot.x)
             plt.ylabel(plot.y)
             plt.title(plot.title)
