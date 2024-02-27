@@ -518,13 +518,13 @@ dev = ["flake8", "markdown", "twine", "wheel"]
 
 [[package]]
 name = "griffe"
-version = "0.40.1"
+version = "0.41.0"
 description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "griffe-0.40.1-py3-none-any.whl", hash = "sha256:5b8c023f366fe273e762131fe4bfd141ea56c09b3cb825aa92d06a82681cfd93"},
-    {file = "griffe-0.40.1.tar.gz", hash = "sha256:66c48a62e2ce5784b6940e603300fcfb807b6f099b94e7f753f1841661fd5c7c"},
+    {file = "griffe-0.41.0-py3-none-any.whl", hash = "sha256:8aa7fc6eb00cb80af9c0198178c6b7110cb59fa2c5187bb13ea25eebbe4dd928"},
+    {file = "griffe-0.41.0.tar.gz", hash = "sha256:850128c3198c18713eaf0a6cc8572e590a16b1965f72a4e871e66cf84740903f"},
 ]
 
 [package.dependencies]
@@ -889,6 +889,25 @@ pyparsing = ">=2.3.1"
 python-dateutil = ">=2.7"
 
 [[package]]
+name = "matplotlib-label-lines"
+version = "0.7.0"
+description = "Label lines in matplotlib."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "matplotlib_label_lines-0.7.0-py3-none-any.whl", hash = "sha256:31f9ea9de749152d5ef2a1b5e400cba965ec4574bb8a32c30361dd32dd2bfd95"},
+    {file = "matplotlib_label_lines-0.7.0.tar.gz", hash = "sha256:db2ba7afe34a733f7c02d29b16217069cf412c12ce6a452991adb71b9c4fd16f"},
+]
+
+[package.dependencies]
+matplotlib = ">=2.0.2"
+more-itertools = "*"
+numpy = ">=1.16"
+
+[package.extras]
+test = ["matplotlib (==3.7.1)", "pytest (==7.3.1)", "pytest-cov (==4.0.0)", "pytest-mpl (==0.16.1)"]
+
+[[package]]
 name = "mdit-py-plugins"
 version = "0.4.0"
 description = "Collection of plugins for markdown-it-py"
@@ -1053,6 +1072,17 @@ files = [
 [package.dependencies]
 griffe = ">=0.37"
 mkdocstrings = ">=0.20"
+
+[[package]]
+name = "more-itertools"
+version = "10.2.0"
+description = "More routines for operating on iterables, beyond itertools"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "more-itertools-10.2.0.tar.gz", hash = "sha256:8fccb480c43d3e99a00087634c06dd02b0d50fbf088b380de5a41a015ec239e1"},
+    {file = "more_itertools-10.2.0-py3-none-any.whl", hash = "sha256:686b06abe565edfab151cb8fd385a05651e1fdf8f0a14191e4439283421f8684"},
+]
 
 [[package]]
 name = "mypy"
@@ -2372,4 +2402,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "74744203f4d12c5ee9a9ccf2fd672ebb0213f9b0b2704b90a7b0cfbf7dd9a729"
+content-hash = "00d4636d2cd609d0b55b5f8443c1c30cdeaff720a5a373125abb5c5098e27f83"
