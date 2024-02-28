@@ -159,7 +159,6 @@ benches:
             - "Num threads"
 
   "mpi-config-sweep":
-    enabled: False
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"
@@ -199,7 +198,6 @@ benches:
             "Nodes": 1
 
   "hybrid-single-node-config-sweep":
-    enabled: False
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
