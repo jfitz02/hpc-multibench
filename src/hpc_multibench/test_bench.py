@@ -295,6 +295,16 @@ class TestBench:
         for label, data in roofline_data.compute_bound_ceilings.items():
             plt.plot(*zip(*data, strict=True), label=label)
 
+        for run_configuration, output in run_outputs.values():
+            if output is not None:
+                metrics = self.extract_metrics(output)
+                if metrics is None:
+                    continue
+
+                gflops_per_sec = float(metrics[plot.gflops_per_sec])
+                print(run_configuration.args, gflops_per_sec)
+                plt.axhline(y=gflops_per_sec)
+
         plt.xlabel("FLOPs/Byte")
         plt.ylabel("GFLOPs/sec")
         plt.xscale("log")

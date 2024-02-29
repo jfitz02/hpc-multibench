@@ -44,6 +44,6 @@ benches:
         "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
       roofline_plots:
         - title: "OpenMP Roofline Plot"
-          gflops_per_sec: "Mesh x size"
+          gflops_per_sec: "Total flops"
           flops_per_byte: "Wall time (s)"
           ert_json: "./yaml_examples/roofline.json"
