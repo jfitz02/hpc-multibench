@@ -10,16 +10,13 @@ from itertools import product
 from pathlib import Path
 from pickle import dumps as pickle_dumps  # nosec
 from pickle import loads as pickle_loads  # nosec
+from re import search as re_search
 from shutil import rmtree
 from typing import TYPE_CHECKING, Any
 
 from typing_extensions import Self
 
-from hpc_multibench.analysis import (  # extract_metrics,
-    draw_bar_chart,
-    draw_line_plot,
-    draw_roofline_plot,
-)
+from hpc_multibench.analysis import draw_bar_chart, draw_line_plot, draw_roofline_plot
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
 
 if TYPE_CHECKING:
@@ -213,6 +210,21 @@ class TestBench:
         if args.wait:
             raise NotImplementedError("Waiting for queue not yet implemented")
 
+    def extract_metrics(self, output: str) -> dict[str, str] | None:
+        """
+        Extract the specified metrics from the output file.
+
+        Note that run instantiations can be extracted via regex from output.
+        """
+        metrics: dict[str, str] = {}
+        for metric, regex in self.bench_model.analysis.metrics.items():
+            metric_search = re_search(regex, output)
+            if metric_search is None:
+                return None
+            # TODO: Support multiple groups by lists as keys?
+            metrics[metric] = metric_search.group(1)
+        return metrics
+
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
         print(f"Reporting data from test bench '{self.name}'")
@@ -237,24 +249,27 @@ class TestBench:
             for job_id, run_configuration in reconstructed_run_configurations.items()
         }
 
-        # # Extract the metrics from the outputs of the jobs
-        # run_metrics: list[tuple[RunConfiguration, dict[str, str] | None]] = [
-        #     (
-        #         run_configuration,
-        #         extract_metrics(output, self.bench_model.analysis.metrics),
-        #     )
-        #     for run_configuration, output in run_outputs.values()
-        #     if output is not None
-        # ]
+        # Extract the metrics from the outputs of the jobs
+        run_metrics: list[tuple[RunConfiguration, dict[str, str]]] = []
+        for run_configuration, output in run_outputs.values():
+            if output is None:
+                print(f"Run configuration '{run_configuration.name}' has no output!")
+                continue
+            metrics = self.extract_metrics(output)
+            if metrics is None:
+                print(
+                    "Unable to extract metrics from run "
+                    f"configuration '{run_configuration.name}'!"
+                )
+                continue
+            run_metrics.append((run_configuration, metrics))
 
         # Draw the specified line plots
         for line_plot in self.bench_model.analysis.line_plots:
-            draw_line_plot(line_plot, run_outputs, self.bench_model.analysis.metrics)
+            draw_line_plot(line_plot, run_metrics)
 
         for bar_chart in self.bench_model.analysis.bar_charts:
-            draw_bar_chart(bar_chart, run_outputs, self.bench_model.analysis.metrics)
+            draw_bar_chart(bar_chart, run_metrics)
 
         for roofline_plot in self.bench_model.analysis.roofline_plots:
-            draw_roofline_plot(
-                roofline_plot, run_outputs, self.bench_model.analysis.metrics
-            )
+            draw_roofline_plot(roofline_plot, run_metrics)

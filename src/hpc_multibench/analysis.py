@@ -3,7 +3,6 @@
 """A set of functions to analyse the results of a test bench run."""
 
 from enum import Enum, auto
-from re import search as re_search
 
 from hpc_multibench.roofline_model import RooflineDataModel
 from hpc_multibench.run_configuration import RunConfiguration
@@ -38,70 +37,47 @@ else:
         sns.set_theme()
 
 
-def extract_metrics(
-    output: str, metric_definitions: dict[str, str]
-) -> dict[str, str] | None:
-    """Extract a set of specified metrics from an output file's contents."""
-    metrics: dict[str, str] = {}
-    for metric, regex in metric_definitions.items():
-        metric_search = re_search(regex, output)
-        if metric_search is None:
-            return None
-        # TODO: Support multiple groups by lists as keys?
-        metrics[metric] = metric_search.group(1)
-    return metrics
-
-
 def get_line_plot_data(
     plot: LinePlotModel,
-    run_outputs: dict[int, tuple[RunConfiguration, str | None]],
-    metric_definitions: dict[str, str],
+    run_metrics: list[tuple[RunConfiguration, dict[str, str]]],
 ) -> dict[tuple[str, ...], list[tuple[float, float]]]:
     """Get the data needed to plot a specified line plot for a set of runs."""
     data: dict[tuple[str, ...], list[tuple[float, float]]] = {}
 
-    # Extract the outputs into the data format needed for the line plot
-    for run_configuration, output in run_outputs.values():
-        if output is not None:
-            metrics = extract_metrics(output, metric_definitions)
-            if metrics is None:
-                continue
+    # Reshape the metrics data from multiple runs into a plottable data series
+    for run_configuration, metrics in run_metrics:
+        split_names: list[str] = [
+            f"{split_metric}={metrics[split_metric]}"
+            for split_metric in plot.split_metrics
+            if split_metric not in plot.fix_metrics
+        ]
+        fix_names: list[str] = [
+            f"{metric}={value}" for metric, value in plot.fix_metrics.items()
+        ]
+        series_name = (run_configuration.name, *fix_names, *split_names)
 
-            split_names: list[str] = [
-                f"{split_metric}={metrics[split_metric]}"
-                for split_metric in plot.split_metrics
-                if split_metric not in plot.fix_metrics
-            ]
-            fix_names: list[str] = [
-                f"{metric}={value}" for metric, value in plot.fix_metrics.items()
-            ]
-            series_name = (run_configuration.name, *fix_names, *split_names)
+        if any(
+            metrics[metric] != str(value) for metric, value in plot.fix_metrics.items()
+        ):
+            continue
 
-            if any(
-                metrics[metric] != str(value)
-                for metric, value in plot.fix_metrics.items()
-            ):
-                continue
-
-            if series_name not in data:
-                data[series_name] = []
-            data[series_name].append(
-                (
-                    float(metrics[plot.x]),
-                    float(metrics[plot.y]),
-                )
+        if series_name not in data:
+            data[series_name] = []
+        data[series_name].append(
+            (
+                float(metrics[plot.x]),
+                float(metrics[plot.y]),
             )
+        )
 
     return data
 
 
 def draw_line_plot(
-    plot: LinePlotModel,
-    run_outputs: dict[int, tuple[RunConfiguration, str | None]],
-    metric_definitions: dict[str, str],
+    plot: LinePlotModel, run_metrics: list[tuple[RunConfiguration, dict[str, str]]]
 ) -> None:
     """Draw a specified line plot for a set of run outputs."""
-    data = get_line_plot_data(plot, run_outputs, metric_definitions)
+    data = get_line_plot_data(plot, run_metrics)
 
     if PLOT_BACKEND == PlotBackend.SEABORN:
         dataframes = []
@@ -146,45 +122,37 @@ def draw_line_plot(
 
 def get_bar_chart_data(
     plot: BarChartModel,
-    run_outputs: dict[int, tuple[RunConfiguration, str | None]],
-    metric_definitions: dict[str, str],
+    run_metrics: list[tuple[RunConfiguration, dict[str, str]]],
 ) -> dict[tuple[str, ...], float]:
     """Get the data needed to plot a specified bar chart for a set of runs."""
     data: dict[tuple[str, ...], float] = {}  # {("a", "b"): 1.0, ("a", "c"): 2.0}
 
     # Extract the outputs into the data format needed for the line plot
-    for run_configuration, output in run_outputs.values():
-        if output is not None:
-            metrics = extract_metrics(output, metric_definitions)
-            if metrics is None:
-                continue
+    for run_configuration, metrics in run_metrics:
+        split_names: list[str] = [
+            f"{split_metric}={metrics[split_metric]}"
+            for split_metric in plot.split_metrics
+            if split_metric not in plot.fix_metrics
+        ]
+        fix_names: list[str] = [
+            f"{metric}={value}" for metric, value in plot.fix_metrics.items()
+        ]
+        series_name = (run_configuration.name, *fix_names, *split_names)
+        if any(
+            metrics[metric] != str(value) for metric, value in plot.fix_metrics.items()
+        ):
+            continue
 
-            split_names: list[str] = [
-                f"{split_metric}={metrics[split_metric]}"
-                for split_metric in plot.split_metrics
-                if split_metric not in plot.fix_metrics
-            ]
-            fix_names: list[str] = [
-                f"{metric}={value}" for metric, value in plot.fix_metrics.items()
-            ]
-            series_name = (run_configuration.name, *fix_names, *split_names)
-            if any(
-                metrics[metric] != str(value)
-                for metric, value in plot.fix_metrics.items()
-            ):
-                continue
-
-            data[series_name] = float(metrics[plot.y])
+        data[series_name] = float(metrics[plot.y])
     return data
 
 
 def draw_bar_chart(
     plot: BarChartModel,
-    run_outputs: dict[int, tuple[RunConfiguration, str | None]],
-    metric_definitions: dict[str, str],
+    run_metrics: list[tuple[RunConfiguration, dict[str, str]]],
 ) -> None:
     """Draw a specified bar chart for a set of run outputs."""
-    data = get_bar_chart_data(plot, run_outputs, metric_definitions)
+    data = get_bar_chart_data(plot, run_metrics)
 
     if PLOT_BACKEND == PlotBackend.SEABORN:
         dataframe = pd.DataFrame(
@@ -227,8 +195,7 @@ def draw_bar_chart(
 
 def get_roofline_plot_data(
     plot: RooflinePlotModel,
-    _run_outputs: dict[int, tuple[RunConfiguration, str | None]],
-    _metric_definitions: dict[str, str],
+    _run_metrics: list[tuple[RunConfiguration, dict[str, str]]],
 ) -> tuple[RooflineDataModel, dict[str, tuple[float, float]]]:
     """Get the data needed to plot a specified roofline plot."""
     roofline_data = RooflineDataModel.from_json(plot.ert_json)
@@ -237,11 +204,10 @@ def get_roofline_plot_data(
 
 def draw_roofline_plot(
     plot: RooflinePlotModel,
-    run_outputs: dict[int, tuple[RunConfiguration, str | None]],
-    metric_definitions: dict[str, str],
+    run_metrics: list[tuple[RunConfiguration, dict[str, str]]],
 ) -> None:
     """Draw a specified roofline plots for a set of run outputs."""
-    data = get_roofline_plot_data(plot, run_outputs, metric_definitions)
+    data = get_roofline_plot_data(plot, run_metrics)
 
     if PLOT_BACKEND == PlotBackend.PLOTEXT:
         plt.clear_figure()
