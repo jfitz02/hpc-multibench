@@ -78,6 +78,9 @@ show_error_codes = true
 [[tool.mypy.overrides]]
 module = "matplotlib.pyplot.*"
 ignore_missing_imports = true
+[[tool.mypy.overrides]]
+module = "plotext.*"
+ignore_missing_imports = true
 
 [tool.ruff]
 select = ["ALL"]

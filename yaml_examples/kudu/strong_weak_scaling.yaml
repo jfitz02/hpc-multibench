@@ -21,12 +21,12 @@ benches:
       - "cpp-hybrid"
     matrix:
       [args, sbatch_config]:
-        - ["64 64 1024", {"ntasks": 1}]
-        - ["64 64 512", {"ntasks": 2}]
-        - ["64 64 256", {"ntasks": 4}]
-        - ["64 64 128", {"ntasks": 8}]
-        - ["64 64 64", {"ntasks": 16}]
-        - ["64 64 32", {"ntasks": 32}]
+        - ["64 64 1024", { "ntasks": 1 }]
+        - ["64 64 512", { "ntasks": 2 }]
+        - ["64 64 256", { "ntasks": 4 }]
+        - ["64 64 128", { "ntasks": 8 }]
+        - ["64 64 64", { "ntasks": 16 }]
+        - ["64 64 32", { "ntasks": 32 }]
           #- ["64 64 16", {"ntasks": 64}]
     analysis:
       metrics:
@@ -44,12 +44,12 @@ benches:
       args:
         - "64 64 64"
       sbatch_config:
-        - {"ntasks": 1}
-        - {"ntasks": 2}
-        - {"ntasks": 4}
-        - {"ntasks": 8}
-        - {"ntasks": 16}
-        - {"ntasks": 32}
+        - { "ntasks": 1 }
+        - { "ntasks": 2 }
+        - { "ntasks": 4 }
+        - { "ntasks": 8 }
+        - { "ntasks": 16 }
+        - { "ntasks": 32 }
           #- {"ntasks": 64}
     analysis:
       metrics:

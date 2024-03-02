@@ -6,45 +6,28 @@ from argparse import Namespace
 from base64 import b64decode, b64encode
 from csv import DictReader, DictWriter
 from dataclasses import dataclass
-from functools import reduce
 from itertools import product
 from pathlib import Path
 from pickle import dumps as pickle_dumps  # nosec
 from pickle import loads as pickle_loads  # nosec
-from re import search as re_search
 from shutil import rmtree
 from typing import Any
 
 from typing_extensions import Self
 
 from hpc_multibench.run_configuration import RunConfiguration
-from hpc_multibench.roofline_model import RooflineDataModel
-from hpc_multibench.yaml_model import (
-    BarChartModel,
-    BenchModel,
-    LinePlotModel,
-    RooflinePlotModel,
-    RunConfigurationModel,
+from hpc_multibench.analysis import (
+    get_line_plot_data,
+    draw_line_plot,
+    get_bar_chart_data,
+    draw_bar_chart,
+    get_roofline_plot_data,
+    draw_roofline_plot
 )
+from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
-PLOT_BACKEND: str = "seaborn"  # "plotext"
 
-if PLOT_BACKEND == "plotext":
-    import plotext as plt
-
-    PLOTEXT_MARKER = "braille"
-    PLOTEXT_THEME = "pro"
-else:
-    import matplotlib.pyplot as plt
-
-    # from labellines import labelLines
-
-    if PLOT_BACKEND == "seaborn":
-        import pandas as pd
-        import seaborn as sns
-
-        sns.set_theme()
 
 
 @dataclass(frozen=True)
@@ -232,21 +215,6 @@ class TestBench:
         if args.wait:
             raise NotImplementedError("Waiting for queue not yet implemented")
 
-    def extract_metrics(self, output: str) -> dict[str, str] | None:
-        """
-        Extract the specified metrics from the output file.
-
-        Note that run instantiations can be extracted via regex from output.
-        """
-        metrics: dict[str, str] = {}
-        for metric, regex in self.bench_model.analysis.metrics.items():
-            metric_search = re_search(regex, output)
-            if metric_search is None:
-                return None
-            # TODO: Support multiple groups by lists as keys?
-            metrics[metric] = metric_search.group(1)
-        return metrics
-
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
         print(f"Reporting data from test bench '{self.name}'")
@@ -273,201 +241,21 @@ class TestBench:
 
         # Draw the specified line plots
         for line_plot in self.bench_model.analysis.line_plots:
-            self.draw_line_plot(line_plot, run_outputs)
+            line_plot_data = get_line_plot_data(
+                line_plot,
+                run_outputs,
+                self.bench_model.analysis.metrics
+            )
+            draw_line_plot(line_plot, line_plot_data)
 
         for bar_chart in self.bench_model.analysis.bar_charts:
-            self.draw_bar_chart(bar_chart, run_outputs)
+            bar_chart_data = get_bar_chart_data(
+                bar_chart, run_outputs, self.bench_model.analysis.metrics
+            )
+            draw_bar_chart(bar_chart, bar_chart_data)
 
         for roofline_plot in self.bench_model.analysis.roofline_plots:
-            self.draw_roofline_plot(roofline_plot, run_outputs)
-
-    def draw_roofline_plot(
-        self,
-        plot: RooflinePlotModel,
-        run_outputs: dict[int, tuple[RunConfiguration, str | None]],
-    ) -> None:
-        """Draw a specified roofline plots for a set of run outputs."""
-        print(plot)
-        roofline_data = RooflineDataModel.from_json(plot.ert_json)
-
-        for label, data in roofline_data.memory_bound_ceilings.items():
-            plt.plot(*zip(*data, strict=True), label=label)
-        for label, data in roofline_data.compute_bound_ceilings.items():
-            plt.plot(*zip(*data, strict=True), label=label)
-
-        for run_configuration, output in run_outputs.values():
-            if output is not None:
-                metrics = self.extract_metrics(output)
-                if metrics is None:
-                    continue
-
-                gflops_per_sec = float(metrics[plot.gflops_per_sec])
-                print(run_configuration.args, gflops_per_sec)
-                plt.axhline(y=gflops_per_sec)
-
-        plt.xlabel("FLOPs/Byte")
-        plt.ylabel("GFLOPs/sec")
-        plt.xscale("log")
-        plt.yscale("log")
-        plt.legend()
-        # for ax in plt.gcf().axes:
-        #     labelLines(ax.get_lines())
-
-        plt.title(plot.title)
-        plt.show()
-
-    def draw_bar_chart(
-        self,
-        plot: BarChartModel,
-        run_outputs: dict[int, tuple[RunConfiguration, str | None]],
-    ) -> None:
-        """Draw a specified bar chart for a set of run outputs."""
-        data: dict[tuple[str, ...], float] = {}  # {("a", "b"): 1.0, ("a", "c"): 2.0}
-
-        # Extract the outputs into the data format needed for the line plot
-        for run_configuration, output in run_outputs.values():
-            if output is not None:
-                metrics = self.extract_metrics(output)
-                if metrics is None:
-                    continue
-
-                split_names: list[str] = [
-                    f"{split_metric}={metrics[split_metric]}"
-                    for split_metric in plot.split_metrics
-                    if split_metric not in plot.fix_metrics
-                ]
-                fix_names: list[str] = [
-                    f"{metric}={value}" for metric, value in plot.fix_metrics.items()
-                ]
-                series_name = (run_configuration.name, *fix_names, *split_names)
-                if any(
-                    metrics[metric] != str(value)
-                    for metric, value in plot.fix_metrics.items()
-                ):
-                    continue
-
-                data[series_name] = float(metrics[plot.y])
-
-        if PLOT_BACKEND == "seaborn":
-            dataframe = pd.DataFrame(
-                {
-                    "Run Configuration": [",\n".join(key) for key in data],
-                    plot.y: list(data.values()),
-                    "Run Type": [key[0] for key in data],
-                }
+            roofline_plot_data = get_roofline_plot_data(
+                roofline_plot, run_outputs, self.bench_model.analysis.metrics
             )
-            sns.barplot(
-                data=dataframe.sort_values(plot.y),
-                x="Run Configuration",
-                y=plot.y,
-                hue="Run Type",
-            )
-            plt.xticks(rotation=45, ha="right")
-            plt.gcf().subplots_adjust(bottom=0.25)
-        elif PLOT_BACKEND == "plotext":
-            plt.clear_figure()
-            shaped_data: list[tuple[str, float]] = sorted(
-                [(", ".join(name), metric) for name, metric in data.items()],
-                key=lambda x: x[1],
-            )
-            plt.bar(
-                *zip(*shaped_data, strict=True), orientation="horizontal", width=3 / 5
-            )
-            plt.ylabel(plot.y)
-            plt.theme(PLOTEXT_THEME)
-        else:
-            newline_shaped_data: list[tuple[str, float]] = sorted(
-                [(",\n".join(name), metric) for name, metric in data.items()],
-                key=lambda x: x[1],
-            )
-            plt.bar(*zip(*newline_shaped_data, strict=True))
-            plt.ylabel(plot.y)
-            plt.xticks(rotation=45, ha="right")
-            plt.gcf().subplots_adjust(bottom=0.25)
-
-        plt.title(plot.title)
-        plt.show()
-
-    def draw_line_plot(  # noqa: C901
-        self,
-        plot: LinePlotModel,
-        run_outputs: dict[int, tuple[RunConfiguration, str | None]],
-    ) -> None:
-        """
-        Draw a specified line plot for a set of run outputs.
-
-        TODO: Could extract function out into analysis file?
-        """
-        data: dict[tuple[str, ...], list[tuple[float, float]]] = {}
-
-        # Extract the outputs into the data format needed for the line plot
-        for run_configuration, output in run_outputs.values():
-            if output is not None:
-                metrics = self.extract_metrics(output)
-                if metrics is None:
-                    continue
-
-                split_names: list[str] = [
-                    f"{split_metric}={metrics[split_metric]}"
-                    for split_metric in plot.split_metrics
-                    if split_metric not in plot.fix_metrics
-                ]
-                fix_names: list[str] = [
-                    f"{metric}={value}" for metric, value in plot.fix_metrics.items()
-                ]
-                series_name = (run_configuration.name, *fix_names, *split_names)
-
-                if any(
-                    metrics[metric] != str(value)
-                    for metric, value in plot.fix_metrics.items()
-                ):
-                    continue
-
-                if series_name not in data:
-                    data[series_name] = []
-                data[series_name].append(
-                    (
-                        float(metrics[plot.x]),
-                        float(metrics[plot.y]),
-                    )
-                )
-
-        if PLOT_BACKEND == "seaborn":
-            dataframes = []
-            for name, results in data.items():
-                x, y = zip(*sorted(results), strict=True)
-                dataframes.append(pd.DataFrame({plot.x: x, ", ".join(name): y}))
-            dataframe = reduce(
-                lambda left, right: left.merge(right, on=[plot.x], how="outer"),
-                dataframes,
-            ).melt(plot.x, var_name="Run Configurations", value_name=plot.y)
-            sns.lineplot(
-                x=plot.x,
-                y=plot.y,
-                hue="Run Configurations",
-                data=dataframe,
-            )
-        elif PLOT_BACKEND == "plotext":
-            plt.clear_figure()
-            for name, results in data.items():
-                plt.plot(
-                    *zip(*sorted(results), strict=True),
-                    marker=PLOTEXT_MARKER,
-                    label=",".join(name),
-                )
-            plt.xlabel(plot.x)
-            plt.ylabel(plot.y)
-            plt.theme(PLOTEXT_THEME)
-        else:
-            for name, results in data.items():
-                plt.plot(
-                    *zip(*sorted(results), strict=True),
-                    marker="x",
-                    label=",".join(name),
-                )
-            plt.xlabel(plot.x)
-            plt.ylabel(plot.y)
-            plt.legend()
-
-        plt.title(plot.title)
-        plt.show()
+            draw_roofline_plot(roofline_plot, roofline_plot_data)

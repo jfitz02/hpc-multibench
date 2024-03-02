@@ -94,12 +94,21 @@ class AnalysisModel(BaseModel):
     # exports: list[BarChartModel] = []
 
 
+class RerunModel(BaseModel):
+    """A Pydantic model for the test bench's statistical re-runs."""
+
+    number: int = 1
+    worst_discard: int = 0
+    best_discard: int = 0
+
+
 class BenchModel(BaseModel):
     """A Pydantic model for a test bench."""
 
     run_configurations: list[str]
     matrix: dict[str | tuple[str, ...], list[Any]]
     analysis: AnalysisModel
+    reruns: RerunModel = RerunModel()
     enabled: bool = True
 
 
