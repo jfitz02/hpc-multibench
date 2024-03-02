@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from hpc_multibench.run_configuration import RunConfiguration
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
+DRY_RUN_SEPARATOR = "\n\n++++++++++\n\n\n"
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,7 @@ class RunConfigurationMetadata:
     """Data about run configurations to persist between program instances."""
 
     job_id: int
+    rerun_count: int
     name: str
     output_file_name: str
     instantiation: dict[str, Any] | None
@@ -160,50 +162,53 @@ class TestBench:
             for run_name, run_model in self.run_configuration_models.items()
         }
 
-        # Optionally dry run then stop before actually running
-        if args.dry_run:
-            # TODO: Could be closer inside the running logic
-            for run_configurations in realised_run_configurations.values():
-                first_flag: bool = True
-                for run_configuration in run_configurations:
-                    if first_flag:
-                        first_flag = False
-                    else:
-                        run_configuration.pre_built = True
-                    print(run_configuration, end="\n\n")
-            return
-
         # TODO: Need to account for case where build commands is in the
         # matrix, then just needs to be a long chain of dependencies
-        # TODO: Could spawn an extra job to just build then not run, which
-        # everything else depends on? Probably better to document that fastest
-        # job should be first, avoids spawning extraneous jobs which could all
-        # fail if the configuration is wrong...
 
         # Run all run configurations and store their slurm job ids
-        run_configuration_job_ids: dict[RunConfiguration, int | None] = {}
+        run_configuration_job_ids: list[dict[RunConfiguration, int | None]] = []
+        dry_run_outputs: list[str] = []
         for run_configurations in realised_run_configurations.values():
             # Add dependencies on the first job of that run configuration, so
             # you only need to build it once!
             first_job_id: int | None = None
             for run_configuration in run_configurations:
-                if first_job_id is None:
-                    job_id = run_configuration.run()
-                    first_job_id = job_id
-                else:
-                    run_configuration.pre_built = True
-                    job_id = run_configuration.run(dependencies=[first_job_id])
-                run_configuration_job_ids[run_configuration] = job_id
+                rerun_map: dict[RunConfiguration, int | None] = {}
+                for _ in range(self.bench_model.reruns.number):
+                    if first_job_id is None:
+                        if args.dry_run:
+                            dry_run_outputs.append(str(run_configuration))
+                            run_configuration.pre_built = True
+                            continue
+                        job_id = run_configuration.run()
+                        first_job_id = job_id
+                    else:
+                        if args.dry_run:
+                            dry_run_outputs.append(str(run_configuration))
+                            continue
+                        run_configuration.pre_built = True
+                        job_id = run_configuration.run(dependencies=[first_job_id])
+                    rerun_map[run_configuration] = job_id
+                run_configuration_job_ids.append(rerun_map)
+
+        # Stop after printing the run configurations if dry running
+        if args.dry_run:
+            print(DRY_RUN_SEPARATOR.join(dry_run_outputs))
+            return
 
         # Store slurm job id mappings, excluding ones which failed to launch
         self.run_configurations_metadata = [
             RunConfigurationMetadata(
                 job_id,
+                rerun_count,
                 run_configuration.name,
                 run_configuration.get_true_output_file_name(job_id),
                 run_configuration.instantiation,
             )
-            for run_configuration, job_id in run_configuration_job_ids.items()
+            for run_config_rerun_job_ids in run_configuration_job_ids
+            for rerun_count, (run_configuration, job_id) in enumerate(
+                run_config_rerun_job_ids.items()
+            )
             if job_id is not None
         ]
 

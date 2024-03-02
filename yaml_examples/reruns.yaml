@@ -19,6 +19,8 @@ benches:
   "rerun-example":
     run_configurations:
       - "cpp-openmp"
+    reruns:
+      number: 2
     matrix:
       args:
         - "50 50 50"
