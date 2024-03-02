@@ -144,7 +144,7 @@ class TestBench:
                 )
             metadata_writer.writerows(item.as_csv_row() for item in metadata)
 
-    def record(self, args: Namespace) -> None:
+    def record(self, args: Namespace) -> None:  # noqa: C901
         """Spawn run configurations for the test bench."""
         print(f"Recording data from test bench '{self.name}'")
 
@@ -166,14 +166,14 @@ class TestBench:
         # matrix, then just needs to be a long chain of dependencies
 
         # Run all run configurations and store their slurm job ids
-        run_configuration_job_ids: list[dict[RunConfiguration, int | None]] = []
+        run_configuration_job_ids: list[dict[int, RunConfiguration]] = []
         dry_run_outputs: list[str] = []
         for run_configurations in realised_run_configurations.values():
             # Add dependencies on the first job of that run configuration, so
             # you only need to build it once!
             first_job_id: int | None = None
             for run_configuration in run_configurations:
-                rerun_map: dict[RunConfiguration, int | None] = {}
+                rerun_map: dict[int, RunConfiguration] = {}
                 for _ in range(self.bench_model.reruns.number):
                     if first_job_id is None:
                         if args.dry_run:
@@ -188,7 +188,14 @@ class TestBench:
                             continue
                         run_configuration.pre_built = True
                         job_id = run_configuration.run(dependencies=[first_job_id])
-                    rerun_map[run_configuration] = job_id
+                    if job_id is None:
+                        print(
+                            f"Run configuration '{run_configuration.name}' "
+                            "failed to queue!"
+                        )
+                        continue
+                    rerun_map[job_id] = run_configuration
+                print(len(rerun_map), self.bench_model.reruns.number)
                 run_configuration_job_ids.append(rerun_map)
 
         # Stop after printing the run configurations if dry running
@@ -206,10 +213,9 @@ class TestBench:
                 run_configuration.instantiation,
             )
             for run_config_rerun_job_ids in run_configuration_job_ids
-            for rerun_count, (run_configuration, job_id) in enumerate(
+            for rerun_count, (job_id, run_configuration) in enumerate(
                 run_config_rerun_job_ids.items()
             )
-            if job_id is not None
         ]
 
         if args.wait:
