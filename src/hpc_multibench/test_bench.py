@@ -12,6 +12,7 @@ from pickle import dumps as pickle_dumps  # nosec
 from pickle import loads as pickle_loads  # nosec
 from re import search as re_search
 from shutil import rmtree
+from statistics import fmean
 from typing import TYPE_CHECKING, Any
 
 from typing_extensions import Self
@@ -238,7 +239,7 @@ class TestBench:
             metrics[metric] = metric_search.group(1)
         return metrics
 
-    def report(self) -> None:  # noqa: C901, PLR0912
+    def report(self) -> None:  # noqa: C901, PLR0912, PLR0915
         """Analyse completed run configurations for the test bench."""
         print(f"Reporting data from test bench '{self.name}'")
         if self.run_configurations_metadata is None:
@@ -275,9 +276,9 @@ class TestBench:
         # TODO: `run_metrics: dict[RunConfiguration, dict[str, str | float]] = []`
         run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]] = []
         for rerun_group_outputs in run_outputs:
+            # Get the mapping of metrics to their values across re-runs
             canonical_run_configuration: RunConfiguration | None = None
             rerun_metrics: dict[str, list[str]] = {}
-
             for run_configuration, output in rerun_group_outputs.values():
                 if output is None:
                     print(
@@ -301,10 +302,39 @@ class TestBench:
                         rerun_metrics[metric] = []
                     rerun_metrics[metric].append(value)
 
-            aggregated_metrics: dict[str, str | float] = {
-                metric: values[0] for metric, values in rerun_metrics.items()
-            }
+            # Aggregate the metrics which can be aggregated
+            aggregated_metrics: dict[str, str | float] = {}
+            reruns_model = self.bench_model.reruns
+            for metric, values in rerun_metrics.items():
+                # Just pick the first value of the metric if it cannot be
+                # aggregated
+                if (
+                    reruns_model.number == 1
+                    or metric in reruns_model.unaggregatable_metrics
+                ):
+                    aggregated_metrics[metric] = values[0]
+                    continue
 
+                # Remove highest then lowest in turn till depleted or one left
+                pruned_values: list[float] = sorted([float(value) for value in values])
+                highest_discard = reruns_model.highest_discard
+                lowest_discard = reruns_model.lowest_discard
+                while len(pruned_values) > 1 and (
+                    highest_discard > 0 or lowest_discard > 0
+                ):
+                    if highest_discard > 0:
+                        pruned_values = pruned_values[:-1]
+                        highest_discard -= 1
+                        if len(values) <= 1:
+                            break
+                    if lowest_discard > 0:
+                        pruned_values = pruned_values[1:]
+                        lowest_discard -= 1
+
+                # Take the average of the metrics
+                aggregated_metrics[metric] = fmean(pruned_values)
+
+            # Update the metrics
             if canonical_run_configuration is not None:
                 run_metrics.append((canonical_run_configuration, aggregated_metrics))
 

@@ -86,6 +86,7 @@ class RooflinePlotModel(BaseModel):
 class AnalysisModel(BaseModel):
     """A Pydantic model for a test bench's analysis operations."""
 
+    # TODO: Could separate properties (strings) and metrics (floats)
     metrics: dict[str, str]
     # TODO: Offer singular interface `line_plot` which is just one plot
     line_plots: list[LinePlotModel] = []
@@ -97,9 +98,15 @@ class AnalysisModel(BaseModel):
 class RerunModel(BaseModel):
     """A Pydantic model for the test bench's statistical re-runs."""
 
-    number: int = 1
-    worst_discard: int = 0
-    best_discard: int = 0
+    number: int
+    highest_discard: int = 0
+    lowest_discard: int = 0
+    unaggregatable_metrics: list[str] = []
+
+    @property
+    def undiscarded_number(self) -> int:
+        """Return the number of undiscarded reruns."""
+        return self.number - self.highest_discard - self.lowest_discard
 
 
 class BenchModel(BaseModel):
@@ -108,7 +115,7 @@ class BenchModel(BaseModel):
     run_configurations: list[str]
     matrix: dict[str | tuple[str, ...], list[Any]]
     analysis: AnalysisModel
-    reruns: RerunModel = RerunModel()
+    reruns: RerunModel = RerunModel(number=1)
     enabled: bool = True
 
 
