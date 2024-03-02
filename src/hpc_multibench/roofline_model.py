@@ -3,11 +3,11 @@
 """A set of objects modelling the schema for the ERT roofline JSON file."""
 
 from dataclasses import dataclass
-from typing_extensions import Self
-from typing import Any
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
+from typing_extensions import Self
 
 
 class MetricsModel(BaseModel):
@@ -36,6 +36,7 @@ class ErtJsonModel(BaseModel):
 
 @dataclass
 class RooflineDataModel:
+    """The extracted relevant data from the ERT JSON schema."""
 
     gflops_per_sec: dict[str, float]
     gbytes_per_sec: dict[str, float]
@@ -46,12 +47,8 @@ class RooflineDataModel:
         json_data = ert_json.read_text("utf-8")
         parsed_data = ErtJsonModel.model_validate_json(json_data)
         return cls(
-            gflops_per_sec={
-                key: value for (key, value) in parsed_data.empirical.gflops.data
-            },
-            gbytes_per_sec={
-                key: value for (key, value) in parsed_data.empirical.gbytes.data
-            },
+            gflops_per_sec=dict(parsed_data.empirical.gflops.data),
+            gbytes_per_sec=dict(parsed_data.empirical.gbytes.data),
         )
 
     @property
@@ -60,7 +57,7 @@ class RooflineDataModel:
         memory_bound_ceilings: dict[str, list[tuple[float, float]]] = {}
         for ceiling_name, m in self.gbytes_per_sec.items():
             data_series: list[tuple[float, float]] = []
-            y_values = [1] + list(self.gflops_per_sec.values())
+            y_values = [1, *list(self.gflops_per_sec.values())]
             for y in y_values:
                 x = y / m
                 data_series.append((x, y))

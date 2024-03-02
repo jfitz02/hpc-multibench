@@ -39,7 +39,7 @@ else:
 
 def get_line_plot_data(
     plot: LinePlotModel,
-    run_metrics: list[tuple[RunConfiguration, dict[str, str]]],
+    run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]],
 ) -> dict[tuple[str, ...], list[tuple[float, float]]]:
     """Get the data needed to plot a specified line plot for a set of runs."""
     data: dict[tuple[str, ...], list[tuple[float, float]]] = {}
@@ -74,7 +74,8 @@ def get_line_plot_data(
 
 
 def draw_line_plot(
-    plot: LinePlotModel, run_metrics: list[tuple[RunConfiguration, dict[str, str]]]
+    plot: LinePlotModel,
+    run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]],
 ) -> None:
     """Draw a specified line plot for a set of run outputs."""
     data = get_line_plot_data(plot, run_metrics)
@@ -122,7 +123,7 @@ def draw_line_plot(
 
 def get_bar_chart_data(
     plot: BarChartModel,
-    run_metrics: list[tuple[RunConfiguration, dict[str, str]]],
+    run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]],
 ) -> dict[tuple[str, ...], float]:
     """Get the data needed to plot a specified bar chart for a set of runs."""
     data: dict[tuple[str, ...], float] = {}  # {("a", "b"): 1.0, ("a", "c"): 2.0}
@@ -149,7 +150,7 @@ def get_bar_chart_data(
 
 def draw_bar_chart(
     plot: BarChartModel,
-    run_metrics: list[tuple[RunConfiguration, dict[str, str]]],
+    run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]],
 ) -> None:
     """Draw a specified bar chart for a set of run outputs."""
     data = get_bar_chart_data(plot, run_metrics)
@@ -195,7 +196,7 @@ def draw_bar_chart(
 
 def get_roofline_plot_data(
     plot: RooflinePlotModel,
-    _run_metrics: list[tuple[RunConfiguration, dict[str, str]]],
+    _run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]],
 ) -> tuple[RooflineDataModel, dict[str, tuple[float, float]]]:
     """Get the data needed to plot a specified roofline plot."""
     roofline_data = RooflineDataModel.from_json(plot.ert_json)
@@ -204,7 +205,7 @@ def get_roofline_plot_data(
 
 def draw_roofline_plot(
     plot: RooflinePlotModel,
-    run_metrics: list[tuple[RunConfiguration, dict[str, str]]],
+    run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]],
 ) -> None:
     """Draw a specified roofline plots for a set of run outputs."""
     data = get_roofline_plot_data(plot, run_metrics)

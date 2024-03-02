@@ -210,13 +210,13 @@ class TestBench:
         if args.wait:
             raise NotImplementedError("Waiting for queue not yet implemented")
 
-    def extract_metrics(self, output: str) -> dict[str, str] | None:
+    def extract_metrics(self, output: str) -> dict[str, str | float] | None:
         """
         Extract the specified metrics from the output file.
 
         Note that run instantiations can be extracted via regex from output.
         """
-        metrics: dict[str, str] = {}
+        metrics: dict[str, str | float] = {}
         for metric, regex in self.bench_model.analysis.metrics.items():
             metric_search = re_search(regex, output)
             if metric_search is None:
@@ -250,7 +250,7 @@ class TestBench:
         }
 
         # Extract the metrics from the outputs of the jobs
-        run_metrics: list[tuple[RunConfiguration, dict[str, str]]] = []
+        run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]] = []
         for run_configuration, output in run_outputs.values():
             if output is None:
                 print(f"Run configuration '{run_configuration.name}' has no output!")
