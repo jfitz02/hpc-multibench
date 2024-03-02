@@ -12,7 +12,7 @@ from pickle import dumps as pickle_dumps  # nosec
 from pickle import loads as pickle_loads  # nosec
 from re import search as re_search
 from shutil import rmtree
-from statistics import fmean
+from statistics import fmean, stdev
 from typing import TYPE_CHECKING, Any
 
 from typing_extensions import Self
@@ -275,6 +275,8 @@ class TestBench:
         # Extract the metrics from the outputs of the jobs
         # TODO: `run_metrics: dict[RunConfiguration, dict[str, str | float]] = []`
         run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]] = []
+        run_errors: list[tuple[RunConfiguration, dict[str, float | None]]] = []
+
         for rerun_group_outputs in run_outputs:
             # Get the mapping of metrics to their values across re-runs
             canonical_run_configuration: RunConfiguration | None = None
@@ -304,6 +306,7 @@ class TestBench:
 
             # Aggregate the metrics which can be aggregated
             aggregated_metrics: dict[str, str | float] = {}
+            aggregated_errors: dict[str, float | None] = {}
             reruns_model = self.bench_model.reruns
             for metric, values in rerun_metrics.items():
                 # Just pick the first value of the metric if it cannot be
@@ -313,6 +316,7 @@ class TestBench:
                     or metric in reruns_model.unaggregatable_metrics
                 ):
                     aggregated_metrics[metric] = values[0]
+                    aggregated_errors[metric] = None
                     continue
 
                 # Remove highest then lowest in turn till depleted or one left
@@ -333,10 +337,16 @@ class TestBench:
 
                 # Take the average of the metrics
                 aggregated_metrics[metric] = fmean(pruned_values)
+                aggregated_errors[metric] = (
+                    stdev(pruned_values)
+                    if reruns_model.undiscarded_number >= 2  # noqa: PLR2004
+                    else None
+                )
 
             # Update the metrics
             if canonical_run_configuration is not None:
                 run_metrics.append((canonical_run_configuration, aggregated_metrics))
+                run_errors.append((canonical_run_configuration, aggregated_errors))
 
         # Draw the specified plots
         for line_plot in self.bench_model.analysis.line_plots:
