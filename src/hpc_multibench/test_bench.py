@@ -223,13 +223,13 @@ class TestBench:
         if args.wait:
             raise NotImplementedError("Waiting for queue not yet implemented")
 
-    def extract_metrics(self, output: str) -> dict[str, str | float] | None:
+    def extract_metrics(self, output: str) -> dict[str, str] | None:
         """
         Extract the specified metrics from the output file.
 
         Note that run instantiations can be extracted via regex from output.
         """
-        metrics: dict[str, str | float] = {}
+        metrics: dict[str, str] = {}
         for metric, regex in self.bench_model.analysis.metrics.items():
             metric_search = re_search(regex, output)
             if metric_search is None:
@@ -238,7 +238,7 @@ class TestBench:
             metrics[metric] = metric_search.group(1)
         return metrics
 
-    def report(self) -> None:  # noqa: C901
+    def report(self) -> None:  # noqa: C901, PLR0912
         """Analyse completed run configurations for the test bench."""
         print(f"Reporting data from test bench '{self.name}'")
         if self.run_configurations_metadata is None:
@@ -275,12 +275,19 @@ class TestBench:
         # TODO: `run_metrics: dict[RunConfiguration, dict[str, str | float]] = []`
         run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]] = []
         for rerun_group_outputs in run_outputs:
+            canonical_run_configuration: RunConfiguration | None = None
+            rerun_metrics: dict[str, list[str]] = {}
+
             for run_configuration, output in rerun_group_outputs.values():
                 if output is None:
                     print(
                         f"Run configuration '{run_configuration.name}' has no output!"
                     )
                     continue
+
+                if canonical_run_configuration is None:
+                    canonical_run_configuration = run_configuration
+
                 metrics = self.extract_metrics(output)
                 if metrics is None:
                     print(
@@ -288,12 +295,20 @@ class TestBench:
                         f"configuration '{run_configuration.name}'!"
                     )
                     continue
-                run_metrics.append((run_configuration, metrics))
 
-                # TODO: Do aggregation!
-                break
+                for metric, value in metrics.items():
+                    if metric not in rerun_metrics:
+                        rerun_metrics[metric] = []
+                    rerun_metrics[metric].append(value)
 
-        # Draw the specified line plots
+            aggregated_metrics: dict[str, str | float] = {
+                metric: values[0] for metric, values in rerun_metrics.items()
+            }
+
+            if canonical_run_configuration is not None:
+                run_metrics.append((canonical_run_configuration, aggregated_metrics))
+
+        # Draw the specified plots
         for line_plot in self.bench_model.analysis.line_plots:
             draw_line_plot(line_plot, run_metrics)
 
