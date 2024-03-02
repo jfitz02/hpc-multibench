@@ -47,6 +47,8 @@ class RunConfigurationMetadata:
     @classmethod
     def from_csv_row(cls, row: dict[str, Any]) -> Self:
         """Construct the object from a representation usable in CSV files."""
+        row["job_id"] = int(row["job_id"])
+        row["rerun_count"] = int(row["rerun_count"])
         row["instantiation"] = pickle_loads(  # noqa: S301 # nosec
             b64decode(row["instantiation"])
         )
@@ -236,44 +238,60 @@ class TestBench:
             metrics[metric] = metric_search.group(1)
         return metrics
 
-    def report(self) -> None:
+    def report(self) -> None:  # noqa: C901
         """Analyse completed run configurations for the test bench."""
         print(f"Reporting data from test bench '{self.name}'")
         if self.run_configurations_metadata is None:
             print(f"Metadata file does not exist for test bench '{self.name}'!")
             return
 
-        # TODO: Could type alias for slurm job id?
-        # TODO: Error handling for name not being in models?
         # Reconstruct realised run configurations from the metadata file
-        reconstructed_run_configurations: dict[int, RunConfiguration] = {
-            metadata.job_id: self.run_configuration_models[metadata.name].realise(
-                metadata.name, self.output_directory, metadata.instantiation
-            )
-            for metadata in self.run_configurations_metadata
-        }
+        reconstructed_run_configurations: list[dict[int, RunConfiguration]] = []
+        prev_rerun_count: int = -1
+        rerun_group: dict[int, RunConfiguration] = {}
+        for metadata in self.run_configurations_metadata:
+            # Split the data up by re-runs
+            if metadata.rerun_count != prev_rerun_count + 1 and len(rerun_group) > 0:
+                reconstructed_run_configurations.append(rerun_group)
+                rerun_group = {}
+            prev_rerun_count = metadata.rerun_count
+
+            # Add the realised run configuration to its re-run dictionary
+            rerun_group[metadata.job_id] = self.run_configuration_models[
+                metadata.name
+            ].realise(metadata.name, self.output_directory, metadata.instantiation)
 
         # Collect outputs from the run configurations
         # TODO: Add async wait for incomplete jobs
-        run_outputs: dict[int, tuple[RunConfiguration, str | None]] = {
-            job_id: (run_configuration, run_configuration.collect(job_id))
-            for job_id, run_configuration in reconstructed_run_configurations.items()
-        }
+        run_outputs: list[dict[int, tuple[RunConfiguration, str | None]]] = [
+            {
+                job_id: (run_configuration, run_configuration.collect(job_id))
+                for job_id, run_configuration in rerun_group.items()
+            }
+            for rerun_group in reconstructed_run_configurations
+        ]
 
         # Extract the metrics from the outputs of the jobs
+        # TODO: `run_metrics: dict[RunConfiguration, dict[str, str | float]] = []`
         run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]] = []
-        for run_configuration, output in run_outputs.values():
-            if output is None:
-                print(f"Run configuration '{run_configuration.name}' has no output!")
-                continue
-            metrics = self.extract_metrics(output)
-            if metrics is None:
-                print(
-                    "Unable to extract metrics from run "
-                    f"configuration '{run_configuration.name}'!"
-                )
-                continue
-            run_metrics.append((run_configuration, metrics))
+        for rerun_group_outputs in run_outputs:
+            for run_configuration, output in rerun_group_outputs.values():
+                if output is None:
+                    print(
+                        f"Run configuration '{run_configuration.name}' has no output!"
+                    )
+                    continue
+                metrics = self.extract_metrics(output)
+                if metrics is None:
+                    print(
+                        "Unable to extract metrics from run "
+                        f"configuration '{run_configuration.name}'!"
+                    )
+                    continue
+                run_metrics.append((run_configuration, metrics))
+
+                # TODO: Do aggregation!
+                break
 
         # Draw the specified line plots
         for line_plot in self.bench_model.analysis.line_plots:

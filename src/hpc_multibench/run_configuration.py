@@ -119,7 +119,11 @@ class RunConfiguration:
         return f"{self.output_file.name[:-8]}__{slurm_id}.out"
 
     def run(self, dependencies: list[int] | None = None) -> int | None:
-        """Run the specified run configuration."""
+        """
+        Run the specified run configuration.
+
+        TODO: Could type alias for slurm job id for eturn type?
+        """
         # Ensure the output directory exists before it is used
         self.output_file.parent.mkdir(parents=True, exist_ok=True)
 
