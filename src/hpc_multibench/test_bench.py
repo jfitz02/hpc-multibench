@@ -11,23 +11,21 @@ from pathlib import Path
 from pickle import dumps as pickle_dumps  # nosec
 from pickle import loads as pickle_loads  # nosec
 from shutil import rmtree
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from typing_extensions import Self
 
-from hpc_multibench.run_configuration import RunConfiguration
-from hpc_multibench.analysis import (
-    get_line_plot_data,
-    draw_line_plot,
-    get_bar_chart_data,
+from hpc_multibench.analysis import (  # extract_metrics,
     draw_bar_chart,
-    get_roofline_plot_data,
-    draw_roofline_plot
+    draw_line_plot,
+    draw_roofline_plot,
 )
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
 
-BASE_OUTPUT_DIRECTORY = Path("results/")
+if TYPE_CHECKING:
+    from hpc_multibench.run_configuration import RunConfiguration
 
+BASE_OUTPUT_DIRECTORY = Path("results/")
 
 
 @dataclass(frozen=True)
@@ -239,23 +237,24 @@ class TestBench:
             for job_id, run_configuration in reconstructed_run_configurations.items()
         }
 
+        # # Extract the metrics from the outputs of the jobs
+        # run_metrics: list[tuple[RunConfiguration, dict[str, str] | None]] = [
+        #     (
+        #         run_configuration,
+        #         extract_metrics(output, self.bench_model.analysis.metrics),
+        #     )
+        #     for run_configuration, output in run_outputs.values()
+        #     if output is not None
+        # ]
+
         # Draw the specified line plots
         for line_plot in self.bench_model.analysis.line_plots:
-            line_plot_data = get_line_plot_data(
-                line_plot,
-                run_outputs,
-                self.bench_model.analysis.metrics
-            )
-            draw_line_plot(line_plot, line_plot_data)
+            draw_line_plot(line_plot, run_outputs, self.bench_model.analysis.metrics)
 
         for bar_chart in self.bench_model.analysis.bar_charts:
-            bar_chart_data = get_bar_chart_data(
-                bar_chart, run_outputs, self.bench_model.analysis.metrics
-            )
-            draw_bar_chart(bar_chart, bar_chart_data)
+            draw_bar_chart(bar_chart, run_outputs, self.bench_model.analysis.metrics)
 
         for roofline_plot in self.bench_model.analysis.roofline_plots:
-            roofline_plot_data = get_roofline_plot_data(
+            draw_roofline_plot(
                 roofline_plot, run_outputs, self.bench_model.analysis.metrics
             )
-            draw_roofline_plot(roofline_plot, roofline_plot_data)

@@ -5,9 +5,9 @@
 from enum import Enum, auto
 from re import search as re_search
 
-from hpc_multibench.yaml_model import RooflinePlotModel, LinePlotModel, BarChartModel
-from hpc_multibench.run_configuration import RunConfiguration
 from hpc_multibench.roofline_model import RooflineDataModel
+from hpc_multibench.run_configuration import RunConfiguration
+from hpc_multibench.yaml_model import BarChartModel, LinePlotModel, RooflinePlotModel
 
 
 class PlotBackend(Enum):
@@ -26,18 +26,22 @@ if PLOT_BACKEND == PlotBackend.PLOTEXT:
     import plotext as plt
 else:
     import matplotlib.pyplot as plt
+
     # from labellines import labelLines
 
     if PLOT_BACKEND == PlotBackend.SEABORN:
+        from functools import reduce
+
         import pandas as pd
         import seaborn as sns
-        from functools import reduce
+
         sns.set_theme()
 
 
 def extract_metrics(
     output: str, metric_definitions: dict[str, str]
 ) -> dict[str, str] | None:
+    """Extract a set of specified metrics from an output file's contents."""
     metrics: dict[str, str] = {}
     for metric, regex in metric_definitions.items():
         metric_search = re_search(regex, output)
@@ -51,9 +55,9 @@ def extract_metrics(
 def get_line_plot_data(
     plot: LinePlotModel,
     run_outputs: dict[int, tuple[RunConfiguration, str | None]],
-    metric_definitions: dict[str, str]
+    metric_definitions: dict[str, str],
 ) -> dict[tuple[str, ...], list[tuple[float, float]]]:
-    """Draw a specified line plot for a set of run outputs."""
+    """Get the data needed to plot a specified line plot for a set of runs."""
     data: dict[tuple[str, ...], list[tuple[float, float]]] = {}
 
     # Extract the outputs into the data format needed for the line plot
@@ -93,9 +97,12 @@ def get_line_plot_data(
 
 def draw_line_plot(
     plot: LinePlotModel,
-    data: dict[tuple[str, ...], list[tuple[float, float]]]
+    run_outputs: dict[int, tuple[RunConfiguration, str | None]],
+    metric_definitions: dict[str, str],
 ) -> None:
-    """."""
+    """Draw a specified line plot for a set of run outputs."""
+    data = get_line_plot_data(plot, run_outputs, metric_definitions)
+
     if PLOT_BACKEND == PlotBackend.SEABORN:
         dataframes = []
         for name, results in data.items():
@@ -142,7 +149,7 @@ def get_bar_chart_data(
     run_outputs: dict[int, tuple[RunConfiguration, str | None]],
     metric_definitions: dict[str, str],
 ) -> dict[tuple[str, ...], float]:
-    """Draw a specified bar chart for a set of run outputs."""
+    """Get the data needed to plot a specified bar chart for a set of runs."""
     data: dict[tuple[str, ...], float] = {}  # {("a", "b"): 1.0, ("a", "c"): 2.0}
 
     # Extract the outputs into the data format needed for the line plot
@@ -173,9 +180,12 @@ def get_bar_chart_data(
 
 def draw_bar_chart(
     plot: BarChartModel,
-    data: dict[tuple[str, ...], float]
+    run_outputs: dict[int, tuple[RunConfiguration, str | None]],
+    metric_definitions: dict[str, str],
 ) -> None:
-    """."""
+    """Draw a specified bar chart for a set of run outputs."""
+    data = get_bar_chart_data(plot, run_outputs, metric_definitions)
+
     if PLOT_BACKEND == PlotBackend.SEABORN:
         dataframe = pd.DataFrame(
             {
@@ -198,9 +208,7 @@ def draw_bar_chart(
             [(", ".join(name), metric) for name, metric in data.items()],
             key=lambda x: x[1],
         )
-        plt.bar(
-            *zip(*shaped_data, strict=True), orientation="horizontal", width=3 / 5
-        )
+        plt.bar(*zip(*shaped_data, strict=True), orientation="horizontal", width=3 / 5)
         plt.ylabel(plot.y)
         plt.theme(PLOTEXT_THEME)
     else:
@@ -222,16 +230,18 @@ def get_roofline_plot_data(
     _run_outputs: dict[int, tuple[RunConfiguration, str | None]],
     _metric_definitions: dict[str, str],
 ) -> tuple[RooflineDataModel, dict[str, tuple[float, float]]]:
-    """Draw a specified roofline plots for a set of run outputs."""
+    """Get the data needed to plot a specified roofline plot."""
     roofline_data = RooflineDataModel.from_json(plot.ert_json)
     return (roofline_data, {})
 
 
 def draw_roofline_plot(
     plot: RooflinePlotModel,
-    data: tuple[RooflineDataModel, dict[str, tuple[float, float]]],
+    run_outputs: dict[int, tuple[RunConfiguration, str | None]],
+    metric_definitions: dict[str, str],
 ) -> None:
-    """."""
+    """Draw a specified roofline plots for a set of run outputs."""
+    data = get_roofline_plot_data(plot, run_outputs, metric_definitions)
 
     if PLOT_BACKEND == PlotBackend.PLOTEXT:
         plt.clear_figure()
@@ -239,7 +249,7 @@ def draw_roofline_plot(
             plt.plot(
                 *zip(*memory_bound_data, strict=True),
                 label=label,
-                marker=PLOTEXT_MARKER
+                marker=PLOTEXT_MARKER,
             )
         for label, compute_bound_data in data[0].compute_bound_ceilings.items():
             plt.plot(
