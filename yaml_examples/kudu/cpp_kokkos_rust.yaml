@@ -109,6 +109,10 @@ benches:
       - "cpp-kokkos-mpi"
       - "rust-rayon"
       - "rust-hybrid"
+    reruns:
+      number: 5
+      highest_discard: 1
+      lowest_discard: 1
     matrix:
       args:
         - "100 200 200"
