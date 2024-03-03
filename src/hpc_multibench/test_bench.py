@@ -198,7 +198,6 @@ class TestBench:
                         )
                         continue
                     rerun_map[job_id] = run_configuration
-                print(len(rerun_map), self.bench_model.reruns.number)
                 run_configuration_job_ids.append(rerun_map)
 
         # Stop after printing the run configurations if dry running
@@ -261,6 +260,7 @@ class TestBench:
             rerun_group[metadata.job_id] = self.run_configuration_models[
                 metadata.name
             ].realise(metadata.name, self.output_directory, metadata.instantiation)
+        reconstructed_run_configurations.append(rerun_group)
 
         # Collect outputs from the run configurations
         # TODO: Add async wait for incomplete jobs
@@ -273,7 +273,6 @@ class TestBench:
         ]
 
         # Extract the metrics from the outputs of the jobs
-        # TODO: `run_metrics: dict[RunConfiguration, dict[str, str | float]] = []`
         run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]] = []
         run_uncertainties: list[tuple[RunConfiguration, dict[str, float | None]]] = []
 
