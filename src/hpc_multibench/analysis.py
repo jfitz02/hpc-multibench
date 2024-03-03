@@ -18,7 +18,7 @@ class PlotStyle(Enum):
     PLOTEXT = auto()
 
 
-PLOT_STYLE = PlotStyle.PLOTEXT
+PLOT_STYLE = PlotStyle.SEABORN
 PLOTEXT_MARKER = "braille"
 PLOTEXT_THEME = "pro"
 
@@ -230,9 +230,9 @@ def get_roofline_plot_data(
     ):
         data[run_configuration.name] = (
             float(metrics[plot.flops_per_byte]),
-            100.0,  # float(metrics[plot.gflops_per_sec]),
+            float(metrics[plot.gflops_per_sec]),
             uncertainties[plot.flops_per_byte],
-            10.0,  # uncertainties[plot.gflops_per_sec],
+            uncertainties[plot.gflops_per_sec],
         )
 
     return (roofline_data, data)
