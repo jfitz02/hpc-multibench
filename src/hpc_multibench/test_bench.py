@@ -275,7 +275,7 @@ class TestBench:
         # Extract the metrics from the outputs of the jobs
         # TODO: `run_metrics: dict[RunConfiguration, dict[str, str | float]] = []`
         run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]] = []
-        run_errors: list[tuple[RunConfiguration, dict[str, float | None]]] = []
+        run_uncertainties: list[tuple[RunConfiguration, dict[str, float | None]]] = []
 
         for rerun_group_outputs in run_outputs:
             # Get the mapping of metrics to their values across re-runs
@@ -346,11 +346,13 @@ class TestBench:
             # Update the metrics
             if canonical_run_configuration is not None:
                 run_metrics.append((canonical_run_configuration, aggregated_metrics))
-                run_errors.append((canonical_run_configuration, aggregated_errors))
+                run_uncertainties.append(
+                    (canonical_run_configuration, aggregated_errors)
+                )
 
         # Draw the specified plots
         for line_plot in self.bench_model.analysis.line_plots:
-            draw_line_plot(line_plot, run_metrics)
+            draw_line_plot(line_plot, run_metrics, run_uncertainties)
 
         for bar_chart in self.bench_model.analysis.bar_charts:
             draw_bar_chart(bar_chart, run_metrics)

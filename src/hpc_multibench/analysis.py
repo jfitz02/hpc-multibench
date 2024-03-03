@@ -9,28 +9,26 @@ from hpc_multibench.run_configuration import RunConfiguration
 from hpc_multibench.yaml_model import BarChartModel, LinePlotModel, RooflinePlotModel
 
 
-class PlotBackend(Enum):
-    """An enum for the types of plot backend."""
+class PlotStyle(Enum):
+    """An enum for the styles of the plot backend."""
 
     SEABORN = auto()
     MATPLOTLIB = auto()
     PLOTEXT = auto()
 
 
-PLOT_BACKEND = PlotBackend.PLOTEXT
+PLOT_STYLE = PlotStyle.SEABORN
 PLOTEXT_MARKER = "braille"
 PLOTEXT_THEME = "pro"
 
-if PLOT_BACKEND == PlotBackend.PLOTEXT:
+if PLOT_STYLE == PlotStyle.PLOTEXT:
     import plotext as plt
 else:
     import matplotlib.pyplot as plt
 
     # from labellines import labelLines
 
-    if PLOT_BACKEND == PlotBackend.SEABORN:
-        from functools import reduce
-
+    if PLOT_STYLE == PlotStyle.SEABORN:
         import pandas as pd
         import seaborn as sns
 
@@ -40,12 +38,14 @@ else:
 def get_line_plot_data(
     plot: LinePlotModel,
     run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]],
-) -> dict[tuple[str, ...], list[tuple[float, float]]]:
+    run_uncertainties: list[tuple[RunConfiguration, dict[str, float | None]]],
+) -> dict[str, tuple[list[float], list[float], list[float] | None, list[float] | None]]:
     """Get the data needed to plot a specified line plot for a set of runs."""
-    data: dict[tuple[str, ...], list[tuple[float, float]]] = {}
-
-    # Reshape the metrics data from multiple runs into a plottable data series
-    for run_configuration, metrics in run_metrics:
+    # Reshape the metrics data from multiple runs into groups of points
+    data: dict[str, list[tuple[float, float, float | None, float | None]]] = {}
+    for (run_configuration, metrics), (_, uncertainties) in zip(
+        run_metrics, run_uncertainties, strict=True
+    ):
         split_names: list[str] = [
             f"{split_metric}={metrics[split_metric]}"
             for split_metric in plot.split_metrics
@@ -54,7 +54,7 @@ def get_line_plot_data(
         fix_names: list[str] = [
             f"{metric}={value}" for metric, value in plot.fix_metrics.items()
         ]
-        series_name = (run_configuration.name, *fix_names, *split_names)
+        series_name = ", ".join([run_configuration.name, *fix_names, *split_names])
 
         if any(
             metrics[metric] != str(value) for metric, value in plot.fix_metrics.items()
@@ -67,56 +67,55 @@ def get_line_plot_data(
             (
                 float(metrics[plot.x]),
                 float(metrics[plot.y]),
+                uncertainties[plot.x],
+                uncertainties[plot.y],
             )
         )
 
-    return data
+    # Further reshape the data into convenient data series
+    reshaped_data: dict[
+        str, tuple[list[float], list[float], list[float] | None, list[float] | None]
+    ] = {}
+    for name, results in data.items():
+        x, y, x_err, y_err = zip(*sorted(results), strict=True)
+        reshaped_data[name] = (  # type: ignore[assignment]
+            x,
+            y,
+            x_err if any(x_err) else None,
+            y_err if any(y_err) else None,
+        )
+    return reshaped_data
 
 
 def draw_line_plot(
     plot: LinePlotModel,
     run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]],
+    run_uncertainties: list[tuple[RunConfiguration, dict[str, float | None]]],
 ) -> None:
     """Draw a specified line plot for a set of run outputs."""
-    data = get_line_plot_data(plot, run_metrics)
+    data = get_line_plot_data(plot, run_metrics, run_uncertainties)
 
-    if PLOT_BACKEND == PlotBackend.SEABORN:
-        dataframes = []
-        for name, results in data.items():
-            x, y = zip(*sorted(results), strict=True)
-            dataframes.append(pd.DataFrame({plot.x: x, ", ".join(name): y}))
-        dataframe = reduce(
-            lambda left, right: left.merge(right, on=[plot.x], how="outer"),
-            dataframes,
-        ).melt(plot.x, var_name="Run Configurations", value_name=plot.y)
-        sns.lineplot(
-            x=plot.x,
-            y=plot.y,
-            hue="Run Configurations",
-            data=dataframe,
-        )
-    elif PLOT_BACKEND == PlotBackend.PLOTEXT:
+    if PLOT_STYLE == PlotStyle.PLOTEXT:
         plt.clear_figure()
-        for name, results in data.items():
-            plt.plot(
-                *zip(*sorted(results), strict=True),
-                marker=PLOTEXT_MARKER,
-                label=",".join(name),
-            )
-        plt.xlabel(plot.x)
-        plt.ylabel(plot.y)
+        # NOTE: Plotext cannot render error bars!
+        for name, (x, y, _, _) in data.items():
+            plt.plot(x, y, marker=PLOTEXT_MARKER, label=name)
         plt.theme(PLOTEXT_THEME)
     else:
-        for name, results in data.items():
-            plt.plot(
-                *zip(*sorted(results), strict=True),
+        for name, (x, y, x_err, y_err) in data.items():
+            plt.errorbar(
+                x,
+                y,
+                xerr=x_err,
+                yerr=y_err,
                 marker="x",
-                label=",".join(name),
+                ecolor="black",
+                label=name,
             )
-        plt.xlabel(plot.x)
-        plt.ylabel(plot.y)
         plt.legend()
 
+    plt.xlabel(plot.x)
+    plt.ylabel(plot.y)
     plt.title(plot.title)
     plt.show()
 
@@ -155,7 +154,7 @@ def draw_bar_chart(
     """Draw a specified bar chart for a set of run outputs."""
     data = get_bar_chart_data(plot, run_metrics)
 
-    if PLOT_BACKEND == PlotBackend.SEABORN:
+    if PLOT_STYLE == PlotStyle.SEABORN:
         dataframe = pd.DataFrame(
             {
                 "Run Configuration": [",\n".join(key) for key in data],
@@ -171,7 +170,7 @@ def draw_bar_chart(
         )
         plt.xticks(rotation=45, ha="right")
         plt.gcf().subplots_adjust(bottom=0.25)
-    elif PLOT_BACKEND == PlotBackend.PLOTEXT:
+    elif PLOT_STYLE == PlotStyle.PLOTEXT:
         plt.clear_figure()
         shaped_data: list[tuple[str, float]] = sorted(
             [(", ".join(name), metric) for name, metric in data.items()],
@@ -210,7 +209,7 @@ def draw_roofline_plot(
     """Draw a specified roofline plots for a set of run outputs."""
     data = get_roofline_plot_data(plot, run_metrics)
 
-    if PLOT_BACKEND == PlotBackend.PLOTEXT:
+    if PLOT_STYLE == PlotStyle.PLOTEXT:
         plt.clear_figure()
         for label, memory_bound_data in data[0].memory_bound_ceilings.items():
             plt.plot(
