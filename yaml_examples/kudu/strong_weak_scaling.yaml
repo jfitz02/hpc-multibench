@@ -21,8 +21,8 @@ benches:
       - "cpp-hybrid"
     reruns:
       number: 5
-      highest_discard: 1
-      lowest_discard: 1
+      highest_discard: 2
+      lowest_discard: 0
     matrix:
       [args, sbatch_config]:
         - ["64 64 1024", { "ntasks": 1 }]
@@ -46,8 +46,8 @@ benches:
       - "cpp-hybrid"
     reruns:
       number: 5
-      highest_discard: 1
-      lowest_discard: 1
+      highest_discard: 2
+      lowest_discard: 0
     matrix:
       args:
         - "64 64 64"

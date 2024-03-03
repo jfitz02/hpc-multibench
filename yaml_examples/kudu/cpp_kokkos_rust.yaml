@@ -111,8 +111,8 @@ benches:
       - "rust-hybrid"
     reruns:
       number: 5
-      highest_discard: 1
-      lowest_discard: 1
+      highest_discard: 2
+      lowest_discard: 0
     matrix:
       args:
         - "100 200 200"
