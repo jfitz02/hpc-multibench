@@ -211,29 +211,46 @@ def draw_bar_chart(
 
 def get_roofline_plot_data(
     plot: RooflinePlotModel,
-    _run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]],
-) -> tuple[RooflineDataModel, dict[str, tuple[float, float]]]:
+    run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]],
+    run_uncertainties: list[tuple[RunConfiguration, dict[str, float | None]]],
+) -> tuple[
+    RooflineDataModel, dict[str, tuple[float, float, float | None, float | None]]
+]:
     """Get the data needed to plot a specified roofline plot."""
     roofline_data = RooflineDataModel.from_json(plot.ert_json)
-    return (roofline_data, {})
+
+    data: dict[str, tuple[float, float, float | None, float | None]] = {}
+    for run_configuration, metrics, uncertainties in get_metrics_uncertainties_iterator(
+        run_metrics, run_uncertainties
+    ):
+        data[run_configuration.name] = (
+            float(metrics[plot.flops_per_byte]),
+            100.0,  # float(metrics[plot.gflops_per_sec]),
+            uncertainties[plot.flops_per_byte],
+            10.0,  # uncertainties[plot.gflops_per_sec],
+        )
+
+    return (roofline_data, data)
 
 
 def draw_roofline_plot(
     plot: RooflinePlotModel,
     run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]],
+    run_uncertainties: list[tuple[RunConfiguration, dict[str, float | None]]],
 ) -> None:
     """Draw a specified roofline plots for a set of run outputs."""
-    data = get_roofline_plot_data(plot, run_metrics)
+    roofline, data = get_roofline_plot_data(plot, run_metrics, run_uncertainties)
 
     if PLOT_STYLE == PlotStyle.PLOTEXT:
         plt.clear_figure()
-        for label, memory_bound_data in data[0].memory_bound_ceilings.items():
+        # TODO: Refactor to remove need for explicit zip
+        for label, memory_bound_data in roofline.memory_bound_ceilings.items():
             plt.plot(
                 *zip(*memory_bound_data, strict=True),
                 label=label,
                 marker=PLOTEXT_MARKER,
             )
-        for label, compute_bound_data in data[0].compute_bound_ceilings.items():
+        for label, compute_bound_data in roofline.compute_bound_ceilings.items():
             plt.plot(
                 *zip(*compute_bound_data, strict=True),
                 label=label,
@@ -241,13 +258,24 @@ def draw_roofline_plot(
             )
         plt.theme(PLOTEXT_THEME)
     else:
-        for label, memory_bound_data in data[0].memory_bound_ceilings.items():
+        for label, memory_bound_data in roofline.memory_bound_ceilings.items():
             plt.plot(*zip(*memory_bound_data, strict=True), label=label)
-        for label, compute_bound_data in data[0].compute_bound_ceilings.items():
+        for label, compute_bound_data in roofline.compute_bound_ceilings.items():
             plt.plot(*zip(*compute_bound_data, strict=True), label=label)
-        plt.legend()
         # for ax in plt.gcf().axes:
         #     labelLines(ax.get_lines())
+
+        for name, (x, y, x_err, y_err) in data.items():
+            plt.errorbar(
+                x,
+                y,
+                xerr=x_err,
+                yerr=y_err,
+                marker="o",
+                ecolor="black",
+                label=name,
+            )
+        plt.legend()
 
     plt.xlabel("FLOPs/Byte")
     plt.ylabel("GFLOPs/sec")
