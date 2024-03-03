@@ -355,7 +355,7 @@ class TestBench:
             draw_line_plot(line_plot, run_metrics, run_uncertainties)
 
         for bar_chart in self.bench_model.analysis.bar_charts:
-            draw_bar_chart(bar_chart, run_metrics)
+            draw_bar_chart(bar_chart, run_metrics, run_uncertainties)
 
         for roofline_plot in self.bench_model.analysis.roofline_plots:
             draw_roofline_plot(roofline_plot, run_metrics)
