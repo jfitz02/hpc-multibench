@@ -116,12 +116,17 @@ benches:
     run_configurations:
       - "cpp-reference"
       - "rust-reference"
+    reruns:
+      number: 5
+      highest_discard: 1
+      lowest_discard: 1
     matrix:
       args:
-        - "50 50 50"
         - "100 100 100"
         - "150 150 150"
         - "200 200 200"
+        - "250 250 250"
+        - "300 300 300"
     analysis:
       metrics:
         "Mesh x size": "nx: (\\d+)"
@@ -135,12 +140,15 @@ benches:
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
+    reruns:
+      number: 5
+      highest_discard: 1
+      lowest_discard: 1
     matrix:
       args:
-        - "50 50 50"
         - "100 100 100"
-        - "150 150 150"
         - "200 200 200"
+        - "300 300 300"
         - "400 400 400"
       environment_variables:
         - { "OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1 }
@@ -162,12 +170,13 @@ benches:
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"
+    reruns:
+      number: 3
     matrix:
       args:
-        - "50 50 50"
         - "100 100 100"
-        - "150 150 150"
         - "200 200 200"
+        - "300 300 300"
       sbatch_config:
         - { "nodes": 1, "ntasks-per-node": 1 }
         - { "nodes": 1, "ntasks-per-node": 2 }
@@ -201,12 +210,13 @@ benches:
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
+    reruns:
+      number: 3
     matrix:
       args:
-        - "50 50 50"
         - "100 100 100"
-        - "150 150 150"
         - "200 200 200"
+        - "300 300 300"
       [sbatch_config, environment_variables]:
         - [
             { "ntasks-per-node": 1, "cpus-per-task": 40 },
@@ -255,12 +265,15 @@ benches:
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"
+    reruns:
+      number: 5
+      highest_discard: 1
+      lowest_discard: 1
     matrix:
       args:
-        - "50 50 50"
         - "100 100 100"
-        - "150 150 150"
         - "200 200 200"
+        - "300 300 300"
         - "400 400 400"
       sbatch_config:
         # - { "nodes": 1, "ntasks-per-node": 1 }
@@ -283,16 +296,19 @@ benches:
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
+    reruns:
+      number: 5
+      highest_discard: 1
+      lowest_discard: 1
     matrix:
       args:
-        - "50 50 50"
         - "100 100 100"
-        - "150 150 150"
         - "200 200 200"
+        - "300 300 300"
         - "400 400 400"
       [sbatch_config, environment_variables]:
         - [
-            { "nodes": 2, "ntasks-per-node": 1, "cpus-per-task": 1 },
+            { "nodes": 2, "ntasks-per-node": 1, "cpus-per-task": 32 },
             { "OMP_NUM_THREADS": 32, "RAYON_NUM_THREADS": 32 },
           ]
     analysis:
