@@ -20,7 +20,9 @@ benches:
     run_configurations:
       - "cpp-openmp"
     reruns:
-      number: 2
+      number: 5
+      highest_discard: 1
+      lowest_discard: 1
     matrix:
       args:
         - "50 50 50"
