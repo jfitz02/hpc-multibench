@@ -18,7 +18,7 @@ class PlotStyle(Enum):
     PLOTEXT = auto()
 
 
-PLOT_STYLE = PlotStyle.SEABORN
+PLOT_STYLE = PlotStyle.PLOTEXT
 PLOTEXT_MARKER = "braille"
 PLOTEXT_THEME = "pro"
 
@@ -107,9 +107,14 @@ def draw_line_plot(
 
     if PLOT_STYLE == PlotStyle.PLOTEXT:
         plt.clear_figure()
-        # NOTE: Plotext cannot render error bars!
-        for name, (x, y, _, _) in data.items():
+        for name, (x, y, _x_err, _y_err) in data.items():
             plt.plot(x, y, marker=PLOTEXT_MARKER, label=name)
+            # plt.error(
+            #     x,
+            #     y,
+            #     xerr=_x_err,
+            #     yerr=_y_err,
+            # )
         plt.theme(PLOTEXT_THEME)
     else:
         for name, (x, y, x_err, y_err) in data.items():
@@ -243,32 +248,30 @@ def draw_roofline_plot(
 
     if PLOT_STYLE == PlotStyle.PLOTEXT:
         plt.clear_figure()
-        # TODO: Refactor to remove need for explicit zip
-        for label, memory_bound_data in roofline.memory_bound_ceilings.items():
-            plt.plot(
-                *zip(*memory_bound_data, strict=True),
-                label=label,
-                marker=PLOTEXT_MARKER,
-            )
-        for label, compute_bound_data in roofline.compute_bound_ceilings.items():
-            plt.plot(
-                *zip(*compute_bound_data, strict=True),
-                label=label,
-                marker=PLOTEXT_MARKER,
+        for label, (x, y) in roofline.memory_bound_ceilings.items():
+            plt.plot(x, y, label=label, marker=PLOTEXT_MARKER)
+        for label, (x, y) in roofline.compute_bound_ceilings.items():
+            plt.plot(x, y, label=label, marker=PLOTEXT_MARKER)
+        for name, (x_point, y_point, x_err, y_err) in data.items():
+            plt.error(
+                [x_point],
+                [y_point],
+                xerr=[x_err / 2] * 2 if x_err is not None else None,
+                yerr=[y_err / 2] * 2 if y_err is not None else None,
+                label=name,
             )
         plt.theme(PLOTEXT_THEME)
     else:
-        for label, memory_bound_data in roofline.memory_bound_ceilings.items():
-            plt.plot(*zip(*memory_bound_data, strict=True), label=label)
-        for label, compute_bound_data in roofline.compute_bound_ceilings.items():
-            plt.plot(*zip(*compute_bound_data, strict=True), label=label)
+        for label, (x, y) in roofline.memory_bound_ceilings.items():
+            plt.plot(x, y, label=label)
+        for label, (x, y) in roofline.compute_bound_ceilings.items():
+            plt.plot(x, y, label=label)
         # for ax in plt.gcf().axes:
         #     labelLines(ax.get_lines())
-
-        for name, (x, y, x_err, y_err) in data.items():
+        for name, (x_point, y_point, x_err, y_err) in data.items():
             plt.errorbar(
-                x,
-                y,
+                x_point,
+                y_point,
                 xerr=x_err,
                 yerr=y_err,
                 marker="o",

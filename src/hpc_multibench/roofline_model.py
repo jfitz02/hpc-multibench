@@ -52,30 +52,26 @@ class RooflineDataModel:
         )
 
     @property
-    def memory_bound_ceilings(self) -> dict[str, list[tuple[float, float]]]:
+    def memory_bound_ceilings(self) -> dict[str, tuple[list[float], list[float]]]:
         """Get a labelled set of memory bound ceiling lines."""
-        memory_bound_ceilings: dict[str, list[tuple[float, float]]] = {}
+        memory_bound_ceilings: dict[str, tuple[list[float], list[float]]] = {}
         for ceiling_name, m in self.gbytes_per_sec.items():
-            data_series: list[tuple[float, float]] = []
             y_values = [1, *list(self.gflops_per_sec.values())]
-            for y in y_values:
-                x = y / m
-                data_series.append((x, y))
+            x_values = [y / m for y in y_values]
             ceiling_label = f"{ceiling_name} = {m} GB/s"
-            memory_bound_ceilings[ceiling_label] = data_series
+            memory_bound_ceilings[ceiling_label] = (x_values, y_values)
         return memory_bound_ceilings
 
     @property
-    def compute_bound_ceilings(self) -> dict[str, list[tuple[float, float]]]:
-        """."""
-        compute_bound_ceilings: dict[str, list[tuple[float, float]]] = {}
+    def compute_bound_ceilings(self) -> dict[str, tuple[list[float], list[float]]]:
+        """Get a labelled set of computer bound ceiling lines."""
+        compute_bound_ceilings: dict[str, tuple[list[float], list[float]]] = {}
         for ceiling_name, y in self.gflops_per_sec.items():
-            x_min_ceiling = y / max(self.gbytes_per_sec.values())
-            x_max_ceiling = y / min(self.gbytes_per_sec.values())
-            data_series: list[tuple[float, float]] = [
-                (x_min_ceiling, y),
-                (x_max_ceiling * 20, y),
+            x_values = [
+                y / max(self.gbytes_per_sec.values()),
+                20 * (y / min(self.gbytes_per_sec.values())),
             ]
+            y_values = [y, y]
             ceiling_label = f"{y} {ceiling_name}"
-            compute_bound_ceilings[ceiling_label] = data_series
+            compute_bound_ceilings[ceiling_label] = (x_values, y_values)
         return compute_bound_ceilings
