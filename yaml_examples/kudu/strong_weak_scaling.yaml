@@ -15,10 +15,26 @@ run_configurations:
       - "make -j 8"
     run_command: "mpirun ./test_HPCCG"
 
+  "rust-hybrid":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 2
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables:
+      "RAYON_NUM_THREADS": 2
+    directory: "../8_hybrid"
+    build_commands:
+      - "cargo build --release"
+    run_command: "mpirun ./target/release/hpccg-rs"
+
 benches:
   "strong-scaling":
     run_configurations:
       - "cpp-hybrid"
+      - "rust-hybrid"
     reruns:
       number: 5
       highest_discard: 2
@@ -44,6 +60,7 @@ benches:
   "weak-scaling":
     run_configurations:
       - "cpp-hybrid"
+      - "rust-hybrid"
     reruns:
       number: 5
       highest_discard: 2
