@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from hpc_multibench.test_plan import TestPlan
+from hpc_multibench.tui.interactive_ui import UserInterface
 
 
 def get_parser() -> ArgumentParser:  # pragma: no cover
@@ -65,6 +66,6 @@ def main() -> None:  # pragma: no cover
 
     elif args.command == "report":
         if args.interactive:
-            raise NotImplementedError("Interactive mode is not implemented!")
+            UserInterface(test_plan).run()
         else:
             test_plan.report_all(args)

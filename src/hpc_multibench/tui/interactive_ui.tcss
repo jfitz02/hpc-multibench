@@ -1,0 +1,22 @@
+#explorer {
+    width: 25%;
+    height: 100%;
+}
+#informer {
+    width: 75%;
+    height: 100%;
+}
+
+#start-pane {
+    align: center middle;
+    width: 75%;
+    height: 100%;
+}
+#start-pane-label {
+    text-align: center;
+    content-align: center middle;
+}
+
+#sbatch-contents {
+    margin: 1 0 0 0;
+}
