@@ -13,13 +13,13 @@ from pickle import loads as pickle_loads  # nosec
 from re import search as re_search
 from shutil import rmtree
 from statistics import fmean, stdev
-from typing import Any
+from typing import Any, cast
 
 from typing_extensions import Self
-from uncertainties import ufloat
 
 from hpc_multibench.analysis import draw_bar_chart, draw_line_plot, draw_roofline_plot
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
+from hpc_multibench.uncertainties import ufloat, UFloat
 from hpc_multibench.run_configuration import RunConfiguration
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
@@ -274,51 +274,58 @@ class TestBench:
 
         return run_outputs
 
-    def get_run_metrics_uncertainties(
+    def get_run_metrics(
         self, run_outputs: list[dict[int, tuple[RunConfiguration, str | None]]]
-    ) -> tuple[
-        list[tuple[RunConfiguration, dict[str, str | float]]],
-        list[tuple[RunConfiguration, dict[str, float | None]]],
-    ]:
-        """Get the metrics and uncertainties for all of the test bench runs."""
-        # Extract the metrics from the outputs of the jobs
-        run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]] = []
-        run_uncertainties: list[tuple[RunConfiguration, dict[str, float | None]]] = []
-
-        # TODO: Separate out metric extraction and aggregation
-
-        for rerun_group_outputs in run_outputs:
-            # Get the mapping of metrics to their values across re-runs
-            canonical_run_configuration: RunConfiguration | None = None
-            rerun_metrics: dict[str, list[str]] = {}
-            for run_configuration, output in rerun_group_outputs.values():
+    ) -> list[dict[int, tuple[RunConfiguration, dict[str, str]]]]:
+        """."""
+        run_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]] = []
+        for rerun_group in run_outputs:
+            rerun_metrics: dict[int, tuple[RunConfiguration, dict[str, str]]] = {}
+            for job_id, (run_configuration, output) in rerun_group.items():
                 if output is None:
                     print(
-                        f"Run configuration '{run_configuration.name}' has no output!"
+                        f"Run configuration '{run_configuration.name}'"
+                        " has no output!"
                     )
                     continue
-
-                if canonical_run_configuration is None:
-                    canonical_run_configuration = run_configuration
 
                 metrics = self.extract_metrics(output)
                 if metrics is None:
                     print(
-                        "Unable to extract metrics from run "
-                        f"configuration '{run_configuration.name}'!"
+                        "Unable to extract metrics from run"
+                        f" configuration '{run_configuration.name}'!"
                     )
                     continue
 
-                for metric, value in metrics.items():
-                    if metric not in rerun_metrics:
-                        rerun_metrics[metric] = []
-                    rerun_metrics[metric].append(value)
+                rerun_metrics[job_id] = (
+                    run_configuration,
+                    metrics
+                    
+                )
+            run_metrics.append(rerun_metrics)
+        return run_metrics
 
-            # Aggregate the metrics which can be aggregated
-            aggregated_metrics: dict[str, str | float] = {}
-            aggregated_errors: dict[str, float | None] = {}
+    def aggregate_run_metrics(
+        self, run_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]]
+    ) -> list[tuple[RunConfiguration, dict[str, str | UFloat]]]:
+        """."""
+        all_aggregated_metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]] = []
+        for rerun_group in run_metrics:
+            # Get the mapping of metrics to their values across re-runs
+            canonical_run_configuration: RunConfiguration | None = None
+            grouped_metrics: dict[str, list[str]] = {}
+            for run_configuration, metrics in rerun_group.values():
+                if canonical_run_configuration is None:
+                    canonical_run_configuration = run_configuration
+
+                for metric, value in metrics.items():
+                    if metric not in grouped_metrics:
+                        grouped_metrics[metric] = []
+                    grouped_metrics[metric].append(value)
+
+            aggregated_metrics: dict[str, str | UFloat] = {}
             reruns_model = self.bench_model.reruns
-            for metric, values in rerun_metrics.items():
+            for metric, values in grouped_metrics.items():
                 # Just pick the first value of the metric if it cannot be
                 # aggregated
                 if (
@@ -326,7 +333,6 @@ class TestBench:
                     or metric in reruns_model.unaggregatable_metrics
                 ):
                     aggregated_metrics[metric] = values[0]
-                    aggregated_errors[metric] = None
                     continue
 
                 # Remove highest then lowest in turn till depleted or one left
@@ -345,28 +351,22 @@ class TestBench:
                         pruned_values = pruned_values[1:]
                         lowest_discard -= 1
 
-                # Take the average of the metrics
-                aggregated_metrics[metric] = fmean(pruned_values)
-                aggregated_errors[metric] = (
+                # Take the average and standard deviation of the metrics
+                metric_mean = fmean(pruned_values)
+                metric_stdev = (
                     stdev(pruned_values)
                     if reruns_model.undiscarded_number >= 2  # noqa: PLR2004
-                    else None
+                    else 0.0
                 )
+                aggregated_metrics[metric] = cast(UFloat, ufloat(metric_mean, metric_stdev))
 
             # Update the metrics
             if canonical_run_configuration is not None:
-                run_metrics.append((canonical_run_configuration, aggregated_metrics))
-                run_uncertainties.append(
-                    (canonical_run_configuration, aggregated_errors)
+                all_aggregated_metrics.append(
+                    (canonical_run_configuration, aggregated_metrics)
                 )
 
-        return run_metrics, run_uncertainties
-    
-    # def get_run_metrics(self) -> None:
-    #     """."""
-    
-    # def aggregate_run_metrics(self) -> None:
-    #     """."""
+        return all_aggregated_metrics
 
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
@@ -376,16 +376,16 @@ class TestBench:
         if run_outputs is None:
             return
 
-        run_metrics, run_uncertainties = self.get_run_metrics_uncertainties(run_outputs)
-        # run_metrics = self.get_run_metrics()
-        # aggregated_metrics = self.aggregate_run_metrics(run_metrics)
+        # run_metrics, run_uncertainties = self.get_run_metrics_uncertainties(run_outputs)
+        run_metrics = self.get_run_metrics(run_outputs)
+        aggregated_metrics = self.aggregate_run_metrics(run_metrics)
 
         # Draw the specified plots
         for line_plot in self.bench_model.analysis.line_plots:
-            draw_line_plot(line_plot, run_metrics, run_uncertainties)
+            draw_line_plot(line_plot, aggregated_metrics)
 
         for bar_chart in self.bench_model.analysis.bar_charts:
-            draw_bar_chart(bar_chart, run_metrics, run_uncertainties)
+            draw_bar_chart(bar_chart, aggregated_metrics)
 
         for roofline_plot in self.bench_model.analysis.roofline_plots:
-            draw_roofline_plot(roofline_plot, run_metrics, run_uncertainties)
+            draw_roofline_plot(roofline_plot, aggregated_metrics)
