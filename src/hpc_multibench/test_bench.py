@@ -374,7 +374,6 @@ class TestBench:
         if run_outputs is None:
             return
 
-        # run_metrics, run_uncertainties = self.get_run_metrics_uncertainties(run_outputs)
         run_metrics = self.get_run_metrics(run_outputs)
         aggregated_metrics = self.aggregate_run_metrics(run_metrics)
 

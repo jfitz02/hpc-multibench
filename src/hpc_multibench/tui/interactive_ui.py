@@ -148,74 +148,41 @@ class UserInterface(App[None]):
         for instantiation in instantiations:
             run_information.add_row(*instantiation.values())
 
-    def update_metrics_tab(self, _node: TreeNode[TestPlanTreeType]) -> None:
+    def update_metrics_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """Update the metrics tab of the user interface."""
         metrics_table = self.query_one("#metrics-table", DataTable)
         metrics_table.clear(columns=True)
-        # if isinstance(node.data, TestBench):
-        #     test_bench = node.data
-        #     metrics_table.add_columns(
-        #         *[
-        #             "Name",
-        #             *list(node.data.bench_model.analysis.metrics.keys()),
-        #         ]
-        #     )
-        #     run_outputs = test_bench.get_run_outputs()
-        #     if run_outputs is not None:
-        #         for (
-        #             run_configuration,
-        #             metrics,
-        #             _uncertainties,
-        #         ) in get_metrics_uncertainties_iterator(
-        #             *test_bench.get_run_metrics_uncertainties(run_outputs)
-        #         ):
-        #             metrics_table.add_row(
-        #                 run_configuration.name,
-        #                 *[
-        #                     (
-        #                         f"{metric}"
-        #                         if uncertainty is None or uncertainty == 0.0
-        #                         # TODO: More meaningful formatting here
-        #                         # https://pythonhosted.org/uncertainties/user_guide.html
-        #                         else f"{metric:.3f} ± {uncertainty:.2}"
-        #                     )
-        #                     for (metric, uncertainty) in zip(
-        #                         metrics.values(), _uncertainties.values()
-        #                     )
-        #                 ],
-        #             )
-        # else:
-        #     assert node.parent is not None
-        #     test_bench = node.parent.data
-        #     metrics_table.add_columns(
-        #         *[
-        #             *list(test_bench.bench_model.analysis.metrics.keys()),
-        #         ]
-        #     )
-        #     run_outputs = test_bench.get_run_outputs()
-        #     if run_outputs is not None:
-        #         for (
-        #             run_configuration,
-        #             metrics,
-        #             _uncertainties,
-        #         ) in get_metrics_uncertainties_iterator(
-        #             *test_bench.get_run_metrics_uncertainties(run_outputs)
-        #         ):
-        #             if run_configuration.name != str(node.label):
-        #                 continue
-        #             metrics_table.add_row(
-        #                 *[
-        #                     (
-        #                         f"{metric}"
-        #                         if uncertainty is None or uncertainty == 0.0
-        #                         # TODO: More meaningful formatting here
-        #                         else f"{metric:.3f} ± {uncertainty:.2}"
-        #                     )
-        #                     for (metric, uncertainty) in zip(
-        #                         metrics.values(), _uncertainties.values()
-        #                     )
-        #                 ]
-        #             )
+        if isinstance(node.data, TestBench):
+            test_bench = node.data
+            metrics_table.add_columns(
+                *[
+                    "Name",
+                    *list(node.data.bench_model.analysis.metrics.keys()),
+                ]
+            )
+            run_outputs = test_bench.get_run_outputs()
+            assert run_outputs is not None  # TODO: Fix this logic
+            run_metrics = test_bench.get_run_metrics(run_outputs)
+            aggregated_metrics = test_bench.aggregate_run_metrics(run_metrics)
+            for run_configuration, metrics in aggregated_metrics:
+                metrics_table.add_row(
+                    run_configuration.name,
+                    *list(metrics.values()),
+                )
+        else:
+            assert node.parent is not None
+            test_bench = cast(TestBench, node.parent.data)
+            metrics_table.add_columns(
+                *list(test_bench.bench_model.analysis.metrics.keys())
+            )
+            run_outputs = test_bench.get_run_outputs()
+            assert run_outputs is not None  # TODO: Fix this logic
+            run_metrics = test_bench.get_run_metrics(run_outputs)
+            aggregated_metrics = test_bench.aggregate_run_metrics(run_metrics)
+            for run_configuration, metrics in aggregated_metrics:
+                if run_configuration.name != str(node.label):
+                    continue
+                metrics_table.add_row(*list(metrics.values()))
 
     def update_plot_tab(self, _node: TreeNode[TestPlanTreeType]) -> None:
         """Update the plot tab of the user interface."""

@@ -9,9 +9,9 @@ from uncertainties.core import Variable
 class UFloat(Variable):  # type: ignore[misc]
     """A wrapper class for floating point numbers with uncertainties."""
 
-    def __repr__(self) -> str:
-        """Modify the default implementation of representing the class."""
-        return super().__repr__().replace("+/-", "±")  # type: ignore[no-any-return]
+    def __str__(self) -> str:
+        """Modify the default implementation of stringify-ing the class."""
+        return super().__str__().replace("+/-", " ± ")  # type: ignore[no-any-return]
 
 
 def ufloat(
