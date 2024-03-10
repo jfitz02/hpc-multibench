@@ -20,6 +20,7 @@ from textual_plotext import PlotextPlot
 from hpc_multibench.yaml_model import RunConfigurationModel
 from hpc_multibench.test_bench import TestBench
 from hpc_multibench.test_plan import TestPlan
+from hpc_multibench.analysis import get_metrics_uncertainties_iterator
 
 TestPlanTreeType = RunConfigurationModel | TestBench
 
@@ -145,36 +146,82 @@ class UserInterface(App[None]):
 
     def update_metrics_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """Update the metrics tab of the user interface."""
-        # metrics_table = self.query_one("#metrics-table", DataTable)
-        # metrics_table.clear(columns=True)
-        # if isinstance(node.data, TestBench):
-        #     column_names = [
-        #         "Name",
-        #         *list(node.data.bench_model.analysis.metrics.keys()),
-        #     ]
-        #     metrics_table.add_columns(*column_names)
-        #     for results in node.data.get_analysis(str(node.label)):
-        #         metrics_table.add_row(*results.values())
-        #     # TODO: Fix sorting
-        #     # metrics_table.sort("Name", node.data.analysis.plot.x)
-        # else:
-        #     assert node.parent is not None
-        #     metrics_table.add_columns(*node.parent.data.analysis.metrics.keys())
-        #     for results in node.parent.data.get_analysis(str(node.parent.label)):
-        #         if results["name"] == str(node.label):
-        #             metrics_table.add_row(
-        #                 *[value for key, value in results.items() if key != "name"]
-        #            )
-        # metrics_table.sort(node.parent.data.analysis.plot.x)
+        metrics_table = self.query_one("#metrics-table", DataTable)
+        metrics_table.clear(columns=True)
+        if isinstance(node.data, TestBench):
+            test_bench = node.data
+            metrics_table.add_columns(
+                *[
+                    "Name",
+                    *list(node.data.bench_model.analysis.metrics.keys()),
+                ]
+            )
+            run_outputs = test_bench.get_run_outputs()
+            if run_outputs is not None:
+                for (
+                    run_configuration,
+                    metrics,
+                    _uncertainties,
+                ) in get_metrics_uncertainties_iterator(
+                    *test_bench.get_run_metrics_uncertainties(run_outputs)
+                ):
+                    metrics_table.add_row(
+                        run_configuration.name,
+                        *[
+                            (
+                                f"{metric}"
+                                if uncertainty is None or uncertainty == 0.0
+                                # TODO: More meaningful formatting here
+                                # https://pythonhosted.org/uncertainties/user_guide.html
+                                else f"{metric:.3f} ± {uncertainty:.2}"
+                            )
+                            for (metric, uncertainty) in zip(
+                                metrics.values(), _uncertainties.values()
+                            )
+                        ],
+                    )
+        else:
+            assert node.parent is not None
+            test_bench = node.parent.data
+            metrics_table.add_columns(
+                *[
+                    *list(test_bench.bench_model.analysis.metrics.keys()),
+                ]
+            )
+            run_outputs = test_bench.get_run_outputs()
+            if run_outputs is not None:
+                for (
+                    run_configuration,
+                    metrics,
+                    _uncertainties,
+                ) in get_metrics_uncertainties_iterator(
+                    *test_bench.get_run_metrics_uncertainties(run_outputs)
+                ):
+                    if run_configuration.name != str(node.label):
+                        continue
+                    metrics_table.add_row(
+                        *[
+                            (
+                                f"{metric}"
+                                if uncertainty is None or uncertainty == 0.0
+                                # TODO: More meaningful formatting here
+                                else f"{metric:.3f} ± {uncertainty:.2}"
+                            )
+                            for (metric, uncertainty) in zip(
+                                metrics.values(), _uncertainties.values()
+                            )
+                        ]
+                    )
 
     def update_plot_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """Update the plot tab of the user interface."""
         # TODO: Add button to open matplotlib window with plot as well
-        # metrics_plot_widget = self.query_one("#metrics-plot", PlotextPlot)
-        # metrics_plot = metrics_plot_widget.plt
-        # metrics_plot.clear_figure()
-        # metrics_plot.title("Benchmark analysis")
-        # if isinstance(node.data, BenchModel):
+        metrics_plot_widget = self.query_one("#metrics-plot", PlotextPlot)
+        metrics_plot = metrics_plot_widget.plt
+        metrics_plot.clear_figure()
+        metrics_plot.title("Benchmark analysis")
+        metrics_plot.plot(metrics_plot.sin())
+        # if isinstance(node.data, TestBench):
         #     # metrics_plot.plot(metrics_plot.sin())
         #     for name, result in node.data.comparative_plot_results(
         #         str(node.label)
@@ -191,7 +238,7 @@ class UserInterface(App[None]):
         #             metrics_plot.plot(
         #                 *zip(*result, strict=True), label=name, marker=PLOTEXT_MARKER
         #             )
-        # metrics_plot_widget.refresh()
+        metrics_plot_widget.refresh()
 
     def handle_tree_selection(self, node: TreeNode[TestPlanTreeType]) -> None:
         """Drive the user interface updates when new tree nodes are selected."""

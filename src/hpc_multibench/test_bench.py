@@ -20,8 +20,8 @@ from typing_extensions import Self
 from hpc_multibench.analysis import draw_bar_chart, draw_line_plot, draw_roofline_plot
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
 
-if TYPE_CHECKING:
-    from hpc_multibench.run_configuration import RunConfiguration
+# if TYPE_CHECKING:
+from hpc_multibench.run_configuration import RunConfiguration
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
 DRY_RUN_SEPARATOR = "\n\n++++++++++\n\n\n"
@@ -238,9 +238,10 @@ class TestBench:
             metrics[metric] = metric_search.group(1)
         return metrics
 
-    def report(self) -> None:  # noqa: C901, PLR0912, PLR0915
-        """Analyse completed run configurations for the test bench."""
-        print(f"Reporting data from test bench '{self.name}'")
+    def get_run_outputs(
+        self,
+    ) -> list[dict[int, tuple[RunConfiguration, str | None]]] | None:
+        """Get the outputs of the test bench runs."""
         if self.run_configurations_metadata is None:
             print(f"Metadata file does not exist for test bench '{self.name}'!")
             return
@@ -272,9 +273,20 @@ class TestBench:
             for rerun_group in reconstructed_run_configurations
         ]
 
+        return run_outputs
+
+    def get_run_metrics_uncertainties(
+        self, run_outputs: list[dict[int, tuple[RunConfiguration, str | None]]]
+    ) -> tuple[
+        list[tuple[RunConfiguration, dict[str, str | float]]],
+        list[tuple[RunConfiguration, dict[str, float | None]]],
+    ]:
+        """Get the metrics and uncertainties for all of the test bench runs."""
         # Extract the metrics from the outputs of the jobs
         run_metrics: list[tuple[RunConfiguration, dict[str, str | float]]] = []
         run_uncertainties: list[tuple[RunConfiguration, dict[str, float | None]]] = []
+
+        # TODO: Separate out metric extraction and aggregation
 
         for rerun_group_outputs in run_outputs:
             # Get the mapping of metrics to their values across re-runs
@@ -348,6 +360,18 @@ class TestBench:
                 run_uncertainties.append(
                     (canonical_run_configuration, aggregated_errors)
                 )
+
+        return run_metrics, run_uncertainties
+
+    def report(self) -> None:
+        """Analyse completed run configurations for the test bench."""
+        print(f"Reporting data from test bench '{self.name}'")
+
+        run_outputs = self.get_run_outputs()
+        if run_outputs is None:
+            return
+
+        run_metrics, run_uncertainties = self.get_run_metrics_uncertainties(run_outputs)
 
         # Draw the specified plots
         for line_plot in self.bench_model.analysis.line_plots:

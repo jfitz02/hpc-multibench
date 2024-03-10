@@ -113,12 +113,13 @@ run_configurations:
 
 benches:
   "serial":
+    enabled: False
     run_configurations:
       - "cpp-reference"
       - "rust-reference"
     reruns:
-      number: 5
-      highest_discard: 2
+      number: 2
+      highest_discard: 0
       lowest_discard: 0
     matrix:
       args:
@@ -141,15 +142,15 @@ benches:
       - "cpp-openmp"
       - "rust-rayon"
     reruns:
-      number: 5
-      highest_discard: 2
+      number: 2
+      highest_discard: 0
       lowest_discard: 0
     matrix:
       args:
         - "100 100 100"
         - "200 200 200"
         - "300 300 300"
-        - "400 400 400"
+        # - "400 400 400"
       environment_variables:
         - { "OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1 }
         - { "OMP_NUM_THREADS": 16, "RAYON_NUM_THREADS": 16 }
