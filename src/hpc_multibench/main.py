@@ -66,6 +66,6 @@ def main() -> None:  # pragma: no cover
 
     elif args.command == "report":
         if args.interactive:
-            UserInterface(test_plan).run()
+            UserInterface(test_plan, args).run()
         else:
             test_plan.report_all(args)

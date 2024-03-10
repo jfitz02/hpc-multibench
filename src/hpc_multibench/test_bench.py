@@ -183,7 +183,7 @@ class TestBench:
             if verbose:
                 print(
                     f"{len(required_jobs - queued_jobs)}/{len(required_jobs)} "
-                    f"jobs left for test bench {self.name}"
+                    f"jobs left for test bench '{self.name}'"
                 )
 
             if backoff_index < len(backoff) - 1:

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """The definition of the interactive user interface."""
 
+from argparse import Namespace
 from enum import Enum, auto
 from typing import cast
 
@@ -25,6 +26,7 @@ from textual.widgets.tree import TreeNode
 from textual_plotext import PlotextPlot
 
 from hpc_multibench.plot import plot_matplotlib, plot_plotext
+from hpc_multibench.run_configuration import get_queued_job_ids
 from hpc_multibench.test_bench import TestBench
 from hpc_multibench.test_plan import TestPlan
 from hpc_multibench.yaml_model import (
@@ -109,15 +111,33 @@ class RunDialogScreen(Screen[None]):
 
     def on_mount(self) -> None:
         """Set up a timer to simulate progess happening."""
-        self.progress_timer = self.set_interval(1 / 10, self.make_progress)
-        # Set the jobs running
+        self.progress_timer = self.set_interval(10, self.make_progress)
+        # Set the jobs running (may need a message since this is blocking!)
+        for bench in self._app.test_plan.benches:
+            if bench.bench_model.enabled:
+                bench.record(self._app.command_args)
+        total_jobs = sum(
+            [
+                len(set(bench.all_job_ids))
+                for bench in self._app.test_plan.benches
+                if bench.bench_model.enabled
+            ]
+        )
         # Get the number of jobs we are waiting for
-        self.query_one(ProgressBar).update(total=100)
+        self.query_one(ProgressBar).update(total=total_jobs)
 
     def make_progress(self) -> None:
         """Automatically advance the progress bar."""
         # Update the progress based on jobs completed
-        self.query_one(ProgressBar).advance(1)
+        queued_jobs = set(get_queued_job_ids())
+        completed_jobs = sum(
+            [
+                len(set(bench.all_job_ids) - queued_jobs)
+                for bench in self._app.test_plan.benches
+                if bench.bench_model.enabled
+            ]
+        )
+        self.query_one(ProgressBar).progress = completed_jobs
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Dismiss the modal dialog when the continue button is pressed."""
@@ -144,10 +164,15 @@ class UserInterface(App[None]):
     ]
 
     def __init__(  # type: ignore[no-untyped-def]
-        self, test_plan: TestPlan, *args, **kwargs
+        self, test_plan: TestPlan, command_args: Namespace, *args, **kwargs
     ) -> None:
         """Initialise the user interface."""
         self.test_plan: TestPlan = test_plan
+        # TODO: Fix this in the main function
+        command_args.dry_run = False
+        command_args.wait = False
+        command_args.no_clobber = False
+        self.command_args: Namespace = command_args
         self.show_mode = ShowMode.Uninitialised
         self.current_test_bench: TestBench | None = None
         self.current_run_configuration: RunConfigurationModel | None = None
