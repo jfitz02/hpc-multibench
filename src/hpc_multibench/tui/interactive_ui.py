@@ -6,12 +6,16 @@ from enum import Enum, auto
 from typing import cast
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal
+from textual.containers import Center, Container, Horizontal, Vertical
+from textual.screen import Screen
+from textual.timer import Timer
 from textual.widgets import (
+    Button,
     DataTable,
     Footer,
     Header,
     Label,
+    ProgressBar,
     TabbedContent,
     TabPane,
     TextArea,
@@ -55,6 +59,7 @@ class TestPlanTree(Tree[TestPlanTreeType]):
 
     def populate(self) -> None:
         """Populate the tree with data from the test plan."""
+        self.clear()
         for bench in self._app.test_plan.benches:
             bench_node = self.root.add(bench.name, data=bench)
             for (
@@ -78,6 +83,41 @@ class TestPlanTree(Tree[TestPlanTreeType]):
         self.previous_cursor_node = self.cursor_node
 
 
+class RunDialogScreen(Screen[None]):
+    """Screen with a dialog to quit."""
+
+    progress_timer: Timer
+
+    def compose(self) -> ComposeResult:
+        """Compose the structure of the dialog screen."""
+        with Center(id="run-dialog"):
+            yield Label(
+                (
+                    "Waiting for queued jobs to complete.\n\n"
+                    "You can continue, but may need to reload the test plan "
+                    "once they are complete to see any new results."
+                ),
+                id="run-dialog-message",
+            )
+            yield ProgressBar(id="run-dialog-progress")
+            yield Button("Continue", variant="primary", id="run-dialog-continue")
+
+    def on_mount(self) -> None:
+        """Set up a timer to simulate progess happening."""
+        self.progress_timer = self.set_interval(1 / 10, self.make_progress)
+        self.query_one(ProgressBar).update(total=100)
+
+    def make_progress(self) -> None:
+        """Called automatically to advance the progress bar."""
+        self.query_one(ProgressBar).advance(1)
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Dismiss the modal dialog when the continue button is pressed."""
+        if event.button.id == "run-dialog-continue":
+            self.progress_timer.stop()
+            self.app.pop_screen()
+
+
 class UserInterface(App[None]):
     """The interactive TUI."""
 
@@ -86,9 +126,11 @@ class UserInterface(App[None]):
     SUB_TITLE = "A Swiss army knife for comparing programs on HPC resources"
 
     BINDINGS = [
-        ("p", "open_graph()", "Open Graph"),
+        ("r", "reload_test_plan()", "Reload Test Plan"),
+        # ("s", "sort_selected_column()", "Sort by selected column"),
         ("n", "change_plot(1)", "Next Graph"),
         ("m", "change_plot(-1)", "Previous Graph"),
+        ("p", "open_graph()", "Open Graph"),
         ("q", "quit", "Quit"),
         # TODO: Add button to reload test plan
     ]
@@ -110,7 +152,9 @@ class UserInterface(App[None]):
         yield Header()
         with Horizontal():
             # The navigation bar for the test plan
-            yield TestPlanTree(label="Test Plan", id="explorer")
+            with Vertical(id="explorer"):
+                yield Button("Run Test Plan", id="run-button")
+                yield TestPlanTree(label="Test Plan", id="tree-explorer")
 
             # The starting pane that conceals the data pane when nothing selected
             with Container(id="start-pane"):
@@ -136,6 +180,12 @@ class UserInterface(App[None]):
         """Initialise data when the application is created."""
         tree = self.query_one(TestPlanTree)
         tree.populate()
+        self.app.set_focus(tree)
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """."""
+        if event.button.id == "run-button":
+            self.push_screen(RunDialogScreen())
 
     def remove_start_pane(self) -> None:
         """Remove the start pane from the screen if it is uninitialised."""
@@ -273,6 +323,11 @@ class UserInterface(App[None]):
             *self.current_test_bench.bench_model.analysis.roofline_plots,
         ]
         return all_plot_models[self.current_plot_index % len(all_plot_models)]
+
+    def action_reload_test_plan(self) -> None:
+        """."""
+        self.test_plan = TestPlan(self.test_plan.yaml_path)
+        self.on_mount()
 
     def action_change_plot(self, offset: int) -> None:
         """."""

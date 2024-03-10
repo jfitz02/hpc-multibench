@@ -15,6 +15,7 @@ class TestPlan:
 
     def __init__(self, yaml_path: Path) -> None:
         """Instantiate the test plan from a YAML file."""
+        self.yaml_path = yaml_path
         test_plan_model = TestPlanModel.from_yaml(yaml_path)
         self.benches = [
             TestBench(

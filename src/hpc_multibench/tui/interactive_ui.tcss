@@ -20,3 +20,37 @@
 #sbatch-contents {
     margin: 1 0 0 0;
 }
+
+#tree-explorer {
+    padding: 1 0 0 2;
+}
+#run-button {
+    width: 100%;
+}
+
+
+
+RunDialogScreen {
+    align: center middle;
+    background: $background 80%;
+}
+
+#run-dialog {
+    padding: 0 1;
+    width: 60;
+    border: thick $primary;
+    background: $surface;
+}
+#run-dialog-message {
+    width: 1fr;
+    text-align: center;
+    width: 90%;
+}
+#run-dialog-progress {
+    margin: 2;
+    text-align: center;
+    width: auto;
+}
+#run-dialog-continue {
+    width: 90%;
+}
