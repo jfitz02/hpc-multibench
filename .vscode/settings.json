@@ -20,5 +20,8 @@
     },
     "cSpell.words": [
         "plotext"
+    ],
+    "cSpell.ignoreWords": [
+        "ufloat"
     ]
 }

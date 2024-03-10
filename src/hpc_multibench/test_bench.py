@@ -13,14 +13,13 @@ from pickle import loads as pickle_loads  # nosec
 from re import search as re_search
 from shutil import rmtree
 from statistics import fmean, stdev
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from typing_extensions import Self
+from uncertainties import ufloat
 
 from hpc_multibench.analysis import draw_bar_chart, draw_line_plot, draw_roofline_plot
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
-
-# if TYPE_CHECKING:
 from hpc_multibench.run_configuration import RunConfiguration
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
@@ -362,6 +361,12 @@ class TestBench:
                 )
 
         return run_metrics, run_uncertainties
+    
+    # def get_run_metrics(self) -> None:
+    #     """."""
+    
+    # def aggregate_run_metrics(self) -> None:
+    #     """."""
 
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
@@ -372,6 +377,8 @@ class TestBench:
             return
 
         run_metrics, run_uncertainties = self.get_run_metrics_uncertainties(run_outputs)
+        # run_metrics = self.get_run_metrics()
+        # aggregated_metrics = self.aggregate_run_metrics(run_metrics)
 
         # Draw the specified plots
         for line_plot in self.bench_model.analysis.line_plots:
