@@ -180,4 +180,4 @@ def get_queued_job_ids() -> list[int]:
         check=True,
         stdout=PIPE,
     ).stdout.decode("utf-8")
-    return [int(job_id) for job_id in result.split("\n")]
+    return [int(job_id.strip("'")) for job_id in result.split("\n") if job_id != ""]

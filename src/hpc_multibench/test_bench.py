@@ -163,7 +163,7 @@ class TestBench:
         self,
         max_time_to_wait: int = 172_800,
         backoff: list[int] | None = None,
-        verbose: bool = False,  # noqa: FBT001, FBT002
+        verbose: bool = True,  # noqa: FBT001, FBT002
     ) -> bool:
         """Wait till the queue is drained of jobs submitted by this test bench."""
         if backoff is None or len(backoff) < 1:
