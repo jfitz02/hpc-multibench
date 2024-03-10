@@ -93,6 +93,7 @@ class RunDialogScreen(Screen[None]):
     def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
         """Instantiate a dialog screen for spawning runs."""
         self._app: UserInterface = self.app  # type: ignore[assignment]
+        self.jobs_spawned: bool = False
         super().__init__(*args, **kwargs)
 
     def compose(self) -> ComposeResult:
@@ -100,7 +101,7 @@ class RunDialogScreen(Screen[None]):
         with Center(id="run-dialog"):
             yield Label(
                 (
-                    "Waiting for queued jobs to complete.\n\n"
+                    "**Waiting for queued jobs to complete.**\n\n"
                     "You can continue, but may need to reload the test plan "
                     "once they are complete to see any new results."
                 ),
@@ -111,23 +112,25 @@ class RunDialogScreen(Screen[None]):
 
     def on_mount(self) -> None:
         """Set up a timer to simulate progess happening."""
-        self.progress_timer = self.set_interval(10, self.make_progress)
-        # Set the jobs running (may need a message since this is blocking!)
-        for bench in self._app.test_plan.benches:
-            if bench.bench_model.enabled:
-                bench.record(self._app.command_args)
-        total_jobs = sum(
-            [
-                len(set(bench.all_job_ids))
-                for bench in self._app.test_plan.benches
-                if bench.bench_model.enabled
-            ]
-        )
-        # Get the number of jobs we are waiting for
-        self.query_one(ProgressBar).update(total=total_jobs)
+        self.progress_timer = self.set_interval(5, self.make_progress)
 
     def make_progress(self) -> None:
         """Automatically advance the progress bar."""
+        if not self.jobs_spawned:
+            self.jobs_spawned = True
+            # Wait till everything is rendered to kick off blocking calls...
+            for bench in self._app.test_plan.benches:
+                if bench.bench_model.enabled:
+                    bench.record(self._app.command_args)
+            total_jobs = sum(
+                [
+                    len(set(bench.all_job_ids))
+                    for bench in self._app.test_plan.benches
+                    if bench.bench_model.enabled
+                ]
+            )
+            self.query_one(ProgressBar).update(total=total_jobs)
+
         # Update the progress based on jobs completed
         queued_jobs = set(get_queued_job_ids())
         completed_jobs = sum(
