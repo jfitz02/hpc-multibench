@@ -17,7 +17,11 @@ from typing import Any
 
 from typing_extensions import Self
 
-from hpc_multibench.analysis import draw_bar_chart, draw_line_plot, draw_roofline_plot
+from hpc_multibench.plot.plot_matplotlib import (
+    draw_bar_chart,
+    draw_line_plot,
+    draw_roofline_plot,
+)
 from hpc_multibench.run_configuration import RunConfiguration
 from hpc_multibench.uncertainties import UFloat, ufloat
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
