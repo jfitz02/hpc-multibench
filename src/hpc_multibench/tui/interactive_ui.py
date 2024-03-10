@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """The definition of the interactive user interface."""
 
+from enum import Enum, auto
 from typing import cast
 
 from textual.app import App, ComposeResult
@@ -19,15 +20,28 @@ from textual.widgets import (
 from textual.widgets.tree import TreeNode
 from textual_plotext import PlotextPlot
 
-from hpc_multibench.plot.plot_plotext import draw_line_plot
+from hpc_multibench.plot import plot_matplotlib, plot_plotext
 from hpc_multibench.test_bench import TestBench
 from hpc_multibench.test_plan import TestPlan
-from hpc_multibench.yaml_model import RunConfigurationModel
+from hpc_multibench.yaml_model import (
+    BarChartModel,
+    LinePlotModel,
+    RooflinePlotModel,
+    RunConfigurationModel,
+)
 
 TestPlanTreeType = RunConfigurationModel | TestBench
 
 PLOTEXT_MARKER = "braille"
 INITIAL_TAB = "run-tab"
+
+
+class ShowMode(Enum):
+    """The current state of the application."""
+
+    TestBench = auto()
+    RunConfiguration = auto()
+    Uninitialised = auto()
 
 
 class TestPlanTree(Tree[TestPlanTreeType]):
@@ -72,6 +86,9 @@ class UserInterface(App[None]):
     SUB_TITLE = "A Swiss army knife for comparing programs on HPC resources"
 
     BINDINGS = [
+        ("p", "open_graph()", "Open Graph"),
+        ("n", "change_plot(1)", "Next Graph"),
+        ("m", "change_plot(-1)", "Previous Graph"),
         ("q", "quit", "Quit"),
         # TODO: Add button to reload test plan
     ]
@@ -81,7 +98,11 @@ class UserInterface(App[None]):
     ) -> None:
         """Initialise the user interface."""
         self.test_plan: TestPlan = test_plan
-        self.start_pane_shown: bool = True
+        self.show_mode = ShowMode.Uninitialised
+        self.current_test_bench: TestBench | None = None
+        self.current_run_configuration: RunConfigurationModel | None = None
+        self.current_run_configuration_name: str | None = None
+        self.current_plot_index: int | None = None
         super().__init__(*args, **kwargs)
 
     def compose(self) -> ComposeResult:
@@ -117,53 +138,54 @@ class UserInterface(App[None]):
         tree.populate()
 
     def remove_start_pane(self) -> None:
-        """Remove the start pane from the screen."""
-        if self.start_pane_shown:
+        """Remove the start pane from the screen if it is uninitialised."""
+        if self.show_mode is ShowMode.Uninitialised:
             self.query_one("#start-pane", Container).remove()
-            self.start_pane_shown = False
 
-    def update_run_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
+    def update_run_tab(self) -> None:
         """Update the run tab of the user interface."""
         run_information = self.query_one("#run-information", DataTable)
         sbatch_contents = self.query_one("#sbatch-contents", TextArea)
         run_information.clear(columns=True)
 
-        if isinstance(node.data, TestBench):
-            # TODO: This is a slightly annoying hack - but it works...
+        if self.show_mode == ShowMode.TestBench:
+            assert self.current_test_bench is not None
             sbatch_contents.visible = False
             sbatch_contents.text = ""
-            instantiations = node.data.instantiations
         else:
+            assert self.current_test_bench is not None
+            assert self.current_run_configuration is not None
+            assert self.current_run_configuration_name is not None
             sbatch_contents.visible = True
-            assert node.parent is not None
-            test_bench = cast(TestBench, node.parent.data)
-            run_configuration = cast(RunConfigurationModel, node.data)
             # TODO: Realise with selected column in data table
-            sbatch_contents.text = run_configuration.realise(
-                str(node.label), test_bench.output_directory, {}
+            sbatch_contents.text = self.current_run_configuration.realise(
+                self.current_run_configuration_name,
+                self.current_test_bench.output_directory,
+                {},
             ).sbatch_contents
-            instantiations = test_bench.instantiations
 
+        instantiations = self.current_test_bench.instantiations
         if len(instantiations) > 0:
             run_information.add_columns(*instantiations[0].keys())
         for instantiation in instantiations:
             run_information.add_row(*instantiation.values())
 
-    def update_metrics_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
+    def update_metrics_tab(self) -> None:
         """Update the metrics tab of the user interface."""
         metrics_table = self.query_one("#metrics-table", DataTable)
         metrics_table.clear(columns=True)
-        if isinstance(node.data, TestBench):
-            test_bench = node.data
-            run_outputs = test_bench.get_run_outputs()
+
+        if self.show_mode == ShowMode.TestBench:
+            assert self.current_test_bench is not None
+            run_outputs = self.current_test_bench.get_run_outputs()
             assert run_outputs is not None  # TODO: Fix this logic
-            run_metrics = test_bench.get_run_metrics(run_outputs)
-            aggregated_metrics = test_bench.aggregate_run_metrics(run_metrics)
+            run_metrics = self.current_test_bench.get_run_metrics(run_outputs)
+            aggregated_metrics = self.current_test_bench.aggregate_run_metrics(
+                run_metrics
+            )
             metrics_table.add_columns(
-                *[
-                    "Name",
-                    *list(node.data.bench_model.analysis.metrics.keys()),
-                ]
+                "Name",
+                *list(self.current_test_bench.bench_model.analysis.metrics.keys()),
             )
             for run_configuration, metrics in aggregated_metrics:
                 metrics_table.add_row(
@@ -171,55 +193,48 @@ class UserInterface(App[None]):
                     *list(metrics.values()),
                 )
         else:
-            assert node.parent is not None
-            test_bench = cast(TestBench, node.parent.data)
-            run_outputs = test_bench.get_run_outputs()
+            assert self.current_test_bench is not None
+            assert self.current_run_configuration is not None
+            assert self.current_run_configuration_name is not None
+            run_outputs = self.current_test_bench.get_run_outputs()
             assert run_outputs is not None  # TODO: Fix this logic
-            run_metrics = test_bench.get_run_metrics(run_outputs)
-            aggregated_metrics = test_bench.aggregate_run_metrics(run_metrics)
+            run_metrics = self.current_test_bench.get_run_metrics(run_outputs)
+            aggregated_metrics = self.current_test_bench.aggregate_run_metrics(
+                run_metrics
+            )
             metrics_table.add_columns(
-                *list(test_bench.bench_model.analysis.metrics.keys())
+                *list(self.current_test_bench.bench_model.analysis.metrics.keys())
             )
             for run_configuration, metrics in aggregated_metrics:
-                if run_configuration.name != str(node.label):
+                if run_configuration.name != self.current_run_configuration_name:
                     continue
                 metrics_table.add_row(*list(metrics.values()))
 
-    def update_plot_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
+    def update_plot_tab(self) -> None:
         """Update the plot tab of the user interface."""
         # TODO: Add button to open matplotlib window with plot as well
         # TODO: Add button to cycle through plots
         metrics_plot_widget = self.query_one("#metrics-plot", PlotextPlot)
         metrics_plot = metrics_plot_widget.plt
-        if isinstance(node.data, TestBench):
-            test_bench = node.data
-            run_outputs = test_bench.get_run_outputs()
-            assert run_outputs is not None  # TODO: Fix this logic
-            run_metrics = test_bench.get_run_metrics(run_outputs)
-            aggregate_metrics = test_bench.aggregate_run_metrics(run_metrics)
-            draw_line_plot(
-                metrics_plot,
-                test_bench.bench_model.analysis.line_plots[0],
-                aggregate_metrics,
-            )
-        else:
-            assert node.parent is not None
-            test_bench = cast(TestBench, node.parent.data)
-            run_outputs = test_bench.get_run_outputs()
-            assert run_outputs is not None  # TODO: Fix this logic
-            run_metrics = test_bench.get_run_metrics(run_outputs)
+
+        assert self.current_test_bench is not None
+        run_outputs = self.current_test_bench.get_run_outputs()
+        assert run_outputs is not None  # TODO: Fix this logic
+        run_metrics = self.current_test_bench.get_run_metrics(run_outputs)
+        aggregate_metrics = self.current_test_bench.aggregate_run_metrics(run_metrics)
+        plot_model = self._get_plot_model()
+        if self.show_mode == ShowMode.RunConfiguration:
             aggregate_metrics = [
                 (run_configuration, metrics)
-                for run_configuration, metrics in test_bench.aggregate_run_metrics(
-                    run_metrics
-                )
-                if run_configuration.name == str(node.label)
+                for run_configuration, metrics in aggregate_metrics
+                if run_configuration.name == self.current_run_configuration_name
             ]
-            draw_line_plot(
-                metrics_plot,
-                test_bench.bench_model.analysis.line_plots[0],
-                aggregate_metrics,
-            )
+        if isinstance(plot_model, LinePlotModel):
+            plot_plotext.draw_line_plot(metrics_plot, plot_model, aggregate_metrics)
+        elif isinstance(plot_model, BarChartModel):
+            plot_plotext.draw_bar_chart(metrics_plot, plot_model, aggregate_metrics)
+        elif isinstance(plot_model, RooflinePlotModel):
+            plot_plotext.draw_roofline_plot(metrics_plot, plot_model, aggregate_metrics)
         metrics_plot_widget.refresh()
 
     def handle_tree_selection(self, node: TreeNode[TestPlanTreeType]) -> None:
@@ -229,6 +244,66 @@ class UserInterface(App[None]):
 
         self.remove_start_pane()
 
-        self.update_run_tab(node)
-        self.update_metrics_tab(node)
-        self.update_plot_tab(node)
+        if isinstance(node.data, TestBench):
+            self.show_mode = ShowMode.TestBench
+            self.current_test_bench = node.data
+            self.current_run_configuration = None
+            self.current_run_configuration_name = None
+        elif isinstance(node.data, RunConfigurationModel):
+            self.show_mode = ShowMode.RunConfiguration
+            assert node.parent is not None
+            self.current_test_bench = cast(TestBench, node.parent.data)
+            self.current_run_configuration = node.data
+            self.current_run_configuration_name = str(node.label)
+
+        self.current_plot_index = 0
+        self.update_run_tab()
+        self.update_metrics_tab()
+        self.update_plot_tab()
+
+    def _get_plot_model(
+        self,
+    ) -> LinePlotModel | BarChartModel | RooflinePlotModel | None:
+        """Get the model for the current plot."""
+        if self.current_plot_index is None or self.current_test_bench is None:
+            return None
+        all_plot_models: list[LinePlotModel | BarChartModel | RooflinePlotModel] = [
+            *self.current_test_bench.bench_model.analysis.line_plots,
+            *self.current_test_bench.bench_model.analysis.bar_charts,
+            *self.current_test_bench.bench_model.analysis.roofline_plots,
+        ]
+        return all_plot_models[self.current_plot_index % len(all_plot_models)]
+
+    def action_change_plot(self, offset: int) -> None:
+        """."""
+        if self.current_plot_index is None:
+            self.app.bell()
+            return
+        self.current_plot_index += offset
+        self.update_plot_tab()
+
+    def action_open_graph(self) -> None:
+        """Open the current plot in matplotlib."""
+        if self.current_plot_index is None:
+            self.app.bell()
+            return
+
+        assert self.current_test_bench is not None
+        run_outputs = self.current_test_bench.get_run_outputs()
+        assert run_outputs is not None  # TODO: Fix this logic
+        run_metrics = self.current_test_bench.get_run_metrics(run_outputs)
+        aggregate_metrics = self.current_test_bench.aggregate_run_metrics(run_metrics)
+        plot_model = self._get_plot_model()
+        if self.show_mode == ShowMode.RunConfiguration:
+            aggregate_metrics = [
+                (run_configuration, metrics)
+                for run_configuration, metrics in aggregate_metrics
+                if run_configuration.name == self.current_run_configuration_name
+            ]
+
+        if isinstance(plot_model, LinePlotModel):
+            plot_matplotlib.draw_line_plot(plot_model, aggregate_metrics)
+        elif isinstance(plot_model, BarChartModel):
+            plot_matplotlib.draw_bar_chart(plot_model, aggregate_metrics)
+        elif isinstance(plot_model, RooflinePlotModel):
+            plot_matplotlib.draw_roofline_plot(plot_model, aggregate_metrics)
