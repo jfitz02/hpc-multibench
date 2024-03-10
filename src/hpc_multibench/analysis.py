@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# mypy: disable-error-code="no-any-unimported"
 """A set of functions to analyse the results of a test bench run."""
 
 from enum import Enum, auto
+from typing import cast
 
 from hpc_multibench.roofline_model import RooflineDataModel
 from hpc_multibench.run_configuration import RunConfiguration
@@ -80,12 +82,15 @@ def get_line_plot_data(
         str, tuple[list[float], list[float], list[float] | None, list[float] | None]
     ] = {}
     for name, results in data.items():
-        x, y, x_err, y_err = zip(*sorted(results), strict=True)
+        x, y, x_err, y_err = cast(  # type: ignore[assignment]
+            tuple[list[float], list[float], list[float | None], list[float | None]],
+            zip(*sorted(results), strict=True),
+        )
         reshaped_data[name] = (  # type: ignore[assignment]
             x,
             y,
-            x_err if any(x_err) else None,
-            y_err if any(y_err) else None,
+            x_err if any(x_err) else None,  # type: ignore[arg-type]
+            y_err if any(y_err) else None,  # type: ignore[arg-type]
         )
     return reshaped_data
 
@@ -223,7 +228,7 @@ def get_roofline_plot_data(
 
 def draw_roofline_plot(
     plot: RooflinePlotModel,
-    metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]]
+    metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]],
 ) -> None:
     """Draw a specified roofline plots for a set of run outputs."""
     (roofline, data) = get_roofline_plot_data(plot, metrics)

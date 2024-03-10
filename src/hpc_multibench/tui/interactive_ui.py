@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """The definition of the interactive user interface."""
 
+from typing import cast
+
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal
 from textual.widgets import (
@@ -17,9 +19,9 @@ from textual.widgets import (
 from textual.widgets.tree import TreeNode
 from textual_plotext import PlotextPlot
 
-from hpc_multibench.yaml_model import RunConfigurationModel
 from hpc_multibench.test_bench import TestBench
 from hpc_multibench.test_plan import TestPlan
+from hpc_multibench.yaml_model import RunConfigurationModel
 
 TestPlanTreeType = RunConfigurationModel | TestBench
 
@@ -30,10 +32,10 @@ INITIAL_TAB = "run-tab"
 class TestPlanTree(Tree[TestPlanTreeType]):
     """A tree showing the hierarchy of benches and runs in a test plan."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
         """Instantiate a tree representing a test plan."""
         self.previous_cursor_node: TreeNode[TestPlanTreeType] | None = None
-        self._app: UserInterface = self.app  # type: ignore
+        self._app: UserInterface = self.app  # type: ignore[assignment]
         super().__init__(*args, **kwargs)
 
     def populate(self) -> None:
@@ -73,7 +75,9 @@ class UserInterface(App[None]):
         # TODO: Add button to reload test plan
     ]
 
-    def __init__(self, test_plan: TestPlan, *args, **kwargs) -> None:
+    def __init__(  # type: ignore[no-untyped-def]
+        self, test_plan: TestPlan, *args, **kwargs
+    ) -> None:
         """Initialise the user interface."""
         self.test_plan: TestPlan = test_plan
         self.start_pane_shown: bool = True
@@ -131,9 +135,10 @@ class UserInterface(App[None]):
         else:
             sbatch_contents.visible = True
             assert node.parent is not None
-            test_bench = node.parent.data
+            test_bench = cast(TestBench, node.parent.data)
+            run_configuration = cast(RunConfigurationModel, node.data)
             # TODO: Realise with selected column in data table
-            sbatch_contents.text = node.data.realise(
+            sbatch_contents.text = run_configuration.realise(
                 str(node.label), test_bench.output_directory, {}
             ).sbatch_contents
             instantiations = test_bench.instantiations
@@ -143,7 +148,7 @@ class UserInterface(App[None]):
         for instantiation in instantiations:
             run_information.add_row(*instantiation.values())
 
-    def update_metrics_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
+    def update_metrics_tab(self, _node: TreeNode[TestPlanTreeType]) -> None:
         """Update the metrics tab of the user interface."""
         metrics_table = self.query_one("#metrics-table", DataTable)
         metrics_table.clear(columns=True)
@@ -212,7 +217,7 @@ class UserInterface(App[None]):
         #                 ]
         #             )
 
-    def update_plot_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
+    def update_plot_tab(self, _node: TreeNode[TestPlanTreeType]) -> None:
         """Update the plot tab of the user interface."""
         # TODO: Add button to open matplotlib window with plot as well
         metrics_plot_widget = self.query_one("#metrics-plot", PlotextPlot)

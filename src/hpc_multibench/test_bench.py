@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# mypy: disable-error-code="no-any-unimported"
 """A class representing a test bench composing part of a test plan."""
 
 from argparse import Namespace
@@ -18,9 +19,9 @@ from typing import Any, cast
 from typing_extensions import Self
 
 from hpc_multibench.analysis import draw_bar_chart, draw_line_plot, draw_roofline_plot
-from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
-from hpc_multibench.uncertainties import ufloat, UFloat
 from hpc_multibench.run_configuration import RunConfiguration
+from hpc_multibench.uncertainties import UFloat, ufloat
+from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
 
 BASE_OUTPUT_DIRECTORY = Path("results/")
 DRY_RUN_SEPARATOR = "\n\n++++++++++\n\n\n"
@@ -243,7 +244,7 @@ class TestBench:
         """Get the outputs of the test bench runs."""
         if self.run_configurations_metadata is None:
             print(f"Metadata file does not exist for test bench '{self.name}'!")
-            return
+            return None
 
         # Reconstruct realised run configurations from the metadata file
         reconstructed_run_configurations: list[dict[int, RunConfiguration]] = []
@@ -297,19 +298,17 @@ class TestBench:
                     )
                     continue
 
-                rerun_metrics[job_id] = (
-                    run_configuration,
-                    metrics
-                    
-                )
+                rerun_metrics[job_id] = (run_configuration, metrics)
             run_metrics.append(rerun_metrics)
         return run_metrics
 
-    def aggregate_run_metrics(
+    def aggregate_run_metrics(  # noqa: C901
         self, run_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]]
     ) -> list[tuple[RunConfiguration, dict[str, str | UFloat]]]:
         """."""
-        all_aggregated_metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]] = []
+        all_aggregated_metrics: list[
+            tuple[RunConfiguration, dict[str, str | UFloat]]
+        ] = []
         for rerun_group in run_metrics:
             # Get the mapping of metrics to their values across re-runs
             canonical_run_configuration: RunConfiguration | None = None
@@ -358,7 +357,9 @@ class TestBench:
                     if reruns_model.undiscarded_number >= 2  # noqa: PLR2004
                     else 0.0
                 )
-                aggregated_metrics[metric] = cast(UFloat, ufloat(metric_mean, metric_stdev))
+                aggregated_metrics[metric] = cast(
+                    UFloat, ufloat(metric_mean, metric_stdev)
+                )
 
             # Update the metrics
             if canonical_run_configuration is not None:
