@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# mypy: disable-error-code="no-any-unimported"
 """A set of functions to analyse the results of a test bench run."""
 
 from enum import Enum, auto

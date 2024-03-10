@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# mypy: disable-error-code="no-any-unimported"
 """A class representing a test bench composing part of a test plan."""
 
 from argparse import Namespace
@@ -14,7 +13,7 @@ from pickle import loads as pickle_loads  # nosec
 from re import search as re_search
 from shutil import rmtree
 from statistics import fmean, stdev
-from typing import Any, cast
+from typing import Any
 
 from typing_extensions import Self
 
@@ -357,9 +356,7 @@ class TestBench:
                     if reruns_model.undiscarded_number >= 2  # noqa: PLR2004
                     else 0.0
                 )
-                aggregated_metrics[metric] = cast(
-                    UFloat, ufloat(metric_mean, metric_stdev)
-                )
+                aggregated_metrics[metric] = ufloat(metric_mean, metric_stdev)
 
             # Update the metrics
             if canonical_run_configuration is not None:
