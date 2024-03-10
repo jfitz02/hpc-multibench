@@ -34,10 +34,22 @@ class TestPlan:
         """Run all the enabled test benches in the plan."""
         for bench in self.benches:
             if bench.bench_model.enabled:
+                print(f"Recording data from test bench '{bench.name}'")
                 bench.record(args)
+
+        if args.wait:
+            for bench in self.benches:
+                if bench.bench_model.enabled:
+                    status = (
+                        "timed out while waiting for queued jobs"
+                        if bench.wait_for_queue()
+                        else "finished all queued jobs"
+                    )
+                    print(f"Test bench '{bench.name}' {status}!")
 
     def report_all(self, _args: Namespace) -> None:
         """Analyse all the enabled test benches in the plan."""
         for bench in self.benches:
             if bench.bench_model.enabled:
+                print(f"Reporting data from test bench '{bench.name}'")
                 bench.report()

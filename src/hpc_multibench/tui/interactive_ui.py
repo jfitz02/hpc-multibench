@@ -88,6 +88,11 @@ class RunDialogScreen(Screen[None]):
 
     progress_timer: Timer
 
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
+        """Instantiate a dialog screen for spawning runs."""
+        self._app: UserInterface = self.app  # type: ignore[assignment]
+        super().__init__(*args, **kwargs)
+
     def compose(self) -> ComposeResult:
         """Compose the structure of the dialog screen."""
         with Center(id="run-dialog"):
@@ -105,10 +110,13 @@ class RunDialogScreen(Screen[None]):
     def on_mount(self) -> None:
         """Set up a timer to simulate progess happening."""
         self.progress_timer = self.set_interval(1 / 10, self.make_progress)
+        # Set the jobs running
+        # Get the number of jobs we are waiting for
         self.query_one(ProgressBar).update(total=100)
 
     def make_progress(self) -> None:
-        """Called automatically to advance the progress bar."""
+        """Automatically advance the progress bar."""
+        # Update the progress based on jobs completed
         self.query_one(ProgressBar).advance(1)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:

@@ -13,6 +13,7 @@ from pickle import loads as pickle_loads  # nosec
 from re import search as re_search
 from shutil import rmtree
 from statistics import fmean, stdev
+from time import sleep
 from typing import Any
 
 from typing_extensions import Self
@@ -22,7 +23,7 @@ from hpc_multibench.plot.plot_matplotlib import (
     draw_line_plot,
     draw_roofline_plot,
 )
-from hpc_multibench.run_configuration import RunConfiguration
+from hpc_multibench.run_configuration import RunConfiguration, get_queued_job_ids
 from hpc_multibench.uncertainties import UFloat, ufloat
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
 
@@ -150,10 +151,48 @@ class TestBench:
                 )
             metadata_writer.writerows(item.as_csv_row() for item in metadata)
 
-    def record(self, args: Namespace) -> None:  # noqa: C901
-        """Spawn run configurations for the test bench."""
-        print(f"Recording data from test bench '{self.name}'")
+    @property
+    def all_job_ids(self) -> list[int]:
+        """Get the total number of jobs submitted by the test bench."""
+        run_configurations_metadata = self.run_configurations_metadata
+        if run_configurations_metadata is None:
+            return []
+        return [metadata.job_id for metadata in run_configurations_metadata]
 
+    def wait_for_queue(
+        self,
+        max_time_to_wait: int = 172_800,
+        backoff: list[int] | None = None,
+        verbose: bool = False,  # noqa: FBT001, FBT002
+    ) -> bool:
+        """Wait till the queue is drained of jobs submitted by this test bench."""
+        if backoff is None or len(backoff) < 1:
+            backoff = [5, 10, 15, 30, 60]
+
+        time_waited = 0
+        backoff_index = 0
+        while time_waited < max_time_to_wait:
+            wait_time = backoff[backoff_index]
+            sleep(wait_time)
+            time_waited += wait_time
+
+            queued_jobs = set(get_queued_job_ids())
+            required_jobs = set(self.all_job_ids)
+            if len(required_jobs - queued_jobs) == len(required_jobs):
+                return False
+            if verbose:
+                print(
+                    f"{len(required_jobs - queued_jobs)}/{len(required_jobs)} "
+                    f"jobs left for test bench {self.name}"
+                )
+
+            if backoff_index < len(backoff) - 1:
+                backoff_index += 1
+
+        return True
+
+    def record(self, args: Namespace) -> None:
+        """Spawn run configurations for the test bench."""
         # Optionally clobber directory
         if not args.no_clobber and self.output_directory.exists():
             rmtree(self.output_directory)
@@ -222,9 +261,6 @@ class TestBench:
                 run_config_rerun_job_ids.items()
             )
         ]
-
-        if args.wait:
-            raise NotImplementedError("Waiting for queue not yet implemented")
 
     def extract_metrics(self, output: str) -> dict[str, str] | None:
         """
@@ -372,8 +408,6 @@ class TestBench:
 
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
-        print(f"Reporting data from test bench '{self.name}'")
-
         run_outputs = self.get_run_outputs()
         if run_outputs is None:
             return

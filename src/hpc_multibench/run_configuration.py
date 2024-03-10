@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """A class for test configurations on batch compute."""
 
+from getpass import getuser
 from pathlib import Path
 from re import search as re_search
 from subprocess import PIPE  # nosec
@@ -170,3 +171,13 @@ class RunConfiguration:
     def __repr__(self) -> str:
         """Get the sbatch configuration file defining the run."""
         return self.sbatch_contents
+
+
+def get_queued_job_ids() -> list[int]:
+    """Get the IDs of the jobs queued by the current user."""
+    result = subprocess_run(  # nosec
+        ["squeue", "-u", getuser(), "-o", "'%A'", "-h"],  # noqa: S603, S607
+        check=True,
+        stdout=PIPE,
+    ).stdout.decode("utf-8")
+    return [int(job_id) for job_id in result.split("\n")]
