@@ -3,7 +3,7 @@
 """A set of functions to analyse the results of a test bench run."""
 
 from enum import Enum, auto
-from typing import cast
+from typing import Any, cast
 
 from hpc_multibench.roofline_model import RooflineDataModel
 from hpc_multibench.run_configuration import RunConfiguration
@@ -14,12 +14,11 @@ from hpc_multibench.yaml_model import BarChartModel, LinePlotModel, RooflinePlot
 class PlotStyle(Enum):
     """An enum for the styles of the plot backend."""
 
-    SEABORN = auto()
     MATPLOTLIB = auto()
     PLOTEXT = auto()
 
 
-PLOT_STYLE = PlotStyle.SEABORN
+PLOT_STYLE = PlotStyle.MATPLOTLIB
 PLOTEXT_MARKER = "braille"
 PLOTEXT_THEME = "pro"
 
@@ -27,13 +26,11 @@ if PLOT_STYLE == PlotStyle.PLOTEXT:
     import plotext as plt
 else:
     import matplotlib.pyplot as plt
+    import seaborn as sns
 
     # from labellines import labelLines
 
-    if PLOT_STYLE == PlotStyle.SEABORN:
-        import seaborn as sns
-
-        sns.set_theme()
+    sns.set_theme()
 
 
 def split_metric_uncertainty(
@@ -94,43 +91,6 @@ def get_line_plot_data(
     return reshaped_data
 
 
-def draw_line_plot(
-    plot: LinePlotModel,
-    metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]],
-) -> None:
-    """Draw a specified line plot for a set of run outputs."""
-    data = get_line_plot_data(plot, metrics)
-
-    if PLOT_STYLE == PlotStyle.PLOTEXT:
-        plt.clear_figure()
-        for name, (x, y, _x_err, _y_err) in data.items():
-            plt.plot(x, y, marker=PLOTEXT_MARKER, label=name)
-            # plt.error(
-            #     x,
-            #     y,
-            #     xerr=_x_err,
-            #     yerr=_y_err,
-            # )
-        plt.theme(PLOTEXT_THEME)
-    else:
-        for name, (x, y, x_err, y_err) in data.items():
-            plt.errorbar(
-                x,
-                y,
-                xerr=x_err,
-                yerr=y_err,
-                marker="x",
-                ecolor="black",
-                label=name,
-            )
-        plt.legend()
-
-    plt.xlabel(plot.x)
-    plt.ylabel(plot.y)
-    plt.title(plot.title)
-    plt.show()
-
-
 def get_bar_chart_data(
     plot: BarChartModel,
     all_metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]],
@@ -169,6 +129,87 @@ def get_bar_chart_data(
     return data
 
 
+def get_roofline_plot_data(
+    plot: RooflinePlotModel,
+    all_metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]],
+) -> tuple[
+    RooflineDataModel, dict[str, tuple[float, float, float | None, float | None]]
+]:
+    """Get the data needed to plot a specified roofline plot."""
+    roofline_data = RooflineDataModel.from_json(plot.ert_json)
+
+    data: dict[str, tuple[float, float, float | None, float | None]] = {}
+    for run_configuration, metrics in all_metrics:
+        (x_value, x_err) = split_metric_uncertainty(metrics, plot.flops_per_byte)
+        (y_value, y_err) = split_metric_uncertainty(metrics, plot.gflops_per_sec)
+        data[run_configuration.name] = (x_value, y_value, x_err, y_err)
+
+    return (roofline_data, data)
+
+
+def draw_plotext_line_plot(
+    this_plt: Any,
+    plot: LinePlotModel,
+    data: dict[
+        str, tuple[list[float], list[float], list[float] | None, list[float] | None]
+    ],
+) -> None:
+    """."""
+    this_plt.clear_figure()
+    for name, (x, y, _x_err, _y_err) in data.items():
+        this_plt.plot(x, y, marker=PLOTEXT_MARKER, label=name)
+        # this_plt.error(
+        #     x,
+        #     y,
+        #     xerr=_x_err,
+        #     yerr=_y_err,
+        # )
+
+    this_plt.theme(PLOTEXT_THEME)
+    this_plt.xlabel(plot.x)
+    this_plt.ylabel(plot.y)
+    this_plt.title(plot.title)
+
+
+def draw_matplotlib_line_plot(
+    this_plt: Any,
+    plot: LinePlotModel,
+    data: dict[
+        str, tuple[list[float], list[float], list[float] | None, list[float] | None]
+    ],
+) -> None:
+    """."""
+    for name, (x, y, x_err, y_err) in data.items():
+        this_plt.errorbar(
+            x,
+            y,
+            xerr=x_err,
+            yerr=y_err,
+            marker="x",
+            ecolor="black",
+            label=name,
+        )
+    this_plt.legend()
+    this_plt.xlabel(plot.x)
+    this_plt.ylabel(plot.y)
+    this_plt.title(plot.title)
+
+
+def draw_line_plot(
+    plot: LinePlotModel,
+    metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]],
+) -> None:
+    """Draw a specified line plot for a set of run outputs."""
+    data = get_line_plot_data(plot, metrics)
+
+    if PLOT_STYLE == PlotStyle.PLOTEXT:
+        draw_plotext_line_plot(plt, plot, data)
+        plt.show()
+    else:
+        draw_matplotlib_line_plot(plt, plot, data)
+        plt.show()
+
+
 def draw_bar_chart(
     plot: BarChartModel,
     metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]],
@@ -188,11 +229,8 @@ def draw_bar_chart(
         plt.ylabel(plot.y)
         plt.theme(PLOTEXT_THEME)
     else:
-        palette = (
-            sns.color_palette()
-            if PLOT_STYLE == PlotStyle.SEABORN
-            else plt.rcParams["axes.prop_cycle"].by_key()["color"]
-        )
+        # matplotlib `plt.rcParams["axes.prop_cycle"].by_key()["color"]`
+        palette = sns.color_palette()
         plt.barh(
             list(data.keys()),
             [metric for metric, _, _ in data.values()],
@@ -205,24 +243,6 @@ def draw_bar_chart(
 
     plt.title(plot.title)
     plt.show()
-
-
-def get_roofline_plot_data(
-    plot: RooflinePlotModel,
-    all_metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]],
-) -> tuple[
-    RooflineDataModel, dict[str, tuple[float, float, float | None, float | None]]
-]:
-    """Get the data needed to plot a specified roofline plot."""
-    roofline_data = RooflineDataModel.from_json(plot.ert_json)
-
-    data: dict[str, tuple[float, float, float | None, float | None]] = {}
-    for run_configuration, metrics in all_metrics:
-        (x_value, x_err) = split_metric_uncertainty(metrics, plot.flops_per_byte)
-        (y_value, y_err) = split_metric_uncertainty(metrics, plot.gflops_per_sec)
-        data[run_configuration.name] = (x_value, y_value, x_err, y_err)
-
-    return (roofline_data, data)
 
 
 def draw_roofline_plot(

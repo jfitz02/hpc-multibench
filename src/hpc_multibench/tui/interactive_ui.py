@@ -19,6 +19,7 @@ from textual.widgets import (
 from textual.widgets.tree import TreeNode
 from textual_plotext import PlotextPlot
 
+from hpc_multibench.analysis import draw_plotext_line_plot, get_line_plot_data
 from hpc_multibench.test_bench import TestBench
 from hpc_multibench.test_plan import TestPlan
 from hpc_multibench.yaml_model import RunConfigurationModel
@@ -154,16 +155,16 @@ class UserInterface(App[None]):
         metrics_table.clear(columns=True)
         if isinstance(node.data, TestBench):
             test_bench = node.data
+            run_outputs = test_bench.get_run_outputs()
+            assert run_outputs is not None  # TODO: Fix this logic
+            run_metrics = test_bench.get_run_metrics(run_outputs)
+            aggregated_metrics = test_bench.aggregate_run_metrics(run_metrics)
             metrics_table.add_columns(
                 *[
                     "Name",
                     *list(node.data.bench_model.analysis.metrics.keys()),
                 ]
             )
-            run_outputs = test_bench.get_run_outputs()
-            assert run_outputs is not None  # TODO: Fix this logic
-            run_metrics = test_bench.get_run_metrics(run_outputs)
-            aggregated_metrics = test_bench.aggregate_run_metrics(run_metrics)
             for run_configuration, metrics in aggregated_metrics:
                 metrics_table.add_row(
                     run_configuration.name,
@@ -172,43 +173,50 @@ class UserInterface(App[None]):
         else:
             assert node.parent is not None
             test_bench = cast(TestBench, node.parent.data)
-            metrics_table.add_columns(
-                *list(test_bench.bench_model.analysis.metrics.keys())
-            )
             run_outputs = test_bench.get_run_outputs()
             assert run_outputs is not None  # TODO: Fix this logic
             run_metrics = test_bench.get_run_metrics(run_outputs)
             aggregated_metrics = test_bench.aggregate_run_metrics(run_metrics)
+            metrics_table.add_columns(
+                *list(test_bench.bench_model.analysis.metrics.keys())
+            )
             for run_configuration, metrics in aggregated_metrics:
                 if run_configuration.name != str(node.label):
                     continue
                 metrics_table.add_row(*list(metrics.values()))
 
-    def update_plot_tab(self, _node: TreeNode[TestPlanTreeType]) -> None:
+    def update_plot_tab(self, node: TreeNode[TestPlanTreeType]) -> None:
         """Update the plot tab of the user interface."""
         # TODO: Add button to open matplotlib window with plot as well
         metrics_plot_widget = self.query_one("#metrics-plot", PlotextPlot)
         metrics_plot = metrics_plot_widget.plt
         metrics_plot.clear_figure()
         metrics_plot.title("Benchmark analysis")
-        metrics_plot.plot(metrics_plot.sin())
-        # if isinstance(node.data, TestBench):
-        #     # metrics_plot.plot(metrics_plot.sin())
-        #     for name, result in node.data.comparative_plot_results(
-        #         str(node.label)
-        #     ).items():
-        #         metrics_plot.plot(
-        #             *zip(*result, strict=True), label=name, marker=PLOTEXT_MARKER
-        #         )
-        # else:
-        #     assert node.parent is not None
-        #     for name, result in node.parent.data.comparative_plot_results(
-        #         str(node.parent.label)
-        #     ).items():
-        #         if name == str(node.label):
-        #             metrics_plot.plot(
-        #                 *zip(*result, strict=True), label=name, marker=PLOTEXT_MARKER
-        #             )
+        if isinstance(node.data, TestBench):
+            test_bench = node.data
+            run_outputs = test_bench.get_run_outputs()
+            assert run_outputs is not None  # TODO: Fix this logic
+            run_metrics = test_bench.get_run_metrics(run_outputs)
+            aggregate_metrics = test_bench.aggregate_run_metrics(run_metrics)
+            plot = test_bench.bench_model.analysis.line_plots[0]
+            data = get_line_plot_data(plot, aggregate_metrics)
+            draw_plotext_line_plot(metrics_plot, plot, data)
+        else:
+            assert node.parent is not None
+            test_bench = cast(TestBench, node.parent.data)
+            run_outputs = test_bench.get_run_outputs()
+            assert run_outputs is not None  # TODO: Fix this logic
+            run_metrics = test_bench.get_run_metrics(run_outputs)
+            aggregate_metrics = [
+                (run_configuration, metrics)
+                for run_configuration, metrics in test_bench.aggregate_run_metrics(
+                    run_metrics
+                )
+                if run_configuration.name == str(node.label)
+            ]
+            plot = test_bench.bench_model.analysis.line_plots[0]
+            data = get_line_plot_data(plot, aggregate_metrics)
+            draw_plotext_line_plot(metrics_plot, plot, data)
         metrics_plot_widget.refresh()
 
     def handle_tree_selection(self, node: TreeNode[TestPlanTreeType]) -> None:
