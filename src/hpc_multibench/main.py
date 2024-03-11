@@ -26,6 +26,13 @@ def get_parser() -> ArgumentParser:  # pragma: no cover
     parser_record = sub_parsers.add_parser(
         "record", help="record data from running the test benches"
     )
+    parser_interactive = sub_parsers.add_parser(
+        "interactive", help="show the interactive TUI"
+    )
+    sub_parsers.add_parser(
+        "report", help="report analysis about completed test bench runs"
+    )
+
     parser_record.add_argument(
         "-d",
         "--dry-run",
@@ -38,21 +45,13 @@ def get_parser() -> ArgumentParser:  # pragma: no cover
         action="store_true",
         help="wait for the submitted jobs to finish to exit",
     )
-    parser_record.add_argument(
-        "-nc",
-        "--no-clobber",
-        action="store_true",
-        help="don't delete any previous run results of the test benches",
-    )
-    parser_report = sub_parsers.add_parser(
-        "report", help="report analysis about completed test bench runs"
-    )
-    parser_report.add_argument(
-        "-i",
-        "--interactive",
-        action="store_true",
-        help="show the interactive TUI",
-    )
+    for sub_parser in (parser_record, parser_interactive):
+        sub_parser.add_argument(
+            "-nc",
+            "--no-clobber",
+            action="store_true",
+            help="don't delete any previous run results of the test benches",
+        )
     return parser
 
 
@@ -65,7 +64,9 @@ def main() -> None:  # pragma: no cover
         test_plan.record_all(args)
 
     elif args.command == "report":
-        if args.interactive:
-            UserInterface(test_plan, args).run()
-        else:
-            test_plan.report_all(args)
+        test_plan.report_all(args)
+
+    else:
+        args.dry_run = False
+        args.wait = False
+        UserInterface(test_plan, args).run()

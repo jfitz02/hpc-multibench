@@ -180,10 +180,6 @@ class UserInterface(App[None]):
     ) -> None:
         """Initialise the user interface."""
         self.test_plan: TestPlan = test_plan
-        # TODO: Fix this in the main function
-        command_args.dry_run = False
-        command_args.wait = False
-        command_args.no_clobber = False
         self.command_args: Namespace = command_args
         self.show_mode = ShowMode.Uninitialised
         self.current_test_bench: TestBench | None = None
