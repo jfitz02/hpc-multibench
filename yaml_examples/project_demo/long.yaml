@@ -111,9 +111,27 @@ run_configurations:
       - "cargo build --release"
     run_command: "mpirun ./target/release/hpccg-rs"
 
+  "cpp-kokkos":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 16
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables:
+      "OMP_NUM_THREADS": 16
+      "OMP_PROC_BIND": "spread"
+      "OMP_PLACES": "threads"
+    directory: "../0_cpp_versions/5_kokkos"
+    build_commands:
+      - "make no_yaml"
+      - "make -j 8"
+    run_command: "./test_HPCCG"
+
 benches:
   "serial":
-    enabled: False
+    # enabled: False
     run_configurations:
       - "cpp-reference"
       - "rust-reference"
@@ -140,7 +158,7 @@ benches:
           y: "Wall time (s)"
 
   "parallel":
-    enabled: False
+    # enabled: False
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
@@ -175,7 +193,7 @@ benches:
             - "Num threads"
 
   "mpi-config-sweep":
-    enabled: False
+    # enabled: False
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"
@@ -244,7 +262,7 @@ benches:
             "Mesh x size": "200"
 
   "hybrid-single-node-config-sweep":
-    enabled: False
+    # enabled: False
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
@@ -315,7 +333,7 @@ benches:
             "Mesh x size": "100"
 
   "mpi-best-config":
-    enabled: False
+    # enabled: False
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"
@@ -352,7 +370,7 @@ benches:
             - "Tasks per Node"
 
   "hybrid-best-config":
-    enabled: False
+    # enabled: False
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
@@ -392,77 +410,36 @@ benches:
             - "Tasks per Node"
             - "Threads"
 
-  # "strong-scaling-multi-nodal":
-  #   enabled: False
-  #   run_configurations:
-  #     - "cpp-hybrid"
-  #     - "rust-hybrid"
-  #   reruns:
-  #     number: 5
-  #     highest_discard: 1
-  #     lowest_discard: 1
-  #     unaggregatable_metrics:
-  #       - "Mesh z size"
-  #       - "Total FLOPs"
-  #       - "MPI Ranks"
-  #       - "MPI Nodes"
-  #   matrix:
-  #     [args, sbatch_config]:
-  #       - ["64 64 1024", { "ntasks": 1 }]
-  #       - ["64 64 512", { "ntasks": 2 }]
-  #       - ["64 64 256", { "ntasks": 4 }]
-  #       - ["64 64 128", { "ntasks": 8 }]
-  #       - ["64 64 64", { "ntasks": 16 }]
-  #       - ["64 64 32", { "ntasks": 32 }]
-  #       - ["64 64 16", { "ntasks": 64 }]
-  #   analysis:
-  #     metrics:
-  #       "Mesh z size": "nz: (\\d+)"
-  #       "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
-  #       "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #       "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-  #       "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-  #       "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
-  #       "MPI Nodes": "=== SLURM CONFIG ===[\\s\\S]*\ \ \ NumNodes=(\\d*)\ NumCPUs"
-  #     line_plots:
-  #       - title: "Multi-Nodal Strong Scaling Plot"
-  #         x: "MPI Ranks"
-  #         y: "Wall time (s)"
-
-  # "weak-scaling-multi-nodal":
-  #   enabled: False
-  #   run_configurations:
-  #     - "cpp-hybrid"
-  #     - "rust-hybrid"
-  #   reruns:
-  #     number: 5
-  #     highest_discard: 1
-  #     lowest_discard: 1
-  #     unaggregatable_metrics:
-  #       - "Mesh z size"
-  #       - "Total FLOPs"
-  #       - "MPI Ranks"
-  #       - "MPI Nodes"
-  #   matrix:
-  #     args:
-  #       - "64 64 64"
-  #     sbatch_config:
-  #       - { "ntasks": 1 }
-  #       - { "ntasks": 2 }
-  #       - { "ntasks": 4 }
-  #       - { "ntasks": 8 }
-  #       - { "ntasks": 16 }
-  #       - { "ntasks": 32 }
-  #       - { "ntasks": 64 }
-  #   analysis:
-  #     metrics:
-  #       "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
-  #       "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
-  #       "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
-  #       "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-  #       "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
-  #       "MPI Nodes": "=== SLURM CONFIG ===[\\s\\S]*\ \ \ NumNodes=(\\d*)\ NumCPUs"
-  #     line_plots:
-  #       - title: "Multi-Nodal Weak Scaling Plot"
-  #         x: "MPI Ranks"
-  #         y: "Wall time (s)"
+  "cpp-kokkos-rust":
+    # enabled: False
+    run_configurations:
+      - "cpp-openmp"
+      - "cpp-kokkos"
+      - "rust-rayon"
+    reruns:
+      number: 5
+      highest_discard: 2
+      lowest_discard: 0
+      unaggregatable_metrics:
+        - "Mesh x size"
+    matrix:
+      args:
+        - "25 25 25"
+        - "50 50 50"
+        - "100 100 100"
+        - "200 200 200"
+        - "300 300 300"
+        - "400 400 400"
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+      line_plots:
+        - title: "C++, Kokkos, and Rust Version Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+      bar_charts:
+        - title: "C++, Kokkos, and Rust Version Comparison"
+          y: "Wall time (s)"
+          fix_metrics:
+            "Mesh x size": 400
