@@ -26,9 +26,10 @@ from textual.widgets.tree import TreeNode
 from textual_plotext import PlotextPlot
 
 from hpc_multibench.plot import plot_matplotlib, plot_plotext
-from hpc_multibench.run_configuration import get_queued_job_ids
+from hpc_multibench.run_configuration import RunConfiguration, get_queued_job_ids
 from hpc_multibench.test_bench import TestBench
 from hpc_multibench.test_plan import TestPlan
+from hpc_multibench.uncertainties import UFloat
 from hpc_multibench.yaml_model import (
     BarChartModel,
     LinePlotModel,
@@ -222,9 +223,7 @@ class UserInterface(App[None]):
 
     def on_mount(self) -> None:
         """Initialise data when the application is created."""
-        tree = self.query_one(TestPlanTree)
-        tree.populate()
-        self.app.set_focus(tree)
+        self.initialise_test_plan_tree()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """."""
@@ -235,6 +234,40 @@ class UserInterface(App[None]):
         """Remove the start pane from the screen if it is uninitialised."""
         if self.show_mode is ShowMode.Uninitialised:
             self.query_one("#start-pane", Container).remove()
+
+    def initialise_test_plan_tree(self) -> None:
+        """Initialise the test plan tree."""
+        tree = self.query_one(TestPlanTree)
+        tree.populate()
+        self.app.set_focus(tree)
+
+    def handle_tree_selection(self, node: TreeNode[TestPlanTreeType]) -> None:
+        """Drive the user interface updates when new tree nodes are selected."""
+        if node == self.query_one(TestPlanTree).root:
+            return
+
+        self.remove_start_pane()
+
+        if isinstance(node.data, TestBench):
+            self.show_mode = ShowMode.TestBench
+            self.current_test_bench = node.data
+            self.current_run_configuration = None
+            self.current_run_configuration_name = None
+        elif isinstance(node.data, RunConfigurationModel):
+            self.show_mode = ShowMode.RunConfiguration
+            assert node.parent is not None
+            self.current_test_bench = cast(TestBench, node.parent.data)
+            self.current_run_configuration = node.data
+            self.current_run_configuration_name = str(node.label)
+
+        self.current_plot_index = 0
+        self.update_all_tabs()
+
+    def update_all_tabs(self) -> None:
+        """Update all tabs in the user interface."""
+        self.update_run_tab()
+        self.update_metrics_tab()
+        self.update_plot_tab()
 
     def update_run_tab(self) -> None:
         """Update the run tab of the user interface."""
@@ -264,19 +297,29 @@ class UserInterface(App[None]):
         for instantiation in instantiations:
             run_information.add_row(*instantiation.values())
 
+    def get_aggregated_metrics(
+        self,
+    ) -> list[tuple[RunConfiguration, dict[str, str | UFloat]]] | None:
+        """."""
+        assert self.current_test_bench is not None
+        run_outputs = self.current_test_bench.get_run_outputs()
+        if run_outputs is None:
+            return None
+        run_metrics = self.current_test_bench.get_run_metrics(run_outputs)
+        return self.current_test_bench.aggregate_run_metrics(run_metrics)
+
     def update_metrics_tab(self) -> None:
         """Update the metrics tab of the user interface."""
         metrics_table = self.query_one("#metrics-table", DataTable)
         metrics_table.clear(columns=True)
 
+        assert self.current_test_bench is not None
+        aggregated_metrics = self.get_aggregated_metrics()
+        if aggregated_metrics is None:
+            metrics_table.add_columns("No run data to show!")
+            return
+
         if self.show_mode == ShowMode.TestBench:
-            assert self.current_test_bench is not None
-            run_outputs = self.current_test_bench.get_run_outputs()
-            assert run_outputs is not None  # TODO: Fix this logic
-            run_metrics = self.current_test_bench.get_run_metrics(run_outputs)
-            aggregated_metrics = self.current_test_bench.aggregate_run_metrics(
-                run_metrics
-            )
             metrics_table.add_columns(
                 "Name",
                 *list(self.current_test_bench.bench_model.analysis.metrics.keys()),
@@ -287,15 +330,8 @@ class UserInterface(App[None]):
                     *list(metrics.values()),
                 )
         else:
-            assert self.current_test_bench is not None
             assert self.current_run_configuration is not None
             assert self.current_run_configuration_name is not None
-            run_outputs = self.current_test_bench.get_run_outputs()
-            assert run_outputs is not None  # TODO: Fix this logic
-            run_metrics = self.current_test_bench.get_run_metrics(run_outputs)
-            aggregated_metrics = self.current_test_bench.aggregate_run_metrics(
-                run_metrics
-            )
             metrics_table.add_columns(
                 *list(self.current_test_bench.bench_model.analysis.metrics.keys())
             )
@@ -310,50 +346,29 @@ class UserInterface(App[None]):
         metrics_plot = metrics_plot_widget.plt
 
         assert self.current_test_bench is not None
-        run_outputs = self.current_test_bench.get_run_outputs()
-        assert run_outputs is not None  # TODO: Fix this logic
-        run_metrics = self.current_test_bench.get_run_metrics(run_outputs)
-        aggregate_metrics = self.current_test_bench.aggregate_run_metrics(run_metrics)
-        plot_model = self._get_plot_model()
+        aggregated_metrics = self.get_aggregated_metrics()
+        if aggregated_metrics is None:
+            metrics_plot.title("No run data to show!")
+            return
+
+        plot_model = self.get_plot_model()
         if self.show_mode == ShowMode.RunConfiguration:
-            aggregate_metrics = [
+            aggregated_metrics = [
                 (run_configuration, metrics)
-                for run_configuration, metrics in aggregate_metrics
+                for run_configuration, metrics in aggregated_metrics
                 if run_configuration.name == self.current_run_configuration_name
             ]
         if isinstance(plot_model, LinePlotModel):
-            plot_plotext.draw_line_plot(metrics_plot, plot_model, aggregate_metrics)
+            plot_plotext.draw_line_plot(metrics_plot, plot_model, aggregated_metrics)
         elif isinstance(plot_model, BarChartModel):
-            plot_plotext.draw_bar_chart(metrics_plot, plot_model, aggregate_metrics)
+            plot_plotext.draw_bar_chart(metrics_plot, plot_model, aggregated_metrics)
         elif isinstance(plot_model, RooflinePlotModel):
-            plot_plotext.draw_roofline_plot(metrics_plot, plot_model, aggregate_metrics)
+            plot_plotext.draw_roofline_plot(
+                metrics_plot, plot_model, aggregated_metrics
+            )
         metrics_plot_widget.refresh()
 
-    def handle_tree_selection(self, node: TreeNode[TestPlanTreeType]) -> None:
-        """Drive the user interface updates when new tree nodes are selected."""
-        if node == self.query_one(TestPlanTree).root:
-            return
-
-        self.remove_start_pane()
-
-        if isinstance(node.data, TestBench):
-            self.show_mode = ShowMode.TestBench
-            self.current_test_bench = node.data
-            self.current_run_configuration = None
-            self.current_run_configuration_name = None
-        elif isinstance(node.data, RunConfigurationModel):
-            self.show_mode = ShowMode.RunConfiguration
-            assert node.parent is not None
-            self.current_test_bench = cast(TestBench, node.parent.data)
-            self.current_run_configuration = node.data
-            self.current_run_configuration_name = str(node.label)
-
-        self.current_plot_index = 0
-        self.update_run_tab()
-        self.update_metrics_tab()
-        self.update_plot_tab()
-
-    def _get_plot_model(
+    def get_plot_model(
         self,
     ) -> LinePlotModel | BarChartModel | RooflinePlotModel | None:
         """Get the model for the current plot."""
@@ -367,12 +382,13 @@ class UserInterface(App[None]):
         return all_plot_models[self.current_plot_index % len(all_plot_models)]
 
     def action_reload_test_plan(self) -> None:
-        """."""
+        """Reload the test plan for the user interface."""
         self.test_plan = TestPlan(self.test_plan.yaml_path)
         self.on_mount()
+        self.update_all_tabs()
 
     def action_change_plot(self, offset: int) -> None:
-        """."""
+        """Change which plot is being shown in the user interface."""
         if self.current_plot_index is None:
             self.app.bell()
             return
@@ -386,21 +402,21 @@ class UserInterface(App[None]):
             return
 
         assert self.current_test_bench is not None
-        run_outputs = self.current_test_bench.get_run_outputs()
-        assert run_outputs is not None  # TODO: Fix this logic
-        run_metrics = self.current_test_bench.get_run_metrics(run_outputs)
-        aggregate_metrics = self.current_test_bench.aggregate_run_metrics(run_metrics)
-        plot_model = self._get_plot_model()
+        aggregated_metrics = self.get_aggregated_metrics()
+        if aggregated_metrics is None:
+            return
+
+        plot_model = self.get_plot_model()
         if self.show_mode == ShowMode.RunConfiguration:
-            aggregate_metrics = [
+            aggregated_metrics = [
                 (run_configuration, metrics)
-                for run_configuration, metrics in aggregate_metrics
+                for run_configuration, metrics in aggregated_metrics
                 if run_configuration.name == self.current_run_configuration_name
             ]
 
         if isinstance(plot_model, LinePlotModel):
-            plot_matplotlib.draw_line_plot(plot_model, aggregate_metrics)
+            plot_matplotlib.draw_line_plot(plot_model, aggregated_metrics)
         elif isinstance(plot_model, BarChartModel):
-            plot_matplotlib.draw_bar_chart(plot_model, aggregate_metrics)
+            plot_matplotlib.draw_bar_chart(plot_model, aggregated_metrics)
         elif isinstance(plot_model, RooflinePlotModel):
-            plot_matplotlib.draw_roofline_plot(plot_model, aggregate_metrics)
+            plot_matplotlib.draw_roofline_plot(plot_model, aggregated_metrics)
