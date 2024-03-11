@@ -101,7 +101,7 @@ class RunDialogScreen(Screen[None]):
         with Center(id="run-dialog"):
             yield Label(
                 (
-                    "**Waiting for queued jobs to complete.**\n\n"
+                    "[bold]Waiting for queued jobs to complete.[/bold]\n\n"
                     "You can continue, but may need to reload the test plan "
                     "once they are complete to see any new results."
                 ),
@@ -163,7 +163,6 @@ class UserInterface(App[None]):
         ("m", "change_plot(-1)", "Previous Graph"),
         ("p", "open_graph()", "Open Graph"),
         ("q", "quit", "Quit"),
-        # TODO: Add button to reload test plan
     ]
 
     def __init__(  # type: ignore[no-untyped-def]
@@ -298,8 +297,6 @@ class UserInterface(App[None]):
 
     def update_plot_tab(self) -> None:
         """Update the plot tab of the user interface."""
-        # TODO: Add button to open matplotlib window with plot as well
-        # TODO: Add button to cycle through plots
         metrics_plot_widget = self.query_one("#metrics-plot", PlotextPlot)
         metrics_plot = metrics_plot_widget.plt
 

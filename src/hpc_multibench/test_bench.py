@@ -303,7 +303,6 @@ class TestBench:
         reconstructed_run_configurations.append(rerun_group)
 
         # Collect outputs from the run configurations
-        # TODO: Add async wait for incomplete jobs
         run_outputs: list[dict[int, tuple[RunConfiguration, str | None]]] = [
             {
                 job_id: (run_configuration, run_configuration.collect(job_id))
