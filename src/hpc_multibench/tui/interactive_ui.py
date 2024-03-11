@@ -102,7 +102,7 @@ class RunDialogScreen(Screen[None]):
             yield Label(
                 (
                     "[bold]Waiting for queued jobs to complete.[/bold]\n\n"
-                    "You can continue, but may need to reload the test plan "
+                    "You can continue, but will need to reload the test plan "
                     "once they are complete to see any new results."
                 ),
                 id="run-dialog-message",
@@ -116,6 +116,7 @@ class RunDialogScreen(Screen[None]):
 
     def make_progress(self) -> None:
         """Automatically advance the progress bar."""
+        progress_bar = self.query_one("#run-dialog-progress", ProgressBar)
         if not self.jobs_spawned:
             self.jobs_spawned = True
             # Wait till everything is rendered to kick off blocking calls...
@@ -129,7 +130,7 @@ class RunDialogScreen(Screen[None]):
                     if bench.bench_model.enabled
                 ]
             )
-            self.query_one(ProgressBar).update(total=total_jobs)
+            progress_bar.update(total=total_jobs)
 
         # Update the progress based on jobs completed
         queued_jobs = set(get_queued_job_ids())
@@ -140,7 +141,15 @@ class RunDialogScreen(Screen[None]):
                 if bench.bench_model.enabled
             ]
         )
-        self.query_one(ProgressBar).progress = completed_jobs
+        progress_bar.progress = completed_jobs
+
+        # Reload the test plan when all the jobs are completed
+        if progress_bar.progress == progress_bar.total:
+            self.query_one("#run-dialog-message", Label).update(
+                "[bold]All queued jobs have completed!\n\n[/bold]"
+                "Press 'Continue' to dismiss this dialog, then 'R' on the "
+                "keyboard to reload the test plan and view the new results."
+            )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Dismiss the modal dialog when the continue button is pressed."""
