@@ -42,6 +42,7 @@ mkdocstrings = { extras = ["python"], version = "^0.20.0" }
 # textual = "^0.51.0"
 textual = { extras = ["syntax"], version = "^0.51.0" }
 textual-plotext = "^0.2.1"
+tree-sitter-languages = "==1.10.2"  # Pin for security, to avoid re-auditing
 
 [tool.poetry.group.plot.dependencies]
 matplotlib = "^3.8.3"

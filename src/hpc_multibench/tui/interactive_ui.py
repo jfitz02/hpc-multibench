@@ -24,11 +24,13 @@ from textual.widgets import (
 )
 from textual.widgets.tree import TreeNode
 from textual_plotext import PlotextPlot
+from tree_sitter_languages import get_language
 
 from hpc_multibench.plot import plot_matplotlib, plot_plotext
 from hpc_multibench.run_configuration import RunConfiguration, get_queued_job_ids
 from hpc_multibench.test_bench import TestBench
 from hpc_multibench.test_plan import TestPlan
+from hpc_multibench.tui.bash_highlights import BASH_HIGHLIGHTS
 from hpc_multibench.uncertainties import UFloat
 from hpc_multibench.yaml_model import (
     BarChartModel,
@@ -210,6 +212,7 @@ class UserInterface(App[None]):
                         id="sbatch-contents",
                         read_only=True,
                         show_line_numbers=True,
+                        theme="monokai",
                     )
                 with TabPane("Metrics", id="metrics-tab"):
                     yield DataTable(id="metrics-table")
@@ -220,6 +223,10 @@ class UserInterface(App[None]):
     def on_mount(self) -> None:
         """Initialise data when the application is created."""
         self.initialise_test_plan_tree()
+        self.query_one("#sbatch-contents", TextArea).register_language(
+            get_language("bash"), BASH_HIGHLIGHTS
+        )
+        self.query_one("#sbatch-contents", TextArea).language = "bash"
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """When a button is pressed."""
@@ -397,7 +404,7 @@ class UserInterface(App[None]):
     def action_reload_test_plan(self) -> None:
         """Reload the test plan for the user interface."""
         self.test_plan = TestPlan(self.test_plan.yaml_path)
-        self.on_mount()
+        self.initialise_test_plan_tree()
         self.update_all_tabs()
 
     def action_change_plot(self, offset: int) -> None:
