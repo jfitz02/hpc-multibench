@@ -1,0 +1,468 @@
+run_configurations:
+  "cpp-reference":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../0_cpp_versions/0_ref"
+    build_commands:
+      - "make no_yaml"
+      - "make -j 8"
+    run_command: "./test_HPCCG"
+
+  "rust-reference":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem": 60000 # Rust seems to use more memory, this heavily bottlenecks if too small
+    module_loads: []
+    environment_variables: {}
+    directory: "../5_iterators"
+    build_commands:
+      - "cargo build --release"
+    run_command: "./target/release/hpccg-rs"
+
+  "cpp-openmp":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 32
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../0_cpp_versions/1_openmp"
+    build_commands:
+      - "make no_yaml"
+      - "make -j 8"
+    run_command: "./test_HPCCG"
+
+  "rust-rayon":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 32
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../6_parallel"
+    build_commands:
+      - "cargo build --release"
+    run_command: "./target/release/hpccg-rs"
+
+  "cpp-mpi":
+    sbatch_config:
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../0_cpp_versions/2_mpi"
+    build_commands:
+      - "make no_yaml"
+      - "make -j 8"
+    run_command: "mpirun ./test_HPCCG"
+
+  "rust-mpi":
+    sbatch_config:
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../7_mpi"
+    build_commands:
+      - "cargo build --release"
+    run_command: "mpirun ./target/release/hpccg-rs"
+
+  "cpp-hybrid":
+    sbatch_config:
+      "cpus-per-task": 2
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../0_cpp_versions/3_hybrid"
+    build_commands:
+      - "make no_yaml"
+      - "make -j 8"
+    run_command: "mpirun ./test_HPCCG"
+
+  "rust-hybrid":
+    sbatch_config:
+      "cpus-per-task": 2
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables: {}
+    directory: "../8_hybrid"
+    build_commands:
+      - "cargo build --release"
+    run_command: "mpirun ./target/release/hpccg-rs"
+
+benches:
+  "serial":
+    enabled: False
+    run_configurations:
+      - "cpp-reference"
+      - "rust-reference"
+    reruns:
+      number: 5
+      highest_discard: 2
+      lowest_discard: 0
+      unaggregatable_metrics:
+        - "Mesh x size"
+    matrix:
+      args:
+        - "100 100 100"
+        - "150 150 150"
+        - "200 200 200"
+        - "250 250 250"
+        - "300 300 300"
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+      line_plots:
+        - title: "Reference Implementation Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+
+  "parallel":
+    enabled: False
+    run_configurations:
+      - "cpp-openmp"
+      - "rust-rayon"
+    reruns:
+      number: 5
+      highest_discard: 2
+      lowest_discard: 0
+      unaggregatable_metrics:
+        - "Mesh x size"
+        - "Num threads"
+    matrix:
+      args:
+        - "100 100 100"
+        - "200 200 200"
+        - "300 300 300"
+        - "400 400 400"
+      environment_variables:
+        - { "OMP_NUM_THREADS": 8, "RAYON_NUM_THREADS": 8 }
+        - { "OMP_NUM_THREADS": 16, "RAYON_NUM_THREADS": 16 }
+        - { "OMP_NUM_THREADS": 24, "RAYON_NUM_THREADS": 24 }
+        - { "OMP_NUM_THREADS": 32, "RAYON_NUM_THREADS": 32 }
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Num threads": "=== RUN INSTANTIATION ===\n\\{.*environment_variables: \\{.*OMP_NUM_THREADS: (\\d+),.*\\}"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+      line_plots:
+        - title: "Parallel Implementation Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Num threads"
+
+  "mpi-config-sweep":
+    enabled: False
+    run_configurations:
+      - "cpp-mpi"
+      - "rust-mpi"
+    reruns:
+      number: 2
+      unaggregatable_metrics:
+        - "Mesh x size"
+        - "Nodes"
+        - "Tasks per Node"
+    matrix:
+      args:
+        - "100 100 100"
+        - "150 150 150"
+        - "200 200 200"
+      sbatch_config:
+        - { "nodes": 1, "ntasks-per-node": 1 }
+        - { "nodes": 1, "ntasks-per-node": 2 }
+        - { "nodes": 1, "ntasks-per-node": 4 }
+        - { "nodes": 1, "ntasks-per-node": 8 }
+        - { "nodes": 2, "ntasks-per-node": 1 }
+        - { "nodes": 2, "ntasks-per-node": 2 }
+        - { "nodes": 2, "ntasks-per-node": 4 }
+        - { "nodes": 4, "ntasks-per-node": 1 }
+        - { "nodes": 4, "ntasks-per-node": 2 }
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+        "Nodes": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*nodes: (\\d+).*\\}"
+        "Tasks per Node": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks-per-node: (\\d+).*\\}"
+      line_plots:
+        - title: "MPI Configuration Sweep"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Nodes"
+            - "Tasks per Node"
+      bar_charts:
+        - title: "MPI Configuration Sweep"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Tasks per Node"
+          fix_metrics:
+            "Nodes": 1
+            "Mesh x size": "200"
+        - title: "MPI Configuration Sweep"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Tasks per Node"
+          fix_metrics:
+            "Nodes": 2
+            "Mesh x size": "200"
+        - title: "MPI Configuration Sweep"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Tasks per Node"
+          fix_metrics:
+            "Nodes": 4
+            "Mesh x size": "200"
+        - title: "MPI Configuration Sweep"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Nodes"
+          fix_metrics:
+            "Tasks per Node": 2
+            "Mesh x size": "200"
+
+  "hybrid-single-node-config-sweep":
+    enabled: False
+    run_configurations:
+      - "cpp-hybrid"
+      - "rust-hybrid"
+    reruns:
+      number: 2
+      unaggregatable_metrics:
+        - "Mesh x size"
+        - "Nodes"
+        - "Tasks per Node"
+        - "Threads"
+    matrix:
+      args:
+        - "100 100 100"
+        - "150 150 150"
+        - "200 200 200"
+      [sbatch_config, environment_variables]:
+        - [
+            { "nodes": 1, "ntasks-per-node": 1, "cpus-per-task": 40 },
+            { "OMP_NUM_THREADS": 40, "RAYON_NUM_THREADS": 40 },
+          ]
+        - [
+            { "nodes": 1, "ntasks-per-node": 2, "cpus-per-task": 20 },
+            { "OMP_NUM_THREADS": 20, "RAYON_NUM_THREADS": 20 },
+          ]
+        - [
+            { "nodes": 1, "ntasks-per-node": 4, "cpus-per-task": 10 },
+            { "OMP_NUM_THREADS": 10, "RAYON_NUM_THREADS": 10 },
+          ]
+        - [
+            { "nodes": 1, "ntasks-per-node": 10, "cpus-per-task": 4 },
+            { "OMP_NUM_THREADS": 4, "RAYON_NUM_THREADS": 4 },
+          ]
+        - [
+            { "nodes": 1, "ntasks-per-node": 20, "cpus-per-task": 2 },
+            { "OMP_NUM_THREADS": 2, "RAYON_NUM_THREADS": 2 },
+          ]
+        - [
+            { "nodes": 1, "ntasks-per-node": 40, "cpus-per-task": 1 },
+            { "OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1 },
+          ]
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total flops": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total mflops": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+        "Nodes": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*nodes: (\\d+).*\\}"
+        "Tasks per Node": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks-per-node: (\\d+).*\\}"
+        "Threads": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*cpus-per-task: (\\d+).*\\}"
+      line_plots:
+        - title: "MPI & OpenMP Single Node Configuration Sweep"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Tasks per Node"
+            - "Threads"
+      bar_charts:
+        - title: "MPI & OpenMP Single Node Configuration Sweep"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Tasks per Node"
+            - "Threads"
+          fix_metrics:
+            "Nodes": 1
+            "Mesh x size": "100"
+
+  "mpi-best-config":
+    enabled: False
+    run_configurations:
+      - "cpp-mpi"
+      - "rust-mpi"
+    reruns:
+      number: 5
+      highest_discard: 2
+      lowest_discard: 0
+      unaggregatable_metrics:
+        - "Mesh x size"
+        - "Nodes"
+        - "Tasks per Node"
+    matrix:
+      args:
+        - "25 25 25"
+        - "50 50 50"
+        - "100 100 100"
+        - "200 200 200"
+        - "300 300 300"
+        - "400 400 400"
+      sbatch_config:
+        - { "nodes": 4, "ntasks-per-node": 2 }
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Nodes": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*nodes: (\\d+).*\\}"
+        "Tasks per Node": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks-per-node: (\\d+).*\\}"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+      line_plots:
+        - title: "MPI Implementation Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Nodes"
+            - "Tasks per Node"
+
+  "hybrid-best-config":
+    enabled: False
+    run_configurations:
+      - "cpp-hybrid"
+      - "rust-hybrid"
+    reruns:
+      number: 5
+      highest_discard: 2
+      lowest_discard: 0
+      unaggregatable_metrics:
+        - "Mesh x size"
+        - "Nodes"
+        - "Tasks per Node"
+        - "Threads"
+    matrix:
+      args:
+        - "100 100 100"
+        - "200 200 200"
+        - "300 300 300"
+        - "400 400 400"
+      [sbatch_config, environment_variables]:
+        - [
+            { "nodes": 2, "ntasks-per-node": 2, "cpus-per-task": 16 },
+            { "OMP_NUM_THREADS": 16, "RAYON_NUM_THREADS": 16 },
+          ]
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Nodes": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*nodes: (\\d+).*\\}"
+        "Tasks per Node": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks-per-node: (\\d+).*\\}"
+        "Threads": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*cpus-per-task: (\\d+).*\\}"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+      line_plots:
+        - title: "MPI & OpenMP Implementation Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Nodes"
+            - "Tasks per Node"
+            - "Threads"
+
+  # "strong-scaling-multi-nodal":
+  #   enabled: False
+  #   run_configurations:
+  #     - "cpp-hybrid"
+  #     - "rust-hybrid"
+  #   reruns:
+  #     number: 5
+  #     highest_discard: 1
+  #     lowest_discard: 1
+  #     unaggregatable_metrics:
+  #       - "Mesh z size"
+  #       - "Total FLOPs"
+  #       - "MPI Ranks"
+  #       - "MPI Nodes"
+  #   matrix:
+  #     [args, sbatch_config]:
+  #       - ["64 64 1024", { "ntasks": 1 }]
+  #       - ["64 64 512", { "ntasks": 2 }]
+  #       - ["64 64 256", { "ntasks": 4 }]
+  #       - ["64 64 128", { "ntasks": 8 }]
+  #       - ["64 64 64", { "ntasks": 16 }]
+  #       - ["64 64 32", { "ntasks": 32 }]
+  #       - ["64 64 16", { "ntasks": 64 }]
+  #   analysis:
+  #     metrics:
+  #       "Mesh z size": "nz: (\\d+)"
+  #       "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+  #       "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+  #       "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+  #       "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+  #       "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
+  #       "MPI Nodes": "=== SLURM CONFIG ===[\\s\\S]*\ \ \ NumNodes=(\\d*)\ NumCPUs"
+  #     line_plots:
+  #       - title: "Multi-Nodal Strong Scaling Plot"
+  #         x: "MPI Ranks"
+  #         y: "Wall time (s)"
+
+  # "weak-scaling-multi-nodal":
+  #   enabled: False
+  #   run_configurations:
+  #     - "cpp-hybrid"
+  #     - "rust-hybrid"
+  #   reruns:
+  #     number: 5
+  #     highest_discard: 1
+  #     lowest_discard: 1
+  #     unaggregatable_metrics:
+  #       - "Mesh z size"
+  #       - "Total FLOPs"
+  #       - "MPI Ranks"
+  #       - "MPI Nodes"
+  #   matrix:
+  #     args:
+  #       - "64 64 64"
+  #     sbatch_config:
+  #       - { "ntasks": 1 }
+  #       - { "ntasks": 2 }
+  #       - { "ntasks": 4 }
+  #       - { "ntasks": 8 }
+  #       - { "ntasks": 16 }
+  #       - { "ntasks": 32 }
+  #       - { "ntasks": 64 }
+  #   analysis:
+  #     metrics:
+  #       "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+  #       "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+  #       "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+  #       "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+  #       "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
+  #       "MPI Nodes": "=== SLURM CONFIG ===[\\s\\S]*\ \ \ NumNodes=(\\d*)\ NumCPUs"
+  #     line_plots:
+  #       - title: "Multi-Nodal Weak Scaling Plot"
+  #         x: "MPI Ranks"
+  #         y: "Wall time (s)"
