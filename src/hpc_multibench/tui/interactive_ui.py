@@ -66,17 +66,29 @@ class TestPlanTree(Tree[TestPlanTreeType]):
         """Populate the tree with data from the test plan."""
         self.clear()
         for bench in self._app.test_plan.benches:
-            bench_node = self.root.add(bench.name, data=bench)
+            bench_node = self.root.add(
+                (
+                    bench.name
+                    if bench.bench_model.enabled
+                    else f"[dim]{bench.name}[/dim]"
+                ),
+                data=bench,
+            )
             for (
                 run_configuration_name,
                 run_configuration,
             ) in bench.run_configuration_models.items():
                 bench_node.add(
-                    run_configuration_name,
+                    (
+                        run_configuration_name
+                        if bench.bench_model.enabled else
+                        f"[dim]{run_configuration_name}[/dim]"
+                    ),
                     allow_expand=False,
                     data=run_configuration,
                 )
-            bench_node.expand()
+            if bench.bench_model.enabled:
+                bench_node.expand()
         self.root.expand()
 
     def action_select_cursor(self) -> None:
@@ -266,7 +278,7 @@ class UserInterface(App[None]):
             assert node.parent is not None
             self.current_test_bench = cast(TestBench, node.parent.data)
             self.current_run_configuration = node.data
-            self.current_run_configuration_name = str(node.label)
+            self.current_run_configuration_name = str(node.label).strip("[dim]").strip("[/dim]")
 
         self.current_plot_index = 0
         self.update_all_tabs()
