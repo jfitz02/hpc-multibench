@@ -1,0 +1,86 @@
+run_configurations:
+  "cpp-hybrid":
+    sbatch_config:
+      "nodes": 1
+      "cpus-per-task": 2
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables:
+      "OMP_NUM_THREADS": 2
+    directory: "../0_cpp_versions/3_hybrid"
+    build_commands:
+      - "make no_yaml"
+      - "make -j 8"
+    run_command: "mpirun ./test_HPCCG"
+
+  "rust-hybrid":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 2
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables:
+      "RAYON_NUM_THREADS": 2
+    directory: "../8_hybrid"
+    build_commands:
+      - "cargo build --release"
+    run_command: "mpirun ./target/release/hpccg-rs"
+
+benches:
+  "strong-scaling":
+    run_configurations:
+      - "cpp-hybrid"
+      - "rust-hybrid"
+    reruns:
+      number: 2
+      highest_discard: 0
+      lowest_discard: 0
+    matrix:
+      [args, sbatch_config]:
+        - ["64 64 1024", { "ntasks": 1 }]
+        - ["64 64 512", { "ntasks": 2 }]
+        - ["64 64 256", { "ntasks": 4 }]
+        - ["64 64 128", { "ntasks": 8 }]
+        - ["64 64 64", { "ntasks": 16 }]
+        - ["64 64 32", { "ntasks": 32 }]
+        - ["64 64 16", {"ntasks": 64}]
+    analysis:
+      metrics:
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+        "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
+      line_plots:
+        - title: "Strong Scaling Plot"
+          x: "MPI Ranks"
+          y: "Wall time (s)"
+
+  "weak-scaling":
+    run_configurations:
+      - "cpp-hybrid"
+      - "rust-hybrid"
+    reruns:
+      number: 2
+      highest_discard: 0
+      lowest_discard: 0
+    matrix:
+      args:
+        - "64 64 64"
+      sbatch_config:
+        - { "ntasks": 1 }
+        - { "ntasks": 2 }
+        - { "ntasks": 4 }
+        - { "ntasks": 8 }
+        - { "ntasks": 16 }
+        - { "ntasks": 32 }
+          #- {"ntasks": 64}
+    analysis:
+      metrics:
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+        "MPI Ranks": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
+      line_plots:
+        - title: "Weak Scaling Plot"
+          x: "MPI Ranks"
+          y: "Wall time (s)"
