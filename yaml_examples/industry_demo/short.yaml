@@ -38,6 +38,7 @@ benches:
       - "cpp-reference"
       - "cpp-openmp"
     reruns:
+      number: 3
       unaggregatable_metrics:
         - "Mesh x size"
         - "Mesh y size"
