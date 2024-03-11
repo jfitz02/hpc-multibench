@@ -148,7 +148,7 @@ run_configurations:
 
 benches:
   "serial":
-    # enabled: False
+    enabled: False
     run_configurations:
       - "cpp-reference"
       - "rust-reference"
@@ -193,9 +193,11 @@ benches:
         - "300 300 300"
         - "400 400 400"
       environment_variables:
+        - { "OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1 }
+        - { "OMP_NUM_THREADS": 2, "RAYON_NUM_THREADS": 2 }
+        - { "OMP_NUM_THREADS": 4, "RAYON_NUM_THREADS": 4 }
         - { "OMP_NUM_THREADS": 8, "RAYON_NUM_THREADS": 8 }
         - { "OMP_NUM_THREADS": 16, "RAYON_NUM_THREADS": 16 }
-        - { "OMP_NUM_THREADS": 24, "RAYON_NUM_THREADS": 24 }
         - { "OMP_NUM_THREADS": 32, "RAYON_NUM_THREADS": 32 }
     analysis:
       metrics:
@@ -208,9 +210,23 @@ benches:
           y: "Wall time (s)"
           split_metrics:
             - "Num threads"
+        - title: "Parallel Implementation Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Num threads"
+          fix_metrics:
+            "Num threads": 32
+      bar_charts:
+        - title: "MPI Configuration Sweep"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Num threads"
+          fix_metrics:
+            "Mesh x size": "400"
 
   "mpi-config-sweep":
-    # enabled: False
+    enabled: False
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"
@@ -248,6 +264,13 @@ benches:
           split_metrics:
             - "Nodes"
             - "Tasks per Node"
+        - title: "MPI Configuration Sweep"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Nodes"
+          fix_metrics:
+            "Tasks per Node": 2
       bar_charts:
         - title: "MPI Configuration Sweep"
           y: "Wall time (s)"
@@ -350,7 +373,7 @@ benches:
             "Mesh x size": "100"
 
   "mpi-best-config":
-    # enabled: False
+    enabled: False
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"

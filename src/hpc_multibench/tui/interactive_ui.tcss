@@ -17,6 +17,9 @@
     content-align: center middle;
 }
 
+#run-information {
+    max-height: 40vh;
+}
 #sbatch-contents {
     margin: 1 0 0 0;
 }

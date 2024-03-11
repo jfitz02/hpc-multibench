@@ -45,8 +45,9 @@ class RunConfigurationModel(BaseModel):
                 # TODO: Error checking on keys
                 if key == "sbatch_config":
                     run.sbatch_config.update(value)  # type: ignore
-                elif key == "environment_variables":
-                    run.environment_variables.update(value)  # type: ignore
+                # TODO: Further root cause why this was causing duplicate runs
+                # elif key == "environment_variables":
+                #     run.environment_variables.update(value)  # type: ignore
                 else:
                     setattr(run, key, value)
 

@@ -380,6 +380,7 @@ class UserInterface(App[None]):
         assert self.current_test_bench is not None
         aggregated_metrics = self.get_aggregated_metrics()
         if aggregated_metrics is None:
+            metrics_plot.clear_figure()
             metrics_plot.title("No run data to show!")
             return
 
