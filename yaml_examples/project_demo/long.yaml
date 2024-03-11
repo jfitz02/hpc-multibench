@@ -115,12 +115,12 @@ run_configurations:
     sbatch_config:
       "nodes": 1
       "ntasks-per-node": 1
-      "cpus-per-task": 16
+      "cpus-per-task": 32
       "exclusive": "mcs"
       "mem": 60000
     module_loads: []
     environment_variables:
-      "OMP_NUM_THREADS": 16
+      "OMP_NUM_THREADS": 32
       "OMP_PROC_BIND": "spread"
       "OMP_PLACES": "threads"
     directory: "../0_cpp_versions/5_kokkos"
@@ -128,6 +128,23 @@ run_configurations:
       - "make no_yaml"
       - "make -j 8"
     run_command: "./test_HPCCG"
+
+  "cpp-kokkos-mpi":
+    sbatch_config:
+      "cpus-per-task": 2
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables:
+      "OMP_NUM_THREADS": 2
+      "OMP_PROC_BIND": "spread"
+      "OMP_PLACES": "threads"
+    directory: "../0_cpp_versions/6_kokkos_mpi"
+    build_commands:
+      - "make no_yaml"
+      - "make -j 8"
+    run_command: "mpirun ./test_HPCCG"
 
 benches:
   "serial":
@@ -410,7 +427,7 @@ benches:
             - "Tasks per Node"
             - "Threads"
 
-  "cpp-kokkos-rust":
+  "cpp-kokkos-rust-parallel":
     # enabled: False
     run_configurations:
       - "cpp-openmp"
@@ -440,6 +457,45 @@ benches:
           y: "Wall time (s)"
       bar_charts:
         - title: "C++, Kokkos, and Rust Version Comparison"
+          y: "Wall time (s)"
+          fix_metrics:
+            "Mesh x size": 400
+
+  "cpp-kokkos-rust-hybrid":
+    # enabled: False
+    run_configurations:
+      - "cpp-hybrid"
+      - "cpp-kokkos-mpi"
+      - "rust-hybrid"
+    reruns:
+      number: 5
+      highest_discard: 2
+      lowest_discard: 0
+      unaggregatable_metrics:
+        - "Mesh x size"
+    matrix:
+      args:
+        - "25 25 25"
+        - "50 50 50"
+        - "100 100 100"
+        - "200 200 200"
+        - "300 300 300"
+        - "400 400 400"
+      [sbatch_config, environment_variables]:
+        - [
+            { "nodes": 2, "ntasks-per-node": 2, "cpus-per-task": 16 },
+            { "OMP_NUM_THREADS": 16, "RAYON_NUM_THREADS": 16 },
+          ]
+    analysis:
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
+      line_plots:
+        - title: "C++, Kokkos, and Rust with MPI Version Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+      bar_charts:
+        - title: "C++, Kokkos, and Rust with MPI Version Comparison"
           y: "Wall time (s)"
           fix_metrics:
             "Mesh x size": 400
