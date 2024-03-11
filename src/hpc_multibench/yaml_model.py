@@ -43,7 +43,12 @@ class RunConfigurationModel(BaseModel):
         if instantiation is not None:
             for key, value in instantiation.items():
                 # TODO: Error checking on keys
-                setattr(run, key, value)
+                if key == "sbatch_config":
+                    run.sbatch_config.update(value)  # type: ignore
+                elif key == "environment_variables":
+                    run.environment_variables.update(value)  # type: ignore
+                else:
+                    setattr(run, key, value)
 
         return run
 
