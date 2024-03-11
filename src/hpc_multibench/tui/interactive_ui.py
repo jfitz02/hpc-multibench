@@ -222,9 +222,14 @@ class UserInterface(App[None]):
         self.initialise_test_plan_tree()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        """."""
+        """When a button is pressed."""
         if event.button.id == "run-button":
             self.push_screen(RunDialogScreen())
+
+    def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
+        """When a data table cell is selected."""
+        if event.data_table.id == "run-information":
+            self.update_sbatch_contents()
 
     def remove_start_pane(self) -> None:
         """Remove the start pane from the screen if it is uninitialised."""
@@ -267,31 +272,43 @@ class UserInterface(App[None]):
 
     def update_run_tab(self) -> None:
         """Update the run tab of the user interface."""
+        self.update_run_information()
+        self.update_sbatch_contents()
+
+    def update_run_information(self) -> None:
+        """Update the instantiations table in the run tab."""
         run_information = self.query_one("#run-information", DataTable)
-        sbatch_contents = self.query_one("#sbatch-contents", TextArea)
-        run_information.clear(columns=True)
 
-        if self.show_mode == ShowMode.TestBench:
-            assert self.current_test_bench is not None
-            sbatch_contents.visible = False
-            sbatch_contents.text = ""
-        else:
-            assert self.current_test_bench is not None
-            assert self.current_run_configuration is not None
-            assert self.current_run_configuration_name is not None
-            sbatch_contents.visible = True
-            # TODO: Realise with selected column in data table
-            sbatch_contents.text = self.current_run_configuration.realise(
-                self.current_run_configuration_name,
-                self.current_test_bench.output_directory,
-                {},
-            ).sbatch_contents
-
+        assert self.current_test_bench is not None
         instantiations = self.current_test_bench.instantiations
+
+        run_information.clear(columns=True)
         if len(instantiations) > 0:
             run_information.add_columns(*instantiations[0].keys())
         for instantiation in instantiations:
             run_information.add_row(*instantiation.values())
+
+    def update_sbatch_contents(self) -> None:
+        """Update the sbatch contents in the run tab."""
+        run_information = self.query_one("#run-information", DataTable)
+        sbatch_contents = self.query_one("#sbatch-contents", TextArea)
+
+        assert self.current_test_bench is not None
+        instantiations = self.current_test_bench.instantiations
+        if self.show_mode == ShowMode.TestBench:
+            sbatch_contents.visible = False
+            sbatch_contents.text = ""
+        else:
+            assert self.current_run_configuration is not None
+            assert self.current_run_configuration_name is not None
+            sbatch_contents.visible = True
+            selected_instantiation = instantiations[run_information.cursor_row]
+
+            sbatch_contents.text = self.current_run_configuration.realise(
+                self.current_run_configuration_name,
+                self.current_test_bench.output_directory,
+                selected_instantiation,
+            ).sbatch_contents
 
     def get_aggregated_metrics(
         self,
