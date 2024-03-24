@@ -33,67 +33,49 @@ repos:
       - id: debug-statements
       - id: fix-encoding-pragma
 
+  # Run the ruff linter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.4
+    hooks:
+      - id: ruff
+        args: ["--fix", "--show-fixes", "--exit-non-zero-on-fix"]
+
+  # Run the black auto-formatter (TODO: Replace with ruff format when more mature)
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 24.3.0
+    hooks:
+      - id: black
+
+  # Run the isort auto-formatter (TODO: Replace with ruff format when more mature)
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: isort (python)
+
+  # Run the mypy type checker
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.9.0
+    hooks:
+      - id: mypy
+        args: ["--scripts-are-modules"]
+        # verbose: true
+
+  # Run the vulture dead code detection tool
+  - repo: https://github.com/jendrikseipp/vulture
+    rev: v2.11
+    hooks:
+      - id: vulture
+
+  # Run the bandit security
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.8
+    hooks:
+    - id: bandit
+      args: ["--configfile", "pyproject.toml"]
+
   # Validates GitHub workflow files
   - repo: https://github.com/python-jsonschema/check-jsonschema
     rev: 0.22.0
     hooks:
       - id: check-github-workflows
-
-  ### Run local tooling
-  # These tools are intentionally run locally, so everything runs in the same
-  # virtual environment, with a locked set of dependencies
-  - repo: local
-    hooks:
-      - id: ruff
-        name: ruff
-        description: lints python code.
-        entry: ruff check --force-exclude
-        language: python
-        require_serial: true
-        types_or: [python, pyi]
-        args: ["--fix", "--show-fixes", "--exit-non-zero-on-fix"]
-
-      - id: black
-        name: black
-        description: formats python code.
-        entry: black
-        language: python
-        require_serial: true
-        types_or: [python, pyi]
-
-      - id: isort
-        name: isort
-        description: sorts python imports.
-        entry: isort
-        require_serial: true
-        language: python
-        types_or: [python, pyi]
-        args: ["--filter-files"]
-
-      - id: mypy
-        name: mypy
-        description: statically analyses python type annotations.
-        entry: mypy
-        require_serial: true
-        language: python
-        types_or: [python, pyi]
-        args: ["--scripts-are-modules"]
-        # verbose: true
-
-      - id: vulture
-        name: vulture
-        description: finds unused python code.
-        entry: vulture
-        language: python
-        types: [python]
-        pass_filenames: false
-        require_serial: true
-
-      - id: bandit
-        name: bandit
-        description: finds common python security issues.
-        entry: bandit
-        language: python
-        types: [python]
-        require_serial: true
-        args: ["--configfile", "pyproject.toml"]
