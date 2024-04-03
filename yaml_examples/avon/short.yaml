@@ -1,0 +1,84 @@
+run_configurations:
+  "cpp-openmp":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 16
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables:
+      "OMP_NUM_THREADS": 16
+    directory: "../0_cpp_versions/1_openmp"
+    build_commands:
+      - "make no_yaml"
+      - "make -j 8"
+    run_command: "./test_HPCCG"
+
+  "rust-rayon":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 16
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables:
+      "RAYON_NUM_THREADS": 16
+    directory: "../6_parallel"
+    build_commands:
+      - "cargo build --release"
+    run_command: "./target/release/hpccg-rs"
+
+benches:
+  "short-example":
+    run_configurations:
+      - "cpp-openmp"
+      - "rust-rayon"
+    reruns:
+      number: 3
+      unaggregatable_metrics:
+        - "Mesh x size"
+        - "Mesh y size"
+        - "Mesh z size"
+        - "Total FLOPs"
+        - "ddot FLOPs"
+        - "waxpby FLOPs"
+        - "sparsemv FLOPs"
+    matrix:
+      args:
+        - "50 50 50"
+        - "100 100 100"
+        - "150 150 150"
+        - "200 200 200"
+    analysis:
+      line_plots:
+        - title: "C++/Rust Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+      bar_charts:
+        - title: "C++/Rust Comparison"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Mesh x size"
+        - title: "C++/Rust Comparison @ 200x200x200"
+          y: "Wall time (s)"
+          fix_metrics:
+            "Mesh x size": 200
+      metrics:
+        "Mesh x size": "nx: (\\d+)"
+        "Mesh y size": "ny: (\\d+)"
+        "Mesh z size": "nz: (\\d+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "ddot time (s)": "Time Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "waxpby time (s)": "Time Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "sparsemv time (s)": "Time Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
+        "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "ddot FLOPs": "FLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "waxpby FLOPs": "FLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "sparsemv FLOPs": "FLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
+        "ddot MFLOPs/s": "MFLOPS Summary:[\\s\\S]*DDOT\\s*: ([\\d\\.]+)"
+        "waxpby MFLOPs/s": "MFLOPS Summary:[\\s\\S]*WAXPBY\\s*: ([\\d\\.]+)"
+        "sparsemv MFLOPs/s": "MFLOPS Summary:[\\s\\S]*SPARSEMV\\s*: ([\\d\\.]+)"
+        "Wall time (s)": "real\\s([\\d\\.]+)\nuser"

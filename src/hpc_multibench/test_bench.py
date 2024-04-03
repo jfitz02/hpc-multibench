@@ -236,6 +236,7 @@ class TestBench:
                     if job_id is None:
                         print(
                             f"Run configuration '{run_configuration.name}' "
+                            f"with instantiation '{run_configuration.instantiation}' "
                             "failed to queue!"
                         )
                         continue
