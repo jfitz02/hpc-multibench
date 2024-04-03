@@ -78,7 +78,7 @@ class RooflinePlotModel(BaseModel):
 
     title: str
     gflops_per_sec: str
-    flops_per_byte: str
+    mbytes_per_sec: str
     ert_json: Path
 
 
