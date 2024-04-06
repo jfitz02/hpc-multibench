@@ -61,8 +61,8 @@ run_configurations:
 
 
 benches:
-  enabled: False
   "strong-scaling-threaded":
+    enabled: False
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
