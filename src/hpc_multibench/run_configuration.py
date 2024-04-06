@@ -5,7 +5,7 @@
 from getpass import getuser
 from pathlib import Path
 from re import search as re_search
-from subprocess import PIPE  # nosec
+from subprocess import PIPE, CalledProcessError  # nosec
 from subprocess import run as subprocess_run  # nosec
 from tempfile import NamedTemporaryFile
 from typing import Any
@@ -138,11 +138,14 @@ class RunConfiguration:
             if dependencies is not None:
                 dependencies_string = ",".join(str(job_id) for job_id in dependencies)
                 command_list.insert(1, f"--dependency=afterok:{dependencies_string}")
-            result = subprocess_run(  # nosec
-                command_list,  # type: ignore # noqa: S603, PGH003
-                check=True,
-                stdout=PIPE,
-            )
+            try:
+                result = subprocess_run(  # nosec
+                    command_list,  # type: ignore # noqa: S603, PGH003
+                    check=True,
+                    stdout=PIPE,
+                )
+            except CalledProcessError as err:
+                return None
             job_id_search = re_search(SLURM_JOB_ID_REGEX, result.stdout.decode("utf-8"))
             if job_id_search is None:
                 return None
