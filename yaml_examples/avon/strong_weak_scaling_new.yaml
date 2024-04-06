@@ -61,6 +61,7 @@ run_configurations:
 
 
 benches:
+  enabled: False
   "strong-scaling-threaded":
     run_configurations:
       - "cpp-openmp"
@@ -95,6 +96,7 @@ benches:
           y: "Wall time (s)"
 
   "weak-scaling-threaded":
+    enabled: False
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
@@ -152,8 +154,6 @@ benches:
         - ["64 64 256", { "ntasks": 4 }]
         - ["64 64 128", { "ntasks": 8 }]
         - ["64 64 64", { "ntasks": 16 }]
-        - ["64 64 32", { "ntasks": 32 }]
-        - ["64 64 16", { "ntasks": 64 }]
     analysis:
       metrics:
         "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
@@ -189,8 +189,6 @@ benches:
         - { "ntasks": 4 }
         - { "ntasks": 8 }
         - { "ntasks": 16 }
-        - { "ntasks": 32 }
-        - { "ntasks": 64 }
     analysis:
       metrics:
         "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
