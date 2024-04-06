@@ -96,8 +96,8 @@ benches:
 
   "weak-scaling-threaded":
     run_configurations:
-      - "cpp-hybrid"
-      - "rust-hybrid"
+      - "cpp-openmp"
+      - "rust-rayon"
     reruns:
       number: 5
       highest_discard: 1
