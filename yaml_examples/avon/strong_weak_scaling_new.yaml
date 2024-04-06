@@ -169,8 +169,8 @@ benches:
 
   "weak-scaling-message-passing":
     run_configurations:
-      - "cpp-hybrid"
-      - "rust-hybrid"
+      - "cpp-mpi"
+      - "rust-mpi"
     reruns:
       number: 5
       highest_discard: 1
