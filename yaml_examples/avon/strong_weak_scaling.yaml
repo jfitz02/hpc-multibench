@@ -2,7 +2,7 @@ run_configurations:
   "cpp-hybrid":
     sbatch_config:
       "cpus-per-task": 2
-      # "exclusive": "mcs"
+      "exclusive": "mcs"
       # "mem": 40000
       "mem-per-cpu": 3700
     module_loads:
@@ -19,7 +19,7 @@ run_configurations:
   "rust-hybrid":
     sbatch_config:
       "cpus-per-task": 2
-      # "exclusive": "mcs"
+      "exclusive": "mcs"
       # "mem": 40000
       "mem-per-cpu": 3700
     module_loads:
@@ -35,13 +35,13 @@ run_configurations:
 
 benches:
   "strong-scaling-multi-nodal":
-    enabled: False # TODO: Move this to strong scaling to get both
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
     reruns:
-      number: 2
-      # highest_discard: 1
+      number: 5
+      highest_discard: 1
+      lowest_discard: 1
       unaggregatable_metrics:
         - "Mesh z size"
         - "Total FLOPs"
@@ -75,8 +75,9 @@ benches:
       - "cpp-hybrid"
       - "rust-hybrid"
     reruns:
-      number: 2
-      # highest_discard: 1
+      number: 5
+      highest_discard: 1
+      lowest_discard: 1
       unaggregatable_metrics:
         - "Mesh z size"
         - "Total FLOPs"
@@ -107,13 +108,14 @@ benches:
           y: "Wall time (s)"
 
   "strong-scaling-single-node":
-    enabled: False
+    #enabled: False
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
     reruns:
-      number: 2
+      number: 5
       highest_discard: 1
+      lowest_discard: 1
       unaggregatable_metrics:
         - "Mesh z size"
         - "Total FLOPs"
@@ -138,13 +140,14 @@ benches:
           y: "Wall time (s)"
 
   "weak-scaling-single-node":
-    enabled: False
+    #enabled: False
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
     reruns:
-      number: 2
+      number: 5
       highest_discard: 1
+      lowest_discard: 1
       unaggregatable_metrics:
         - "Mesh z size"
         - "Total FLOPs"
