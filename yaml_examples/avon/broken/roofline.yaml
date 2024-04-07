@@ -71,24 +71,57 @@ run_configurations:
     run_command: "likwid-perfctr -C 0-16 -g MEM ./target/release/hpccg-rs"
     # run_command: "./target/release/hpccg-rs"
 
+
+  "cpp-mpi":
+    sbatch_config:
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "GCC/11.3.0"
+      - "OpenMPI/4.1.4"
+    environment_variables: {}
+    directory: "../0_cpp_versions/2_mpi"
+    build_commands:
+      - "make no_yaml"
+      - "make -j 8"
+    run_command: "mpirun likwid-perfctr -C S0:1/ -g MEM ./test_HPCCG"
+
+  "rust-mpi":
+    sbatch_config:
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "GCC/11.3.0"
+      - "Clang/13.0.1"
+      - "OpenMPI/4.1.4"
+    environment_variables: {}
+    directory: "../7_mpi"
+    build_commands:
+      - "cargo build --release"
+    run_command: "mpirun likwid-perfctr -C S0:1/ -g MEM ./target/release/hpccg-rs"
+
 benches:
-  "roofline-plots":
+  "roofline-parallelism":
     run_configurations:
       - "cpp-reference"
       - "cpp-openmp"
+      - "cpp-mpi"
       - "rust-reference"
       - "rust-rayon"
-    # reruns:
-    #   number: 3
-    #   unaggregatable_metrics:
-    #     - "Mesh x size"
-    #     - "Total FLOPs"
+      - "rust-mpi"
+    reruns:
+      number: 5
+      highest_discard: 1
+      lowest_discard: 1
+      unaggregatable_metrics:
+        - "Mesh x size"
+        - "Total FLOPs"
     matrix:
       args:
         - "100 100 100"
     analysis:
       roofline_plots:
-        - title: "OpenMP Roofline Plot"
+        - title: "Parallelism Roofline Plot"
           gflops_per_sec: "Total MFLOPs/s"
           mbytes_per_sec: "Memory Bandwidth"
           ert_json: "./yaml_examples/roofline.json"
