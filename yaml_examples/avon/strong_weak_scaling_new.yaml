@@ -91,7 +91,7 @@ benches:
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
         "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*OMP_NUM_THREADS: (\\d+).*\\}"
       line_plots:
-        - title: "Single Node Strong Scaling Plot"
+        - title: "Multi-threaded Strong Scaling Plot"
           x: "Parallelisation degree"
           y: "Wall time (s)"
 
@@ -126,7 +126,7 @@ benches:
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
         "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*OMP_NUM_THREADS: (\\d+).*\\}"
       line_plots:
-        - title: "Single Node Weak Scaling Plot"
+        - title: "Multi-threaded Weak Scaling Plot"
           x: "Parallelisation degree"
           y: "Wall time (s)"
 
@@ -163,7 +163,7 @@ benches:
         "MPI Rank": "Parallelism:[\\s\\S]*Number of MPI ranks: (\\d*)"
         "MPI Nodes": "=== SLURM CONFIG ===[\\s\\S]*\ \ \ NumNodes=(\\d*)\ NumCPUs"
       line_plots:
-        - title: "Multi-Nodal Strong Scaling Plot"
+        - title: "Message Passing Strong Scaling Plot"
           x: "Parallelisation degree"
           y: "Wall time (s)"
 
@@ -199,6 +199,6 @@ benches:
         "MPI Rank": "Parallelism:[\\s\\S]*Number of MPI ranks: (\\d*)"
         "MPI Nodes": "=== SLURM CONFIG ===[\\s\\S]*\ \ \ NumNodes=(\\d*)\ NumCPUs"
       line_plots:
-        - title: "Multi-Nodal Weak Scaling Plot"
+        - title: "Message Passing Weak Scaling Plot"
           x: "Parallelisation degree"
           y: "Wall time (s)"
