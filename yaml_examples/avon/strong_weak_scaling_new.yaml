@@ -62,6 +62,7 @@ run_configurations:
 
 benches:
   "strong-scaling-threaded":
+    enabled: False
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
@@ -88,13 +89,14 @@ benches:
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
         "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e+]+)[\\s\\S]*\nMFLOPS Summary"
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*OMP_NUM_THREADS: (\\d+).*\\}"
+        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
       line_plots:
         - title: "Single Node Strong Scaling Plot"
           x: "Parallelisation degree"
           y: "Wall time (s)"
 
   "weak-scaling-threaded":
+    enabled: False
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
@@ -123,7 +125,7 @@ benches:
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
         "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e+]+)[\\s\\S]*\nMFLOPS Summary"
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*OMP_NUM_THREADS: (\\d+).*\\}"
+        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
       line_plots:
         - title: "Single Node Weak Scaling Plot"
           x: "Parallelisation degree"
@@ -133,7 +135,6 @@ benches:
 
 
   "strong-scaling-message-passing":
-    enabled: False
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"
@@ -159,7 +160,7 @@ benches:
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
         "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e+]+)[\\s\\S]*\nMFLOPS Summary"
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
+        "Parallelisation degree": "Parallelism:[\\s\\S]*Number of MPI ranks: (\\d*)"
         "MPI Nodes": "=== SLURM CONFIG ===[\\s\\S]*\ \ \ NumNodes=(\\d*)\ NumCPUs"
       line_plots:
         - title: "Multi-Nodal Strong Scaling Plot"
@@ -167,7 +168,6 @@ benches:
           y: "Wall time (s)"
 
   "weak-scaling-message-passing":
-    enabled: False
     run_configurations:
       - "cpp-mpi"
       - "rust-mpi"
@@ -195,7 +195,7 @@ benches:
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
         "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e+]+)[\\s\\S]*\nMFLOPS Summary"
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
+        "Parallelisation degree": "Parallelism:[\\s\\S]*Number of MPI ranks: (\\d*)"
         "MPI Nodes": "=== SLURM CONFIG ===[\\s\\S]*\ \ \ NumNodes=(\\d*)\ NumCPUs"
       line_plots:
         - title: "Multi-Nodal Weak Scaling Plot"
