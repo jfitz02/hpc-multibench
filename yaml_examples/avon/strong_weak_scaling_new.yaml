@@ -34,11 +34,11 @@ run_configurations:
 
   "cpp-mpi":
     sbatch_config:
-      "cpus-per-task": 8
       "exclusive": "mcs"
       "mem": 60000
     module_loads:
-      - "cs402-mpi"
+      - "GCC/11.3.0"
+      - "OpenMPI/4.1.4"
     environment_variables: {}
     directory: "../0_cpp_versions/2_mpi"
     build_commands:
@@ -48,11 +48,12 @@ run_configurations:
 
   "rust-mpi":
     sbatch_config:
-      "cpus-per-task": 8
       "exclusive": "mcs"
       "mem": 60000
     module_loads:
-      - "cs402-mpi"
+      - "GCC/11.3.0"
+      - "Clang/13.0.1"
+      - "OpenMPI/4.1.4"
     environment_variables: {}
     directory: "../7_mpi"
     build_commands:
@@ -62,7 +63,6 @@ run_configurations:
 
 benches:
   "strong-scaling-threaded":
-    enabled: False
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
@@ -89,14 +89,13 @@ benches:
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
         "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e+]+)[\\s\\S]*\nMFLOPS Summary"
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
+        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*OMP_NUM_THREADS: (\\d+).*\\}"
       line_plots:
         - title: "Single Node Strong Scaling Plot"
           x: "Parallelisation degree"
           y: "Wall time (s)"
 
   "weak-scaling-threaded":
-    enabled: False
     run_configurations:
       - "cpp-openmp"
       - "rust-rayon"
@@ -125,7 +124,7 @@ benches:
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
         "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e+]+)[\\s\\S]*\nMFLOPS Summary"
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
+        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*OMP_NUM_THREADS: (\\d+).*\\}"
       line_plots:
         - title: "Single Node Weak Scaling Plot"
           x: "Parallelisation degree"
@@ -149,18 +148,19 @@ benches:
         - "MPI Nodes"
     matrix:
       [args, sbatch_config]:
-        - ["64 64 1024", { "ntasks": 1 }]
-        - ["64 64 512", { "ntasks": 2 }]
-        - ["64 64 256", { "ntasks": 4 }]
-        - ["64 64 128", { "ntasks": 8 }]
-        - ["64 64 64", { "ntasks": 16 }]
+        - ["64 64 1024", { "ntasks": 1, "nodes": 1 }]
+        - ["64 64 512", { "ntasks": 2, "nodes": 1 }]
+        - ["64 64 256", { "ntasks": 4, "nodes": 1 }]
+        - ["64 64 128", { "ntasks": 8, "nodes": 2 }]
+        - ["64 64 64", { "ntasks": 16, "nodes": 2 }]
     analysis:
       metrics:
         "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
         "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e+]+)[\\s\\S]*\nMFLOPS Summary"
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "Parallelisation degree": "Parallelism:[\\s\\S]*Number of MPI ranks: (\\d*)"
+        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
+        "MPI Rank": "Parallelism:[\\s\\S]*Number of MPI ranks: (\\d*)"
         "MPI Nodes": "=== SLURM CONFIG ===[\\s\\S]*\ \ \ NumNodes=(\\d*)\ NumCPUs"
       line_plots:
         - title: "Multi-Nodal Strong Scaling Plot"
@@ -184,18 +184,19 @@ benches:
       args:
         - "64 64 64"
       sbatch_config:
-        - { "ntasks": 1 }
-        - { "ntasks": 2 }
-        - { "ntasks": 4 }
-        - { "ntasks": 8 }
-        - { "ntasks": 16 }
+        - { "ntasks": 1, "nodes": 1 }
+        - { "ntasks": 2, "nodes": 1 }
+        - { "ntasks": 4, "nodes": 1 }
+        - { "ntasks": 8, "nodes": 2 }
+        - { "ntasks": 16, "nodes": 2 }
     analysis:
       metrics:
         "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
         "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e+]+)[\\s\\S]*\nMFLOPS Summary"
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "Parallelisation degree": "Parallelism:[\\s\\S]*Number of MPI ranks: (\\d*)"
+        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*ntasks: (\\d+).*\\}"
+        "MPI Rank": "Parallelism:[\\s\\S]*Number of MPI ranks: (\\d*)"
         "MPI Nodes": "=== SLURM CONFIG ===[\\s\\S]*\ \ \ NumNodes=(\\d*)\ NumCPUs"
       line_plots:
         - title: "Multi-Nodal Weak Scaling Plot"
