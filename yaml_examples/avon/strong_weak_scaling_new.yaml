@@ -89,7 +89,7 @@ benches:
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
         "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e+]+)[\\s\\S]*\nMFLOPS Summary"
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*OMP_NUM_THREADS: (\\d+).*\\}"
+        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*environment_variables: \\{.*OMP_NUM_THREADS: (\\d+).*\\}"
       line_plots:
         - title: "Multi-threaded Strong Scaling Plot"
           x: "Parallelisation degree"
@@ -124,7 +124,7 @@ benches:
         "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)[\\s\\S]*\nFLOPS Summary"
         "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e+]+)[\\s\\S]*\nMFLOPS Summary"
         "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.]+)"
-        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*sbatch_config: \\{.*OMP_NUM_THREADS: (\\d+).*\\}"
+        "Parallelisation degree": "=== RUN INSTANTIATION ===\n\\{.*environment_variables: \\{.*OMP_NUM_THREADS: (\\d+).*\\}"
       line_plots:
         - title: "Multi-threaded Weak Scaling Plot"
           x: "Parallelisation degree"
