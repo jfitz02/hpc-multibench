@@ -82,11 +82,12 @@ class RooflinePlotModel(BaseModel):
     ert_json: Path
 
 
-# class ExportModel(BaseModel):
-#     """A Pydantic model for a exporting a set of metrics."""
+class ExportModel(BaseModel):
+    """A Pydantic model for a exporting a set of metrics."""
 
-#     metrics: list[str]
-#     filename: Path | None = None
+    export_path: Path | None
+    export_format: str = "csv"
+    # metrics: list[str] | None = None
 
 
 class AnalysisModel(BaseModel):
@@ -98,7 +99,7 @@ class AnalysisModel(BaseModel):
     line_plots: list[LinePlotModel] = []
     bar_charts: list[BarChartModel] = []
     roofline_plots: list[RooflinePlotModel] = []
-    # exports: list[BarChartModel] = []
+    data_exports: list[ExportModel] = []
 
 
 class RerunModel(BaseModel):

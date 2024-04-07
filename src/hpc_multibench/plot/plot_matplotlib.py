@@ -14,9 +14,6 @@ from hpc_multibench.run_configuration import RunConfiguration
 from hpc_multibench.uncertainties import UFloat
 from hpc_multibench.yaml_model import BarChartModel, LinePlotModel, RooflinePlotModel
 
-# from labellines import labelLines
-
-
 sns.set_theme()
 
 
@@ -78,6 +75,7 @@ def draw_roofline_plot(
         plt.plot(x, y, label=label)
     for label, (x, y) in roofline.compute_bound_ceilings.items():
         plt.plot(x, y, label=label)
+    # from labellines import labelLines
     # for ax in plt.gcf().axes:
     #     labelLines(ax.get_lines())
     for name, (x_point, y_point, x_err, y_err) in data.items():

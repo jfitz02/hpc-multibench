@@ -18,6 +18,7 @@ from typing import Any
 
 from typing_extensions import Self
 
+from hpc_multibench.plot.export_data import export_data
 from hpc_multibench.plot.plot_matplotlib import (
     draw_bar_chart,
     draw_line_plot,
@@ -82,7 +83,7 @@ class TestBench:
         # Validate that all configurations named in the test bench are defined
         # in the test plan
         for run_configuration_name in bench_model.run_configurations:
-            if run_configuration_name not in self.run_configuration_models.keys():
+            if run_configuration_name not in self.run_configuration_models:
                 raise RuntimeError(
                     f"'{run_configuration_name}' not in list of"
                     " defined run configurations!"
@@ -100,10 +101,7 @@ class TestBench:
             (
                 [[(key, value)] for value in values]
                 if isinstance(key, str)
-                else [
-                    [(k, v) for k, v in zip(key, setting, strict=True)]
-                    for setting in values
-                ]
+                else [list(zip(key, setting, strict=True)) for setting in values]
             )
             for key, values in self.bench_model.matrix.items()
         ]
@@ -424,3 +422,6 @@ class TestBench:
 
         for roofline_plot in self.bench_model.analysis.roofline_plots:
             draw_roofline_plot(roofline_plot, aggregated_metrics)
+
+        for export_schema in self.bench_model.analysis.data_exports:
+            export_data(export_schema, aggregated_metrics)
