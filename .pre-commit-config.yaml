@@ -59,6 +59,7 @@ repos:
     hooks:
       - id: mypy
         args: ["--scripts-are-modules"]
+        additional_dependencies: ["pydantic==2.6.4", "textual==0.51.0"]
         # verbose: true
 
   # Run the vulture dead code detection tool

@@ -41,6 +41,7 @@ def draw_line_plot(
     plt.xlabel(plot.x)
     plt.ylabel(plot.y)
     plt.title(plot.title)
+    plt.ylim(0)
     plt.show()
 
 

@@ -31,6 +31,7 @@ def draw_line_plot(
     this_plt.theme(PLOTEXT_THEME)
     this_plt.xlabel(plot.x)
     this_plt.ylabel(plot.y)
+    this_plt.ylim(0)
     this_plt.title(plot.title)
 
 
