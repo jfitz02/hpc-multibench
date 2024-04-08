@@ -113,13 +113,19 @@ run_configurations:
 
 benches:
   "serial":
+    # enabled: False
     run_configurations:
       - "cpp-serial"
       - "fortran-serial"
       - "rust-serial"
       - "rust-serial-optimised"
     reruns:
-      number: 10
+      number: 3
+      unaggregatable_metrics:
+        - "Scale factor"
+        - "Iterations"
+        - "Grid x size"
+        - "Problem size"
     matrix:
       args:
         - "1 5000"
@@ -134,7 +140,7 @@ benches:
       metrics:
         "Scale factor": "Scale [F|f]actor =\\s+(\\d+),"
         "Iterations": ", iterations =\\s+(\\d+)"
-        "Grid x size": "Running CFD on\\s+(\\d+) x\\s+\\d+ grid in serial"
+        "Grid x size": "Running CFD on\\s+(\\d+) x\\s+\\d+ grid"
         "Problem size": "=== RUN INSTANTIATION ===\n\\{.*args: (\\d+) .*\\}"
         "Wall time (s)": "Time for\\s+\\d+ iterations was\\s+([\\d\\.eE\\-+]+)\\s+seconds"
         "Iteration time (s)": "Each i?n?d?i?v?i?d?u?a?l? ?iteration took\\s+([\\d\\.eE\\-+]+)\\s+seconds"
@@ -147,14 +153,20 @@ benches:
       #   - export_path: null
 
   "parallel":
-    enabled: False
+    # enabled: False
     run_configurations:
       - "cpp-openmp"
       - "fortran-openmp"
       - "rust-rayon"
       - "rust-rayon-optimised"
     reruns:
-      number: 5
+      number: 3
+      unaggregatable_metrics:
+        - "Scale factor"
+        - "Iterations"
+        - "Grid x size"
+        - "Problem size"
+        - "Num threads"
     matrix:
       args:
         - "1 5000"
@@ -176,7 +188,7 @@ benches:
       metrics:
         "Scale factor": "Scale [F|f]actor =\\s+(\\d+),"
         "Iterations": ", iterations =\\s+(\\d+)"
-        "Grid x size": "Running CFD on\\s+(\\d+) x\\s+\\d+ grid in serial"
+        "Grid x size": "Running CFD on\\s+(\\d+) x\\s+\\d+ grid"
         "Problem size": "=== RUN INSTANTIATION ===\n\\{.*args: (\\d+) .*\\}"
         "Wall time (s)": "Time for\\s+\\d+ iterations was\\s+([\\d\\.eE\\-+]+)\\s+seconds"
         "Iteration time (s)": "Each i?n?d?i?v?i?d?u?a?l? ?iteration took\\s+([\\d\\.eE\\-+]+)\\s+seconds"
@@ -186,25 +198,27 @@ benches:
           x: "Problem size"
           y: "Wall time (s)"
           y_log: True
-          split_metrics:
-            - "Num threads"
+          # split_metrics:
+          #   - "Num threads"
+          fix_metrics:
+            "Num threads": "32"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
           y: "Wall time (s)"
           y_log: True
           fix_metrics:
-            "args": "1 5000"
+            "Problem size": "1"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
           y: "Wall time (s)"
           y_log: True
           fix_metrics:
-            "args": "16 5000"
+            "Problem size": "16"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
           y: "Wall time (s)"
           y_log: True
           fix_metrics:
-            "args": "128 5000"
+            "Problem size": "128"
       # data_exports:
       #   - export_path: null
