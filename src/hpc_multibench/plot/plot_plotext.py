@@ -32,6 +32,10 @@ def draw_line_plot(
     this_plt.xlabel(plot.x)
     this_plt.ylabel(plot.y)
     this_plt.ylim(0)
+    if plot.x_log:
+        this_plt.xscale('log')
+    if plot.y_log:
+        this_plt.yscale('log')
     this_plt.title(plot.title)
 
 
@@ -53,6 +57,8 @@ def draw_bar_chart(
     this_plt.theme(PLOTEXT_THEME)
     this_plt.ylabel(plot.y)
     this_plt.title(plot.title)
+    if plot.y_log:
+        this_plt.yscale('log')
 
 
 def draw_roofline_plot(

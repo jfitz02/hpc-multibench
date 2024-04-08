@@ -39,6 +39,10 @@ def draw_line_plot(
     plt.ylabel(plot.y)
     plt.title(plot.title)
     plt.ylim(0)
+    if plot.x_log:
+        plt.xscale('log')
+    if plot.y_log:
+        plt.yscale('log')
     plt.show()
 
 
@@ -61,6 +65,8 @@ def draw_bar_chart(
     plt.xlabel(plot.y)
     plt.gcf().subplots_adjust(left=0.25)
     plt.title(plot.title)
+    if plot.y_log:
+        plt.yscale('log')
     plt.show()
 
 
