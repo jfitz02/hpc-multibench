@@ -204,19 +204,19 @@ benches:
             "Num threads": "32"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
-          y: "Wall time (s)"
+          y: "Iteration time (s)"
           y_log: True
           fix_metrics:
             "Problem size": "1"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
-          y: "Wall time (s)"
+          y: "Iteration time (s)"
           y_log: True
           fix_metrics:
             "Problem size": "16"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
-          y: "Wall time (s)"
+          y: "Iteration time (s)"
           y_log: True
           fix_metrics:
             "Problem size": "128"
