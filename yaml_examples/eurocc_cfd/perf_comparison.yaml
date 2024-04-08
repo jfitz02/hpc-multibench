@@ -117,7 +117,7 @@ benches:
       - "cpp-serial"
       - "fortran-serial"
       - "rust-serial"
-      - "rust-serial-optimised"
+      # - "rust-serial-optimised"
     # reruns:
     #   number: 5
     matrix:
@@ -144,7 +144,9 @@ benches:
   "parallel":
     run_configurations:
       - "cpp-openmp"
+      - "fortran-openmp"
       - "rust-rayon"
+      # - "rust-rayon-optimised"
     # reruns:
     #   number: 10
     matrix:
