@@ -1,0 +1,176 @@
+run_configurations:
+  "cpp-serial":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../C-SER"
+    build_commands:
+      - "make"
+    run_command: "./cfd"
+
+  "fortran-serial":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../F-SER"
+    build_commands:
+      - "make"
+    run_command: "./cfd"
+
+  "rust-serial":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../cfd"
+    build_commands:
+      - "cargo build --release"
+    run_command: "./target/release/cfd"
+
+  "rust-serial-optimised":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 1
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../cfd-opt"
+    build_commands:
+      - "cargo build --release"
+    run_command: "./target/release/cfd"
+
+  "cpp-openmp":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 32
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../C-OMP"
+    build_commands:
+      - "make"
+    run_command: "./cfd"
+
+  "fortran-openmp":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 32
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../F-OMP"
+    build_commands:
+      - "make"
+    run_command: "./cfd"
+
+  "rust-rayon":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 32
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../cfd_rayon"
+    build_commands:
+      - "cargo build --release"
+    run_command: "./target/release/cfd"
+
+  "rust-rayon-optimised":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 32
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables: {}
+    directory: "../cfd_rayon-opt"
+    build_commands:
+      - "cargo build --release"
+    run_command: "./target/release/cfd"
+
+benches:
+  "serial":
+    run_configurations:
+      - "cpp-serial"
+      - "fortran-serial"
+      - "rust-serial"
+      - "rust-serial-optimised"
+    # reruns:
+    #   number: 5
+    matrix:
+      args:
+        - "1 5000"
+        - "2 5000"
+        - "4 5000"
+        - "8 5000"
+        - "16 5000"
+        - "32 5000"
+        - "64 5000"
+        - "128 5000"
+    analysis:
+      metrics:
+        "Scale factor": "Scale Factor = (\\d+),"
+        "Iterations": ", iterations = (\\d+)"
+        "Grid size": ", Running CFD on (\\d+\\ x\\ \\d+) in serial"
+        "Wall time (s)": "Time for \\d+ iterations was (\\d+\\.) seconds"
+      line_plots:
+        - title: "Reference Implementation Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+
+  "parallel":
+    run_configurations:
+      - "cpp-openmp"
+      - "rust-rayon"
+    # reruns:
+    #   number: 10
+    matrix:
+      args:
+        - "1 5000"
+        - "2 5000"
+        - "4 5000"
+        - "8 5000"
+        - "16 5000"
+        - "32 5000"
+        - "64 5000"
+        - "128 5000"
+      environment_variables:
+        - { "OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1 }
+        - { "OMP_NUM_THREADS": 16, "RAYON_NUM_THREADS": 16 }
+        - { "OMP_NUM_THREADS": 32, "RAYON_NUM_THREADS": 32 }
+    analysis:
+      metrics:
+        "Scale factor": "Scale Factor = (\\d+),"
+        "Iterations": ", iterations = (\\d+)"
+        "Grid size": ", Running CFD on (\\d+\\ x\\ \\d+) in serial"
+        "Wall time (s)": "Time for \\d+ iterations was (\\d+\\.) seconds"
+        "Num threads": "=== RUN INSTANTIATION ===\n\\{.*environment_variables: \\{.*OMP_NUM_THREADS: (\\d+),.*\\}"
+      line_plots:
+        - title: "Parallel Implementation Comparison"
+          x: "Mesh x size"
+          y: "Wall time (s)"
+          split_metrics:
+            - "Num threads"
