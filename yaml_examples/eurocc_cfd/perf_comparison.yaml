@@ -117,7 +117,7 @@ benches:
       - "cpp-serial"
       - "fortran-serial"
       - "rust-serial"
-      # - "rust-serial-optimised"
+      - "rust-serial-optimised"
     # reruns:
     #   number: 5
     matrix:
@@ -132,21 +132,24 @@ benches:
         - "128 5000"
     analysis:
       metrics:
-        "Scale factor": "Scale Factor = (\\d+),"
-        "Iterations": ", iterations = (\\d+)"
-        "Grid size": ", Running CFD on (\\d+\\ x\\ \\d+) in serial"
-        "Wall time (s)": "Time for \\d+ iterations was (\\d+\\.) seconds"
+        "Scale factor": "Scale [F|f]actor =\\s+(\\d+),"
+        "Iterations": ", iterations =\\s+(\\d+)"
+        "Grid x size": "Running CFD on\\s+(\\d+) x\\s+\\d+ grid in serial"
+        "Wall time (s)": "Time for\\s+\\d+ iterations was\\s+([\\d\\.eE\\-+]+)\\s+seconds"
+        "Iteration time (s)": "Each i?n?d?i?v?i?d?u?a?l? ?iteration took\\s+([\\d\\.eE\\-+]+)\\s+seconds"
       line_plots:
-        - title: "Reference Implementation Comparison"
-          x: "Mesh x size"
+        - title: "Serial Implementation Comparison"
+          x: "Grid x size"
           y: "Wall time (s)"
+      # data_exports:
+      #   - export_path: null
 
   "parallel":
     run_configurations:
       - "cpp-openmp"
       - "fortran-openmp"
       - "rust-rayon"
-      # - "rust-rayon-optimised"
+      - "rust-rayon-optimised"
     # reruns:
     #   number: 10
     matrix:
@@ -161,18 +164,39 @@ benches:
         - "128 5000"
       environment_variables:
         - { "OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1 }
+        - { "OMP_NUM_THREADS": 2, "RAYON_NUM_THREADS": 2 }
+        - { "OMP_NUM_THREADS": 4, "RAYON_NUM_THREADS": 4 }
+        - { "OMP_NUM_THREADS": 8, "RAYON_NUM_THREADS": 8 }
         - { "OMP_NUM_THREADS": 16, "RAYON_NUM_THREADS": 16 }
         - { "OMP_NUM_THREADS": 32, "RAYON_NUM_THREADS": 32 }
     analysis:
       metrics:
-        "Scale factor": "Scale Factor = (\\d+),"
-        "Iterations": ", iterations = (\\d+)"
-        "Grid size": ", Running CFD on (\\d+\\ x\\ \\d+) in serial"
-        "Wall time (s)": "Time for \\d+ iterations was (\\d+\\.) seconds"
+        "Scale factor": "Scale [F|f]actor =\\s+(\\d+),"
+        "Iterations": ", iterations =\\s+(\\d+)"
+        "Grid x size": "Running CFD on\\s+(\\d+) x\\s+\\d+ grid in serial"
+        "Wall time (s)": "Time for\\s+\\d+ iterations was\\s+([\\d\\.eE\\-+]+)\\s+seconds"
+        "Iteration time (s)": "Each i?n?d?i?v?i?d?u?a?l? ?iteration took\\s+([\\d\\.eE\\-+]+)\\s+seconds"
         "Num threads": "=== RUN INSTANTIATION ===\n\\{.*environment_variables: \\{.*OMP_NUM_THREADS: (\\d+),.*\\}"
       line_plots:
         - title: "Parallel Implementation Comparison"
-          x: "Mesh x size"
+          x: "Grid x size"
           y: "Wall time (s)"
           split_metrics:
             - "Num threads"
+        - title: "Parallel Implementation Comparison"
+          x: "Num threads"
+          y: "Wall time (s)"
+          fix_metrics:
+            "args": "1 5000"
+        - title: "Parallel Implementation Comparison"
+          x: "Num threads"
+          y: "Wall time (s)"
+          fix_metrics:
+            "args": "16 5000"
+        - title: "Parallel Implementation Comparison"
+          x: "Num threads"
+          y: "Wall time (s)"
+          fix_metrics:
+            "args": "128 5000"
+      # data_exports:
+      #   - export_path: null
