@@ -64,6 +64,8 @@ class LinePlotModel(BaseModel):
     fix_metrics: dict[str, Any] = {}
     x_log: bool = False
     y_log: bool = False
+    x_lim: int | None = None
+    y_lim: int | None = None
 
 
 class BarChartModel(BaseModel):
@@ -74,6 +76,7 @@ class BarChartModel(BaseModel):
     split_metrics: list[str] = []
     fix_metrics: dict[str, Any] = {}
     y_log: bool = False
+    y_lim: int | None = None
 
 
 class RooflinePlotModel(BaseModel):
