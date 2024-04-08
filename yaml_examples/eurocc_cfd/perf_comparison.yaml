@@ -118,8 +118,8 @@ benches:
       - "fortran-serial"
       - "rust-serial"
       - "rust-serial-optimised"
-    # reruns:
-    #   number: 5
+    reruns:
+      number: 10
     matrix:
       args:
         - "1 5000"
@@ -135,23 +135,26 @@ benches:
         "Scale factor": "Scale [F|f]actor =\\s+(\\d+),"
         "Iterations": ", iterations =\\s+(\\d+)"
         "Grid x size": "Running CFD on\\s+(\\d+) x\\s+\\d+ grid in serial"
+        "Problem size": "=== RUN INSTANTIATION ===\n\\{.*args: (\\d+) .*\\}"
         "Wall time (s)": "Time for\\s+\\d+ iterations was\\s+([\\d\\.eE\\-+]+)\\s+seconds"
         "Iteration time (s)": "Each i?n?d?i?v?i?d?u?a?l? ?iteration took\\s+([\\d\\.eE\\-+]+)\\s+seconds"
       line_plots:
         - title: "Serial Implementation Comparison"
-          x: "Grid x size"
+          x: "Problem size"
           y: "Wall time (s)"
+          y_log: True
       # data_exports:
       #   - export_path: null
 
   "parallel":
+    enabled: False
     run_configurations:
       - "cpp-openmp"
       - "fortran-openmp"
       - "rust-rayon"
       - "rust-rayon-optimised"
-    # reruns:
-    #   number: 10
+    reruns:
+      number: 5
     matrix:
       args:
         - "1 5000"
@@ -174,28 +177,33 @@ benches:
         "Scale factor": "Scale [F|f]actor =\\s+(\\d+),"
         "Iterations": ", iterations =\\s+(\\d+)"
         "Grid x size": "Running CFD on\\s+(\\d+) x\\s+\\d+ grid in serial"
+        "Problem size": "=== RUN INSTANTIATION ===\n\\{.*args: (\\d+) .*\\}"
         "Wall time (s)": "Time for\\s+\\d+ iterations was\\s+([\\d\\.eE\\-+]+)\\s+seconds"
         "Iteration time (s)": "Each i?n?d?i?v?i?d?u?a?l? ?iteration took\\s+([\\d\\.eE\\-+]+)\\s+seconds"
         "Num threads": "=== RUN INSTANTIATION ===\n\\{.*environment_variables: \\{.*OMP_NUM_THREADS: (\\d+),.*\\}"
       line_plots:
         - title: "Parallel Implementation Comparison"
-          x: "Grid x size"
+          x: "Problem size"
           y: "Wall time (s)"
+          y_log: True
           split_metrics:
             - "Num threads"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
           y: "Wall time (s)"
+          y_log: True
           fix_metrics:
             "args": "1 5000"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
           y: "Wall time (s)"
+          y_log: True
           fix_metrics:
             "args": "16 5000"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
           y: "Wall time (s)"
+          y_log: True
           fix_metrics:
             "args": "128 5000"
       # data_exports:
