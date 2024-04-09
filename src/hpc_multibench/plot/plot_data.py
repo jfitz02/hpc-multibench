@@ -118,7 +118,9 @@ def get_roofline_plot_data(
     data: dict[str, tuple[float, float, float | None, float | None]] = {}
     for run_configuration, metrics in all_metrics:
         (y_value, y_err) = split_metric_uncertainty(metrics, plot.gflops_per_sec)
-        (x_value_tmp, x_err_tmp) = split_metric_uncertainty(metrics, plot.mbytes_per_sec)
+        (x_value_tmp, x_err_tmp) = split_metric_uncertainty(
+            metrics, plot.mbytes_per_sec
+        )
         x_value = y_value / (x_value_tmp / 1000)
         x_err = None if x_err_tmp is None or y_err is None else y_err + x_err_tmp
         data[run_configuration.name] = (x_value, y_value, x_err, y_err)

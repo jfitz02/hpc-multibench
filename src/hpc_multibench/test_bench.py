@@ -347,10 +347,15 @@ class TestBench:
         # scaling different run configurations against each other
         derived_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]] = []
         for run_configuration_data in run_metrics:
-            derived_run_configuration_data: dict[int, tuple[RunConfiguration, dict[str, str]]] = {}
+            derived_run_configuration_data: dict[
+                int, tuple[RunConfiguration, dict[str, str]]
+            ] = {}
             for job_id, (run_configuration, metrics) in run_configuration_data.items():
-                for metric, derivation in self.bench_model.analysis.derived_metrics.items():
-                    metrics[metric] = eval(derivation)
+                for (
+                    metric,
+                    derivation,
+                ) in self.bench_model.analysis.derived_metrics.items():
+                    metrics[metric] = eval(derivation)  # nosec: B307 # noqa: S307
                 derived_run_configuration_data[job_id] = (run_configuration, metrics)
             derived_metrics.append(derived_run_configuration_data)
         return derived_metrics

@@ -89,6 +89,11 @@ module = "uncertainties.*"
 ignore_missing_imports = true
 
 [tool.ruff]
+# Support Python 3.10+.
+target-version = "py310"
+src = ["src/", "tests/"]
+
+[tool.ruff.lint]
 select = ["ALL"]
 ignore = [
     ### From https://github.com/jerry-git/pytest-split/blob/master/pyproject.toml
@@ -114,11 +119,8 @@ ignore = [
     "INP001", # "Add an `__init__.py`". The `test` directory should be a namespace package (https://stackoverflow.com/a/8450858)!
     "I",      # Ignore import sorting, as we using `isort` instead, as it has more functionality
 ]
-# Support Python 3.10+.
-target-version = "py310"
-src = ["src/", "tests/"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 # Use Google-style docstrings.
 convention = "google"
 

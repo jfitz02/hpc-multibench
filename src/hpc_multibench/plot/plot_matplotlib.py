@@ -43,9 +43,9 @@ def draw_line_plot(
     if plot.y_lim is not None:
         plt.ylim(plot.y_lim)
     if plot.x_log:
-        plt.xscale('log')
+        plt.xscale("log")
     if plot.y_log:
-        plt.yscale('log')
+        plt.yscale("log")
     plt.show()
 
 
@@ -71,7 +71,7 @@ def draw_bar_chart(
     if plot.y_lim is not None:
         plt.ylim(plot.y_lim)
     if plot.y_log:
-        plt.yscale('log')
+        plt.yscale("log")
     plt.show()
 
 

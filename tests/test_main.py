@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# mypy: disable-error-code="misc"
 """Unit tests for the main methods."""
 
 

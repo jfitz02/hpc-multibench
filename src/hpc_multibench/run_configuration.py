@@ -144,7 +144,7 @@ class RunConfiguration:
                     check=True,
                     stdout=PIPE,
                 )
-            except CalledProcessError as err:
+            except CalledProcessError:
                 return None
             job_id_search = re_search(SLURM_JOB_ID_REGEX, result.stdout.decode("utf-8"))
             if job_id_search is None:

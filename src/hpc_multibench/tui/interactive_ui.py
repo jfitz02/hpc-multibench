@@ -81,8 +81,8 @@ class TestPlanTree(Tree[TestPlanTreeType]):
                 bench_node.add(
                     (
                         run_configuration_name
-                        if bench.bench_model.enabled else
-                        f"[dim]{run_configuration_name}[/dim]"
+                        if bench.bench_model.enabled
+                        else f"[dim]{run_configuration_name}[/dim]"
                     ),
                     allow_expand=False,
                     data=run_configuration,
@@ -278,7 +278,9 @@ class UserInterface(App[None]):
             assert node.parent is not None
             self.current_test_bench = cast(TestBench, node.parent.data)
             self.current_run_configuration = node.data
-            self.current_run_configuration_name = str(node.label).strip("[dim]").strip("[/dim]")
+            self.current_run_configuration_name = (
+                str(node.label).strip("[dim]").strip("[/dim]")
+            )
 
         self.current_plot_index = 0
         self.update_all_tabs()

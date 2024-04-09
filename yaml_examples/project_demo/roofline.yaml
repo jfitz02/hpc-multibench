@@ -80,8 +80,8 @@ benches:
           ert_json: "./yaml_examples/roofline.json"
       metrics:
         "Mesh x size": "nx: (\\d+)"
-        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.e\+]+)[\\s\\S]*\nFLOPS Summary"
-        "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e\+]+)[\\s\\S]*\nMFLOPS Summary"
-        "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e\+]+)"
+        "Total time (s)": "Time Summary:[\\s\\S]*Total\\s*: ([\\d\\.e\\+]+)[\\s\\S]*\nFLOPS Summary"
+        "Total FLOPs": "FLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e\\+]+)[\\s\\S]*\nMFLOPS Summary"
+        "Total MFLOPs/s": "MFLOPS Summary:[\\s\\S]*Total\\s*: ([\\d\\.e\\+]+)"
         "Memory Bandwidth": "\\|\\s+Memory bandwidth\ \\[MBytes/s\\]\\s+\\|\\s+([\\d\\.]+)\ \\|"
         "Wall time (s)": "real\\s([\\d\\.]+)\nuser"
