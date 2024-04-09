@@ -339,6 +339,22 @@ class TestBench:
             run_metrics.append(rerun_metrics)
         return run_metrics
 
+    def calculate_derived_metrics(
+        self, run_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]]
+    ) -> list[dict[int, tuple[RunConfiguration, dict[str, str]]]]:
+        """Calculate derived metrics from definitions in the YAML file."""
+        # TODO: Support for more aggressive meta-programming in derived quantities,
+        # scaling different run configurations against each other
+        derived_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]] = []
+        for run_configuration_data in run_metrics:
+            derived_run_configuration_data: dict[int, tuple[RunConfiguration, dict[str, str]]] = {}
+            for job_id, (run_configuration, metrics) in run_configuration_data.items():
+                for metric, derivation in self.bench_model.analysis.derived_metrics.items():
+                    metrics[metric] = eval(derivation)
+                derived_run_configuration_data[job_id] = (run_configuration, metrics)
+            derived_metrics.append(derived_run_configuration_data)
+        return derived_metrics
+
     def aggregate_run_metrics(  # noqa: C901
         self, run_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]]
     ) -> list[tuple[RunConfiguration, dict[str, str | UFloat]]]:
@@ -411,7 +427,8 @@ class TestBench:
             return
 
         run_metrics = self.get_run_metrics(run_outputs)
-        aggregated_metrics = self.aggregate_run_metrics(run_metrics)
+        derived_metrics = self.calculate_derived_metrics(run_metrics)
+        aggregated_metrics = self.aggregate_run_metrics(derived_metrics)
 
         # Draw the specified plots
         for line_plot in self.bench_model.analysis.line_plots:

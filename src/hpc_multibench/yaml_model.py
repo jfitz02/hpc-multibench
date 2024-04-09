@@ -66,6 +66,7 @@ class LinePlotModel(BaseModel):
     y_log: bool = False
     x_lim: int | None = None
     y_lim: int | None = None
+    # enabled: bool = True
 
 
 class BarChartModel(BaseModel):
@@ -77,6 +78,7 @@ class BarChartModel(BaseModel):
     fix_metrics: dict[str, Any] = {}
     y_log: bool = False
     y_lim: int | None = None
+    # enabled: bool = True
 
 
 class RooflinePlotModel(BaseModel):
@@ -86,6 +88,7 @@ class RooflinePlotModel(BaseModel):
     gflops_per_sec: str
     mbytes_per_sec: str
     ert_json: Path
+    # enabled: bool = True
 
 
 class ExportModel(BaseModel):
@@ -101,6 +104,7 @@ class AnalysisModel(BaseModel):
 
     # TODO: Could separate properties (strings) and metrics (floats)
     metrics: dict[str, str]
+    derived_metrics: dict[str, str] = {}
     # TODO: Offer singular interface `line_plot` which is just one plot
     line_plots: list[LinePlotModel] = []
     bar_charts: list[BarChartModel] = []

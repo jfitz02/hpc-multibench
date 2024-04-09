@@ -113,7 +113,7 @@ run_configurations:
 
 benches:
   "serial":
-    # enabled: False
+    enabled: False
     run_configurations:
       - "cpp-serial"
       - "fortran-serial"
@@ -193,6 +193,9 @@ benches:
         "Wall time (s)": "Time for\\s+\\d+ iterations was\\s+([\\d\\.eE\\-+]+)\\s+seconds"
         "Iteration time (s)": "Each i?n?d?i?v?i?d?u?a?l? ?iteration took\\s+([\\d\\.eE\\-+]+)\\s+seconds"
         "Num threads": "=== RUN INSTANTIATION ===\n\\{.*environment_variables: \\{.*OMP_NUM_THREADS: (\\d+),.*\\}"
+      derived_metrics:
+        "Iterations per second (s^-1)": "1 / float(metrics['Iteration time (s)'])"
+        # "Execution time relative to C++": "float(metrics['Iteration time (s)']) / _"
       line_plots:
         - title: "Parallel Implementation Comparison"
           x: "Problem size"
@@ -204,19 +207,19 @@ benches:
             "Num threads": "32"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
-          y: "Iteration time (s)"
+          y: "Iterations per second (s^-1)"
           y_log: True
           fix_metrics:
             "Problem size": "1"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
-          y: "Iteration time (s)"
+          y: "Iterations per second (s^-1)"
           y_log: True
           fix_metrics:
             "Problem size": "16"
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
-          y: "Iteration time (s)"
+          y: "Iterations per second (s^-1)"
           y_log: True
           fix_metrics:
             "Problem size": "128"
