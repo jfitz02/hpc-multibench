@@ -120,7 +120,7 @@ benches:
       - "rust-serial"
       - "rust-serial-optimised"
     reruns:
-      number: 3
+      number: 5
       unaggregatable_metrics:
         - "Scale factor"
         - "Iterations"
@@ -149,8 +149,8 @@ benches:
           x: "Problem size"
           y: "Wall time (s)"
           y_log: True
-      # data_exports:
-      #   - export_path: null
+      data_exports:
+        - export_path: null
 
   "parallel":
     # enabled: False
@@ -160,7 +160,7 @@ benches:
       - "rust-rayon"
       - "rust-rayon-optimised"
     reruns:
-      number: 3
+      number: 5
       unaggregatable_metrics:
         - "Scale factor"
         - "Iterations"
@@ -223,5 +223,5 @@ benches:
           y_log: True
           fix_metrics:
             "Problem size": "128"
-      # data_exports:
-      #   - export_path: null
+      data_exports:
+        - export_path: null
