@@ -151,6 +151,7 @@ benches:
           y_log: True
       data_exports:
         - export_path: null
+          enabled: False
 
   "parallel":
     # enabled: False
@@ -201,10 +202,10 @@ benches:
           x: "Problem size"
           y: "Wall time (s)"
           y_log: True
-          # split_metrics:
-          #   - "Num threads"
+          # split_metrics: ["Num threads"]
           fix_metrics:
             "Num threads": "32"
+          enabled: False
         - title: "Parallel Implementation Comparison"
           x: "Num threads"
           y: "Iterations per second (s^-1)"
@@ -225,3 +226,4 @@ benches:
             "Problem size": "128"
       data_exports:
         - export_path: null
+          enabled: False

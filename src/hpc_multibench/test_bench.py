@@ -437,13 +437,21 @@ class TestBench:
 
         # Draw the specified plots
         for line_plot in self.bench_model.analysis.line_plots:
+            if not line_plot.enabled:
+                continue
             draw_line_plot(line_plot, aggregated_metrics)
 
         for bar_chart in self.bench_model.analysis.bar_charts:
+            if not bar_chart.enabled:
+                continue
             draw_bar_chart(bar_chart, aggregated_metrics)
 
         for roofline_plot in self.bench_model.analysis.roofline_plots:
+            if not roofline_plot.enabled:
+                continue
             draw_roofline_plot(roofline_plot, aggregated_metrics)
 
         for export_schema in self.bench_model.analysis.data_exports:
+            if not export_schema.enabled:
+                continue
             export_data(export_schema, aggregated_metrics)

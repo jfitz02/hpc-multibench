@@ -427,6 +427,7 @@ class UserInterface(App[None]):
         if self.current_plot_index is None:
             self.app.bell()
             return
+        # TODO: Add support for skipping disabled plots
         self.current_plot_index += offset
         self.update_plot_tab()
 

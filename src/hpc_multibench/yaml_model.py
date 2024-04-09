@@ -66,7 +66,7 @@ class LinePlotModel(BaseModel):
     y_log: bool = False
     x_lim: int | None = None
     y_lim: int | None = None
-    # enabled: bool = True
+    enabled: bool = True
 
 
 class BarChartModel(BaseModel):
@@ -78,7 +78,7 @@ class BarChartModel(BaseModel):
     fix_metrics: dict[str, Any] = {}
     y_log: bool = False
     y_lim: int | None = None
-    # enabled: bool = True
+    enabled: bool = True
 
 
 class RooflinePlotModel(BaseModel):
@@ -88,7 +88,7 @@ class RooflinePlotModel(BaseModel):
     gflops_per_sec: str
     mbytes_per_sec: str
     ert_json: Path
-    # enabled: bool = True
+    enabled: bool = True
 
 
 class ExportModel(BaseModel):
@@ -97,6 +97,7 @@ class ExportModel(BaseModel):
     export_path: Path | None
     export_format: str = "csv"
     # metrics: list[str] | None = None
+    enabled: bool = True
 
 
 class AnalysisModel(BaseModel):
