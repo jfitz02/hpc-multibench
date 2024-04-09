@@ -64,8 +64,8 @@ class LinePlotModel(BaseModel):
     fix_metrics: dict[str, Any] = {}
     x_log: bool = False
     y_log: bool = False
-    x_lim: int | None = None
-    y_lim: int | None = None
+    x_lim: float | tuple[float, float] | None = None
+    y_lim: float | tuple[float, float] | None = None
     enabled: bool = True
 
 
@@ -77,7 +77,7 @@ class BarChartModel(BaseModel):
     split_metrics: list[str] = []
     fix_metrics: dict[str, Any] = {}
     y_log: bool = False
-    y_lim: int | None = None
+    y_lim: float | tuple[float, float] | None = None
     enabled: bool = True
 
 
@@ -103,10 +103,8 @@ class ExportModel(BaseModel):
 class AnalysisModel(BaseModel):
     """A Pydantic model for a test bench's analysis operations."""
 
-    # TODO: Could separate properties (strings) and metrics (floats)
     metrics: dict[str, str]
     derived_metrics: dict[str, str] = {}
-    # TODO: Offer singular interface `line_plot` which is just one plot
     line_plots: list[LinePlotModel] = []
     bar_charts: list[BarChartModel] = []
     roofline_plots: list[RooflinePlotModel] = []

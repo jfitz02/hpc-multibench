@@ -142,20 +142,20 @@ benches:
         "Iterations": ", iterations =\\s+(\\d+)"
         "Grid x size": "Running CFD on\\s+(\\d+) x\\s+\\d+ grid"
         "Problem size": "=== RUN INSTANTIATION ===\n\\{.*args: (\\d+) .*\\}"
-        "Wall time (s)": "Time for\\s+\\d+ iterations was\\s+([\\d\\.eE\\-+]+)\\s+seconds"
+        "Total time (s)": "Time for\\s+\\d+ iterations was\\s+([\\d\\.eE\\-+]+)\\s+seconds"
         "Iteration time (s)": "Each i?n?d?i?v?i?d?u?a?l? ?iteration took\\s+([\\d\\.eE\\-+]+)\\s+seconds"
       derived_metrics:
-        "Iterations per second (s^-1)": "1 / float(metrics['Iteration time (s)'])"
+        "Iterations per second": "1 / float(metrics['Iteration time (s)'])"
         "Execution time relative to C++": "float(metrics['Iteration time (s)']) / float(_corresponding_metrics['cpp-serial']['Iteration time (s)'])"
       line_plots:
         - title: "Serial Implementation Comparison"
           x: "Problem size"
-          y: "Wall time (s)"
+          y: "Total time (s)"
           y_log: True
         - title: "Relative execution times to C++"
           x: "Problem size"
           y: "Execution time relative to C++"
-          # y_lim: 0.6 # TODO: Make this a range
+          y_lim: [0.6, 2.2]
       data_exports:
         - export_path: null
           enabled: False
@@ -174,7 +174,7 @@ benches:
         - "Iterations"
         - "Grid x size"
         - "Problem size"
-        - "Num threads"
+        - "Thread count"
     matrix:
       args:
         - "1 5000"
@@ -198,42 +198,42 @@ benches:
         "Iterations": ", iterations =\\s+(\\d+)"
         "Grid x size": "Running CFD on\\s+(\\d+) x\\s+\\d+ grid"
         "Problem size": "=== RUN INSTANTIATION ===\n\\{.*args: (\\d+) .*\\}"
-        "Wall time (s)": "Time for\\s+\\d+ iterations was\\s+([\\d\\.eE\\-+]+)\\s+seconds"
+        "Total time (s)": "Time for\\s+\\d+ iterations was\\s+([\\d\\.eE\\-+]+)\\s+seconds"
         "Iteration time (s)": "Each i?n?d?i?v?i?d?u?a?l? ?iteration took\\s+([\\d\\.eE\\-+]+)\\s+seconds"
-        "Num threads": "=== RUN INSTANTIATION ===\n\\{.*environment_variables: \\{.*OMP_NUM_THREADS: (\\d+),.*\\}"
+        "Thread count": "=== RUN INSTANTIATION ===\n\\{.*environment_variables: \\{.*OMP_NUM_THREADS: (\\d+),.*\\}"
       derived_metrics:
-        "Iterations per second (s^-1)": "1 / float(metrics['Iteration time (s)'])"
+        "Iterations per second": "1 / float(metrics['Iteration time (s)'])"
         "Execution time relative to C++": "float(metrics['Iteration time (s)']) / float(_corresponding_metrics['cpp-openmp']['Iteration time (s)'])"
       line_plots:
         # - title: "Execution time scaling with problem size"
         #   x: "Problem size"
-        #   y: "Wall time (s)"
+        #   y: "Total time (s)"
         #   y_log: True
-        #   # split_metrics: ["Num threads"]
+        #   # split_metrics: ["Thread count"]
         #   fix_metrics:
-        #     "Num threads": "32"
+        #     "Thread count": "32"
         #   enabled: False
         # - title: "Relative execution times to C++"
         #   x: "Problem size"
         #   y: "Execution time relative to C++"
         #   fix_metrics:
-        #     "Num threads": "32"
+        #     "Thread count": "32"
         #   enabled: False
         - title: "Iterations per second scaling with number of threads"
-          x: "Num threads"
-          y: "Iterations per second (s^-1)"
+          x: "Thread count"
+          y: "Iterations per second"
           y_log: True
           fix_metrics:
             "Problem size": "1"
         - title: "Iterations per second scaling with number of threads"
-          x: "Num threads"
-          y: "Iterations per second (s^-1)"
+          x: "Thread count"
+          y: "Iterations per second"
           y_log: True
           fix_metrics:
             "Problem size": "16"
         - title: "Iterations per second scaling with number of threads"
-          x: "Num threads"
-          y: "Iterations per second (s^-1)"
+          x: "Thread count"
+          y: "Iterations per second"
           y_log: True
           fix_metrics:
             "Problem size": "128"
