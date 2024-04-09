@@ -296,6 +296,9 @@ class TestBench:
             prev_rerun_count = metadata.rerun_count
 
             # Add the realised run configuration to its re-run dictionary
+            if metadata.name not in self.run_configuration_models:
+                # print(f"Skipping {metadata.name} since excluded from YAML file.")
+                continue
             rerun_group[metadata.job_id] = self.run_configuration_models[
                 metadata.name
             ].realise(metadata.name, self.output_directory, metadata.instantiation)
@@ -343,14 +346,43 @@ class TestBench:
         self, run_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]]
     ) -> list[dict[int, tuple[RunConfiguration, dict[str, str]]]]:
         """Calculate derived metrics from definitions in the YAML file."""
+        derived_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]] = []
+
         # TODO: Support for more aggressive meta-programming in derived quantities,
         # scaling different run configurations against each other
-        derived_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]] = []
-        for run_configuration_data in run_metrics:
+        all_metrics: dict[str, dict[str, dict[str, str]]] = {}
+        for rerun_group in run_metrics:
+            for rerun_count, (_job_id, (run_configuration, metrics)) in enumerate(
+                rerun_group.items()
+            ):
+                instantiation_rerun = f"{run_configuration.instantiation}_{rerun_count}"
+                if instantiation_rerun not in all_metrics:
+                    all_metrics[instantiation_rerun] = {}
+                if run_configuration.name not in all_metrics:
+                    all_metrics[instantiation_rerun][run_configuration.name] = {}
+
+                for metric, value in metrics.items():
+                    # print(instantiation_rerun, run_configuration.name, metric, value)
+                    all_metrics[instantiation_rerun][run_configuration.name][
+                        metric
+                    ] = value
+
+        for rerun_group in run_metrics:
             derived_run_configuration_data: dict[
                 int, tuple[RunConfiguration, dict[str, str]]
             ] = {}
-            for job_id, (run_configuration, metrics) in run_configuration_data.items():
+            for rerun_count, (job_id, (run_configuration, metrics)) in enumerate(
+                rerun_group.items()
+            ):
+
+                # Present a sane data structure for accessing other run configurations
+                # Comparisons are made instantiation-wise, so elise that variable
+                #
+                # Access metrics with corresponding run instantiations
+                # corresponding_metrics[run_config_name][metric] = value
+                instantiation_rerun = f"{run_configuration.instantiation}_{rerun_count}"
+                _corresponding_metrics = all_metrics[instantiation_rerun]
+
                 for (
                     metric,
                     derivation,
@@ -358,6 +390,7 @@ class TestBench:
                     metrics[metric] = eval(derivation)  # nosec: B307 # noqa: S307
                 derived_run_configuration_data[job_id] = (run_configuration, metrics)
             derived_metrics.append(derived_run_configuration_data)
+
         return derived_metrics
 
     def aggregate_run_metrics(  # noqa: C901
