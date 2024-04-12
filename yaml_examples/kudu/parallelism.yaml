@@ -109,6 +109,40 @@ run_configurations:
       - "cargo build --release"
     run_command: "mpirun ./target/release/hpccg-rs"
 
+  "cpp-kokkos":
+    sbatch_config:
+      "nodes": 1
+      "ntasks-per-node": 1
+      "cpus-per-task": 32
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads: []
+    environment_variables:
+      "OMP_NUM_THREADS": 32
+      "OMP_PROC_BIND": "spread"
+      "OMP_PLACES": "threads"
+    directory: "../0_cpp_versions/5_kokkos"
+    build_commands:
+      - "make no_yaml"
+      - "make -j 8"
+    run_command: "./test_HPCCG"
+
+  "cpp-kokkos-mpi":
+    sbatch_config:
+      "exclusive": "mcs"
+      "mem": 60000
+    module_loads:
+      - "cs402-mpi"
+    environment_variables:
+      "OMP_NUM_THREADS": 8
+      "OMP_PROC_BIND": "spread"
+      "OMP_PLACES": "threads"
+    directory: "../0_cpp_versions/6_kokkos_mpi"
+    build_commands:
+      - "make no_yaml"
+      - "make -j 8"
+    run_command: "mpirun ./test_HPCCG"
+
 benches:
   "serial":
     run_configurations:
