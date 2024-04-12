@@ -252,7 +252,7 @@ benches:
             - "Nodes"
             - "Tasks per Node"
 
-  "hybrid-best-config":
+  "hybrid":
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
