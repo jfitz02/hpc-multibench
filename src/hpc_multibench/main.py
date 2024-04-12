@@ -11,7 +11,9 @@ from hpc_multibench.tui.interactive_ui import UserInterface
 
 def get_parser() -> ArgumentParser:  # pragma: no cover
     """Get the argument parser for the tool."""
-    parser = ArgumentParser(description="A tool to spawn and analyse HPC jobs.")
+    parser = ArgumentParser(
+        description="A Swiss army knife for comparing programs on HPC resources."
+    )
     # As an argument of the base tool not subcommands, due to the ergonomics of
     # running `record` then `report` on same yaml file in sequence
     parser.add_argument(
