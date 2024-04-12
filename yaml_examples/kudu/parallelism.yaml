@@ -286,7 +286,7 @@ benches:
           x: "Mesh x size"
           y: "Wall time (s)"
       bar_charts:
-        - title: "C++, Kokkos, and Rust Version Comparison"
+        - title: "C++, Kokkos, and Rust with Multi-Threading Version Comparison"
           y: "Wall time (s)"
           fix_metrics:
             "Mesh x size": 400
@@ -298,8 +298,7 @@ benches:
       - "rust-hybrid"
     reruns:
       number: 5
-      highest_discard: 2
-      lowest_discard: 0
+      highest_discard: 1
       unaggregatable_metrics:
         - "Mesh x size"
     matrix:
@@ -324,7 +323,7 @@ benches:
           x: "Mesh x size"
           y: "Wall time (s)"
       bar_charts:
-        - title: "C++, Kokkos, and Rust with MPI Version Comparison"
+        - title: "C++, Kokkos, and Rust with MPI & Multi-Threading Version Comparison"
           y: "Wall time (s)"
           fix_metrics:
             "Mesh x size": 400

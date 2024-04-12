@@ -179,7 +179,7 @@ benches:
     matrix:
       args:
         - "64 64 64"
-        - "64 64 64"
+        - "200 200 200"
       sbatch_config:
         - { "ntasks": 1, "nodes": 1 }
         - { "ntasks": 2, "nodes": 1 }
@@ -199,3 +199,10 @@ benches:
         - title: "Message Passing Weak Scaling Plot"
           x: "Parallelisation degree"
           y: "Wall time (s)"
+          fix_metrics:
+            "Mesh x size": 64
+        - title: "Message Passing Weak Scaling Plot"
+          x: "Parallelisation degree"
+          y: "Wall time (s)"
+          fix_metrics:
+            "Mesh x size": 200
