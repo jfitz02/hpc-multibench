@@ -21,7 +21,7 @@ run_configurations:
       "ntasks-per-node": 1
       "cpus-per-task": 1
       "exclusive": "mcs"
-      "mem": 40000 # Rust seems to use more memory, this heavily bottlenecks if too small
+      "mem": 40000
     module_loads:
       - "GCC/11.3.0"
       - "Clang/13.0.1"
@@ -65,7 +65,7 @@ run_configurations:
 
   "cpp-mpi":
     sbatch_config:
-      "cpus-per-task": 1
+      "cpus-per-task": 2
       "exclusive": "mcs"
       "mem": 40000
     module_loads:
@@ -80,7 +80,7 @@ run_configurations:
 
   "rust-mpi":
     sbatch_config:
-      "cpus-per-task": 1
+      "cpus-per-task": 2
       "exclusive": "mcs"
       "mem": 40000
     module_loads:
@@ -165,10 +165,7 @@ benches:
         - "400 400 400"
       environment_variables:
         - { "OMP_NUM_THREADS": 1, "RAYON_NUM_THREADS": 1 }
-        - { "OMP_NUM_THREADS": 2, "RAYON_NUM_THREADS": 2 }
-        - { "OMP_NUM_THREADS": 4, "RAYON_NUM_THREADS": 4 }
         - { "OMP_NUM_THREADS": 8, "RAYON_NUM_THREADS": 8 }
-        - { "OMP_NUM_THREADS": 16, "RAYON_NUM_THREADS": 16 }
         - { "OMP_NUM_THREADS": 32, "RAYON_NUM_THREADS": 32 }
     analysis:
       metrics:
@@ -216,6 +213,8 @@ benches:
         - "300 300 300"
         - "400 400 400"
       sbatch_config:
+        - { "nodes": 1, "ntasks-per-node": 2 }
+        - { "nodes": 2, "ntasks-per-node": 2 }
         - { "nodes": 4, "ntasks-per-node": 2 }
     analysis:
       metrics:
@@ -232,7 +231,6 @@ benches:
             - "Tasks per Node"
 
   "hybrid-best-config":
-    enabled: False # TODO: Debug this metrics failure
     run_configurations:
       - "cpp-hybrid"
       - "rust-hybrid"
