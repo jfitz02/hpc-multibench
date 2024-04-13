@@ -16,8 +16,8 @@ run_configurations:
     run_command: "advisor -collect roofline -project-dir ./ -- ./test_HPCCG"
     post_commands:
       - "advisor --report=roofline --project-dir=./ --report-output=./roofline_${SLURM_JOB_ID}.html"
-      - "rm -rf *.advixeproj e000/"
-      # - "grep -Po '(?<=\(){("rooflineData":.*?)(?=}\)}catch)' roofline_${SLURM_JOB_ID}.html | sed 's/$/}/' | jq | less"
+      - "grep -Po '(?<=\\(){(\"rooflineData\":.*?)(?=}\\)}catch)' roofline_${SLURM_JOB_ID}.html | sed 's/$/}/' | jq > ./roofline_${SLURM_JOB_ID}.json"
+      # - "rm -rf *.advixeproj e000/"
 
   "rust-reference":
     sbatch_config:
@@ -35,7 +35,8 @@ run_configurations:
     run_command: "advisor -collect roofline -project-dir ./ -- ./target/release/hpccg-rs"
     post_commands:
       - "advisor --report=roofline --project-dir=./ --report-output=./roofline_${SLURM_JOB_ID}.html"
-      - "rm -rf *.advixeproj e000/"
+      - "grep -Po '(?<=\\(){(\"rooflineData\":.*?)(?=}\\)}catch)' roofline_${SLURM_JOB_ID}.html | sed 's/$/}/' | jq > ./roofline_${SLURM_JOB_ID}.json"
+      # - "rm -rf *.advixeproj e000/"
 
   "cpp-openmp":
     sbatch_config:
@@ -54,7 +55,8 @@ run_configurations:
     run_command: "advisor -collect roofline -project-dir ./ -- ./test_HPCCG"
     post_commands:
       - "advisor --report=roofline --project-dir=./ --report-output=./roofline_${SLURM_JOB_ID}.html"
-      - "rm -rf *.advixeproj e000/"
+      - "grep -Po '(?<=\\(){(\"rooflineData\":.*?)(?=}\\)}catch)' roofline_${SLURM_JOB_ID}.html | sed 's/$/}/' | jq > ./roofline_${SLURM_JOB_ID}.json"
+      # - "rm -rf *.advixeproj e000/"
 
   "rust-rayon":
     sbatch_config:
@@ -72,7 +74,8 @@ run_configurations:
     run_command: "advisor -collect roofline -project-dir ./ -- ./target/release/hpccg-rs"
     post_commands:
       - "advisor --report=roofline --project-dir=./ --report-output=./roofline_${SLURM_JOB_ID}.html"
-      - "rm -rf *.advixeproj e000/"
+      - "grep -Po '(?<=\\(){(\"rooflineData\":.*?)(?=}\\)}catch)' roofline_${SLURM_JOB_ID}.html | sed 's/$/}/' | jq > ./roofline_${SLURM_JOB_ID}.json"
+      # - "rm -rf *.advixeproj e000/"
 
 benches:
   "rooflines":
