@@ -6,8 +6,7 @@ run_configurations:
       "cpus-per-task": 32
       "exclusive": "mcs"
       "mem": 40000
-    module_loads:
-      - "GCC/11.3.0"
+    module_loads: []
     environment_variables: {}
     directory: "../0_cpp_versions/1_openmp"
     build_commands:
@@ -22,9 +21,7 @@ run_configurations:
       "cpus-per-task": 32
       "exclusive": "mcs"
       "mem": 40000
-    module_loads:
-      - "GCC/11.3.0"
-      - "Clang/13.0.1"
+    module_loads: []
     environment_variables: {}
     directory: "../6_parallel"
     build_commands:
@@ -36,8 +33,7 @@ run_configurations:
       "exclusive": "mcs"
       "mem": 40000
     module_loads:
-      - "GCC/11.3.0"
-      - "OpenMPI/4.1.4"
+      - "cs402-mpi"
     environment_variables: {}
     directory: "../0_cpp_versions/2_mpi"
     build_commands:
@@ -50,9 +46,7 @@ run_configurations:
       "exclusive": "mcs"
       "mem": 40000
     module_loads:
-      - "GCC/11.3.0"
-      - "Clang/13.0.1"
-      - "OpenMPI/4.1.4"
+      - "cs402-mpi"
     environment_variables: {}
     directory: "../7_mpi"
     build_commands:

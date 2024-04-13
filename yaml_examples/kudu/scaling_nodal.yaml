@@ -5,8 +5,7 @@ run_configurations:
       "exclusive": "mcs"
       "mem": 40000
     module_loads:
-      - "GCC/11.3.0"
-      - "OpenMPI/4.1.4"
+      - "cs402-mpi"
     environment_variables:
       "OMP_NUM_THREADS": 2
     directory: "../0_cpp_versions/3_hybrid"
@@ -21,9 +20,7 @@ run_configurations:
       "exclusive": "mcs"
       "mem": 40000
     module_loads:
-      - "GCC/11.3.0"
-      - "Clang/13.0.1"
-      - "OpenMPI/4.1.4"
+      - "cs402-mpi"
     environment_variables:
       "RAYON_NUM_THREADS": 2
     directory: "../8_hybrid"
