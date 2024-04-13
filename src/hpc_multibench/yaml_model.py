@@ -22,6 +22,7 @@ class RunConfigurationModel(BaseModel):
     build_commands: list[str]
     run_command: str
     args: str | None = None
+    post_commands: list[str] = []
 
     def realise(
         self,
@@ -36,6 +37,7 @@ class RunConfigurationModel(BaseModel):
         run.environment_variables = self.environment_variables
         run.directory = Path(self.directory)
         run.build_commands = self.build_commands
+        run.post_commands = self.post_commands
         run.args = self.args
         run.instantiation = instantiation
 

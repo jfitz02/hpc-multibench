@@ -32,6 +32,7 @@ class RunConfiguration:
         self.build_commands: list[str] = []
         self.pre_built: bool = False
         self.run_command: str = run_command
+        self.post_commands: list[str] = []
         self.args: str | None = None
         self.instantiation: dict[str, Any] | None = None
 
@@ -80,7 +81,14 @@ class RunConfiguration:
         sbatch_file += "echo\n"
 
         sbatch_file += "\necho '===== RUN ====='\n"
-        sbatch_file += f"{TIME_COMMAND}{self.run_command} {self.args}\n"
+        if self.args is None:
+            sbatch_file += f"{TIME_COMMAND}{self.run_command}\n"
+        else:
+            sbatch_file += f"{TIME_COMMAND}{self.run_command} {self.args}\n"
+
+        if len(self.post_commands) > 0:
+            sbatch_file += "\necho '===== POST RUN ====='\n"
+            sbatch_file += "\n".join(self.post_commands)
 
         return sbatch_file
 
