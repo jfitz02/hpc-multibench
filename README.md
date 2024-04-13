@@ -12,28 +12,51 @@ command line.
 
 ### Interactively reviewing sample results
 
-First, populate the `results/` directory with the run outputs to review. For
-example for the `parallelism` test plan in the `hpccg-rs-kudu-results` submodule:
+Using the `parallelism` test plan in the `hpccg-rs-kudu-results` submodule as
+an example, we can interactively view the data as follows:
 
 ```bash
-rm -rf results && mkdir results/
-rsync -av generated_results/hpccg-rs-kudu-results/ results/ --exclude=.git/
-poetry run python3 -m hpc_multibench -y results/_test_plans/parallelism.yaml interactive
+poetry run python3 -m hpc_multibench \
+    -y generated_results/hpccg-rs-kudu-results/_test_plans/parallelism.yaml \
+    -o generated_results/hpccg-rs-kudu-results/ \
+    interactive
 ```
 
 This will open a terminal-user interface allowing interactive visualisation of
 results. This is rendered inside the terminal, and as such does not require
 X-forwarding to be set up to present data and plot graphs.
 
+We can see the required `-y` flag being used to select the YAML file for the
+test plan, and the option `-o` flag to point to the directory containing the
+sample data. The `interactive` subcommand then runs the program in interactice
+mode.
+
 ### Dispatching runs
 
+On a system with Slurm installed, runs can be dispatched as follows:
+
 ```bash
+poetry run python3 -m hpc_multibench \
+    -y generated_results/hpccg-rs-kudu-results/_test_plans/parallelism.yaml \
+    record
 ```
+
+Since the `-o` flag is not specified here, it will default to writing out the
+files to a directory called `results/` at the root of the repository.
 
 ### Reviewing runs non-interactively
 
+Run results can also be viewed non-interactively as follows:
+
 ```bash
+poetry run python3 -m hpc_multibench \
+    -y generated_results/hpccg-rs-kudu-results/_test_plans/parallelism.yaml \
+    -o generated_results/hpccg-rs-kudu-results/ \
+    report
 ```
+
+This will open a sequence of matplotlib windows and write out any export data
+as specified within the YAML file.
 
 ## System requirements
 

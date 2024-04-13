@@ -418,7 +418,9 @@ class UserInterface(App[None]):
 
     def action_reload_test_plan(self) -> None:
         """Reload the test plan for the user interface."""
-        self.test_plan = TestPlan(self.test_plan.yaml_path)
+        self.test_plan = TestPlan(
+            self.test_plan.yaml_path, self.test_plan.base_output_directory
+        )
         self.initialise_test_plan_tree()
         self.update_all_tabs()
 

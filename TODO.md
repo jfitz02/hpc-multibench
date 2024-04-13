@@ -7,8 +7,8 @@
   - [x] Results analysis
     - [x] Result aggregation
     - [x] Result analysis
-    - [ ] Statistical re-runs
-  - [ ] YAML schema
+    - [x] Statistical re-runs
+  - [x] YAML schema
     - [x] Multiple nested arguments
     - [x] Pairwise arguments
     - [ ] Default groups for executables
@@ -25,12 +25,12 @@
         - Spawn runs for benches/individual executables
         - View results/analysis of runs
         - Modify YAML via inbuilt editor?
-      - [ ] Final plan
+      - [x] Final plan
         - [x] Tree-style bench hierarchy explorer
           - (is this useful? perhaps better as a list?)
         - [x] Listing argument variations for test bench
         - [x] Listing sbatch file contents for run configuration
         - [x] metric table for parent test bench (even when run config selected), requires improving analysis code
         - [x] metric plotting --"--
-        - [ ] run configuration/bench button to send off jobs to slurm
+        - [x] run configuration/bench button to send off jobs to slurm
         - [x] modal dialog to wait on slurm queue (could be an async function?)

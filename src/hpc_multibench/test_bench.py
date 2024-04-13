@@ -28,7 +28,6 @@ from hpc_multibench.run_configuration import RunConfiguration, get_queued_job_id
 from hpc_multibench.uncertainties import UFloat, ufloat
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
 
-BASE_OUTPUT_DIRECTORY = Path("results/")
 DRY_RUN_SEPARATOR = "\n\n++++++++++\n\n\n"
 
 
@@ -74,11 +73,13 @@ class TestBench:
         name: str,
         run_configuration_models: dict[str, RunConfigurationModel],
         bench_model: BenchModel,
+        base_output_directory: Path,
     ) -> None:
         """Instantiate the test bench."""
         self.name = name
         self.run_configuration_models = run_configuration_models
         self.bench_model = bench_model
+        self.base_output_directory = base_output_directory
 
         # Validate that all configurations named in the test bench are defined
         # in the test plan
@@ -92,7 +93,7 @@ class TestBench:
     @property
     def output_directory(self) -> Path:
         """Get the output directory for the test bench."""
-        return BASE_OUTPUT_DIRECTORY / self.name
+        return self.base_output_directory / self.name
 
     @property
     def instantiations(self) -> list[dict[str, Any]]:

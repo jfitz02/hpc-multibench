@@ -8,6 +8,8 @@ from pathlib import Path
 from hpc_multibench.test_plan import TestPlan
 from hpc_multibench.tui.interactive_ui import UserInterface
 
+DEFAULT_BASE_OUTPUTS_DIRECTORY = Path("results/")
+
 
 def get_parser() -> ArgumentParser:  # pragma: no cover
     """Get the argument parser for the tool."""
@@ -21,6 +23,13 @@ def get_parser() -> ArgumentParser:  # pragma: no cover
         "--yaml-path",
         required=True,
         type=Path,
+        help="the path to the configuration YAML file",
+    )
+    parser.add_argument(
+        "-o",
+        "--outputs-directory",
+        type=Path,
+        default=DEFAULT_BASE_OUTPUTS_DIRECTORY,
         help="the path to the configuration YAML file",
     )
 
@@ -60,7 +69,7 @@ def get_parser() -> ArgumentParser:  # pragma: no cover
 def main() -> None:  # pragma: no cover
     """Run the tool."""
     args = get_parser().parse_args()
-    test_plan = TestPlan(args.yaml_path)
+    test_plan = TestPlan(args.yaml_path, args.outputs_directory)
 
     if args.command == "record":
         test_plan.record_all(args)

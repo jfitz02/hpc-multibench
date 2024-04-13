@@ -13,9 +13,11 @@ from hpc_multibench.yaml_model import TestPlanModel
 class TestPlan:
     """The test plan defined from YAML for a tool run."""
 
-    def __init__(self, yaml_path: Path) -> None:
+    def __init__(self, yaml_path: Path, base_output_directory: Path) -> None:
         """Instantiate the test plan from a YAML file."""
         self.yaml_path = yaml_path
+        self.base_output_directory = base_output_directory
+
         test_plan_model = TestPlanModel.from_yaml(yaml_path)
         self.benches = [
             TestBench(
@@ -26,6 +28,7 @@ class TestPlan:
                     if name in bench_model.run_configurations
                 },
                 bench_model=bench_model,
+                base_output_directory=base_output_directory,
             )
             for bench_name, bench_model in test_plan_model.benches.items()
         ]
