@@ -1,5 +1,6 @@
 ### Project specific ignores
 results*/
+discard_*/
 src_bak
 
 ### Python ignores
