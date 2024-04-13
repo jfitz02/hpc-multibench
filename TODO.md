@@ -3,7 +3,7 @@
   - [x] Run constructed sbatch files
   - [x] Ingest YAML of schema
   - [x] Generate sbatch files from YAML
-- [ ] Improvements
+- [x] Improvements
   - [x] Results analysis
     - [x] Result aggregation
     - [x] Result analysis
@@ -34,3 +34,4 @@
         - [x] metric plotting --"--
         - [x] run configuration/bench button to send off jobs to slurm
         - [x] modal dialog to wait on slurm queue (could be an async function?)
+          - [ ] Add cancel button
