@@ -37,7 +37,7 @@ class RunConfiguration:
         self.instantiation: dict[str, Any] | None = None
 
     @property
-    def sbatch_contents(self) -> str:
+    def sbatch_contents(self) -> str:  # noqa: C901
         """Construct the sbatch configuration for the run."""
         sbatch_file = SHELL_SHEBANG
 
