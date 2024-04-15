@@ -10,13 +10,24 @@ HPC batch compute jobs via Slurm from a convenient YAML format.
 The following sections describe how to use the HPC MultiBench tool from the
 command line.
 
+### Installation
+
+To install the tool, clone and navigate to the repository, then use poetry to
+create a virtual environment as follows:
+
+```bash
+git clone https://github.com/EdmundGoodman/hpc-multibench
+cd hpc-multibench
+poetry install --without docs,test,dev
+```
+
 ### Interactively reviewing sample results
 
 Using the `parallelism` test plan in the `hpccg-rs-kudu-results` submodule as
 an example, we can interactively view the data as follows:
 
 ```bash
-poetry run python3 -m hpc_multibench \
+poetry run hpc-multibench \
     -y generated_results/hpccg-rs-kudu-results/_test_plans/parallelism.yaml \
     -o generated_results/hpccg-rs-kudu-results/ \
     interactive
@@ -36,7 +47,7 @@ mode.
 On a system with Slurm installed, runs can be dispatched as follows:
 
 ```bash
-poetry run python3 -m hpc_multibench \
+poetry run hpc-multibench \
     -y generated_results/hpccg-rs-kudu-results/_test_plans/parallelism.yaml \
     record
 ```
@@ -49,7 +60,7 @@ files to a directory called `results/` at the root of the repository.
 Run results can also be viewed non-interactively as follows:
 
 ```bash
-poetry run python3 -m hpc_multibench \
+poetry run hpc-multibench \
     -y generated_results/hpccg-rs-kudu-results/_test_plans/parallelism.yaml \
     -o generated_results/hpccg-rs-kudu-results/ \
     report
