@@ -14,10 +14,14 @@ use_directory_urls: false
 
 nav:
   - Home: index.md
-  - Quickstart: quickstart.md
+  - Quick start: quickstart.md
   - Manual: manual.md
   - Reference:
-      - Tool: reference/main.md
+      - Main: reference/main.md
+      - YAML model: reference/yaml_model.md
+      - Test bench: reference/test_bench.md
+      - Run configuration: reference/run_configuration.md
+      - Roofline model: reference/roofline_model.md
   - Contributing: contributing.md
 
 theme:
@@ -70,8 +74,8 @@ markdown_extensions:
   - pymdownx.caret
   - pymdownx.details
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       linenums: true
       anchor_linenums: true
