@@ -3,56 +3,27 @@ hide:
   - navigation
 ---
 
-# Introduction
+# HPC Multibench
 
-`hpc-multibench` is a Python tool to define and run HPC batch compute jobs via Slurm from a convenient YAML format.
+> A Swiss army knife for comparing programs on HPC resources.
 
-# Usage
+`hpc-multibench` is a Python tool to run, aggregate, and analyse metrics about
+HPC batch compute jobs via Slurm from a convenient YAML format.
 
-```
-usage: __main__.py [-h] -y YAML_PATH {record,interactive,report} ...
+## Killer features
 
-A tool to spawn and analyse HPC jobs.
+- [x] Define experiments from a convenient YAML file
+- [x] Support for zero effort re-runs of experiments, with aggregation for
+      uncertainty calculations and error bars
+- [x] Simple metric extraction and graph plotting from run results
+- [x] Rendered entirely in the terminal -- including graph plotting capabilities;
+      no need to set up X-forwarding!
 
-positional arguments:
-  {record,interactive,report}
-    record              record data from running the test benches
-    interactive         show the interactive TUI
-    report              report analysis about completed test bench runs
+## System requirements
 
-options:
-  -h, --help            show this help message and exit
-  -y YAML_PATH, --yaml-path YAML_PATH
-                        the path to the configuration YAML file
-```
+Due to the libraries for parsing the YAML schema, Python >=3.10 is required.
 
-## `record` subcommand
-
-```
-usage: __main__.py record [-h] [-d] [-w] [-nc]
-
-options:
-  -h, --help         show this help message and exit
-  -d, --dry-run      print but don't submit the generated sbatch files
-  -w, --wait         wait for the submitted jobs to finish to exit
-  -nc, --no-clobber  don't delete any previous run results of the test benches
-```
-
-## `report` subcommand
-
-```
-usage: __main__.py report [-h]
-
-options:
-  -h, --help  show this help message and exit
-```
-
-## `interactive` subcommand
-
-```
-usage: __main__.py interactive [-h] [-nc]
-
-options:
-  -h, --help         show this help message and exit
-  -nc, --no-clobber  don't delete any previous run results of the test benches
-```
+Since this tool uses Slurm to dispatch, the system must have Slurm installed
+in order to use the `record` functionality to dispatch runs. However, it can
+be used on systems without Slurm to view and analyse existing run files, using
+the `report` functionality.
