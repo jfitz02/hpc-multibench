@@ -16,12 +16,14 @@ nav:
   - Home: index.md
   - Quick start: quickstart.md
   - Manual: manual.md
+  - YAML schema: yaml_schema.md
   - Reference:
       - Main: reference/main.md
       - YAML model: reference/yaml_model.md
       - Test bench: reference/test_bench.md
       - Run configuration: reference/run_configuration.md
       - Roofline model: reference/roofline_model.md
+  - Gallery: gallery.md
   - Contributing: contributing.md
 
 theme:
@@ -57,7 +59,9 @@ markdown_extensions:
   # Inbuilt extensions
   # https://python-markdown.github.io/extensions/
   - admonition
+  - attr_list
   - footnotes
+  - md_in_html
   - meta
   - sane_lists
   - smarty

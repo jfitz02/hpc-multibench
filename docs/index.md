@@ -15,7 +15,8 @@ HPC batch compute jobs via Slurm from a convenient YAML format.
 - [x] Define experiments from a convenient YAML file
 - [x] Support for zero effort re-runs of experiments, with aggregation for
       uncertainty calculations and error bars
-- [x] Simple metric extraction and graph plotting from run results
+- [x] Simple metric extraction and graph plotting from run results, including
+      line, bar and roofline plots
 - [x] Rendered entirely in the terminal -- including graph plotting capabilities;
       no need to set up X-forwarding!
 

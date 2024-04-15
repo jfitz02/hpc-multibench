@@ -14,7 +14,7 @@ To install the tool, clone and navigate to the repository, then use poetry to
 create a virtual environment as follows:
 
 ```bash
-git clone https://github.com/EdmundGoodman/hpc-multibench
+git clone --recurse-submodules -j8 https://github.com/EdmundGoodman/hpc-multibench
 cd hpc-multibench
 poetry install --without docs,test,dev
 ```

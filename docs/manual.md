@@ -5,6 +5,11 @@ hide:
 
 # Manual
 
+When the `hpc-multibench` tool and its subcommands are invoked with the `-h` or
+`--help` flags, the following help pages are displayed.
+
+## Top-level help page
+
 ```
 usage: __main__.py [-h] -y YAML_PATH [-o OUTPUTS_DIRECTORY] {record,interactive,report} ...
 
@@ -24,7 +29,7 @@ options:
                         the path to the configuration YAML file
 ```
 
-## `record` subcommand
+## `record` subcommand help page
 
 ```
 usage: __main__.py record [-h] [-d] [-w] [-nc]
@@ -36,7 +41,7 @@ options:
   -nc, --no-clobber  don't delete any previous run results of the test benches
 ```
 
-## `report` subcommand
+## `report` subcommand help page
 
 ```
 usage: __main__.py report [-h]
@@ -45,7 +50,7 @@ options:
   -h, --help  show this help message and exit
 ```
 
-## `interactive` subcommand
+## `interactive` subcommand help page
 
 ```
 usage: __main__.py interactive [-h] [-nc]
