@@ -36,6 +36,8 @@ def export_data(
         print(export_df.to_string())
     elif plot.export_format == "csv":
         export_df.to_csv(plot.export_path)
+    elif plot.export_format == "latex":
+        export_df.to_latex(plot.export_path)
     else:
         raise NotImplementedError(
             f"Export format '{plot.export_format}' not supported!"
