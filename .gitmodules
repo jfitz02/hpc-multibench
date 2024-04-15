@@ -4,9 +4,6 @@
 [submodule "generated_results/hpccg-rs-kudu-results"]
 	path = generated_results/hpccg-rs-kudu-results
 	url = https://github.com/EdmundGoodman/hpccg-rs-kudu-results
-[submodule "generated_results/hpccg-rs-athena-results"]
-	path = generated_results/hpccg-rs-athena-results
-	url = https://github.com/EdmundGoodman/hpccg-rs-athena-results
 [submodule "generated_results/eurocc_cfd-kudu-results"]
 	path = generated_results/eurocc_cfd-kudu-results
 	url = https://github.com/EdmundGoodman/eurocc_cfd-kudu-results
