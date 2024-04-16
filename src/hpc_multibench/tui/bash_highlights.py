@@ -8,6 +8,11 @@ https://github.com/nvim-treesitter/nvim-treesitter/blob/f95ffd09ed35880c3a46ad2b
 
 Which is aligned with the approach taken for Textual builtin languages, for example:
 https://github.com/Textualize/textual/blob/main/src/textual/tree-sitter/highlights/python.scm
+
+The Nvim treesitter library from which this is derived is licensed under the
+Apache 2.0 license, which allows modification and distribution for both public
+and private use. The original version of the grammar used was written by
+TravonteD on GitHub.
 """
 
 BASH_HIGHLIGHTS = """

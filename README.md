@@ -71,7 +71,8 @@ as specified within the YAML file.
 
 ## System requirements
 
-Due to the libraries for parsing the YAML schema, Python >=3.10 is required.
+Due to the libraries for parsing the YAML schema, a Python installation of
+version greater than 3.10 is required.
 
 Since this tool uses Slurm to dispatch, the system must have Slurm installed
 in order to use the `record` functionality to dispatch runs. However, it can
