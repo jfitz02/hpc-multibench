@@ -96,7 +96,10 @@ def get_bar_chart_data(
         fix_names: list[str] = [
             f"{metric}={value}" for metric, value in plot.fix_metrics.items()
         ]
-        series_name = ", ".join([run_configuration.name, *fix_names, *split_names])
+        series_identifier = ", ".join(
+            [run_configuration.name, *fix_names, *split_names]
+        )
+
         if any(
             metrics[metric] != str(value) for metric, value in plot.fix_metrics.items()
         ):
@@ -106,12 +109,19 @@ def get_bar_chart_data(
             hue_index_lookup[run_configuration.name] = new_hue_index
             new_hue_index += 1
 
-        (y_value, y_err) = split_metric_uncertainty(metrics, plot.y)
-        data[series_name] = (
-            y_value,
-            y_err,
-            hue_index_lookup[run_configuration.name],
-        )
+        y_metrics = plot.y if isinstance(plot.y, list) else [plot.y]
+        for y_metric in y_metrics:
+            series_name = (
+                f"{y_metric}, {series_identifier}"
+                if isinstance(plot.y, list)
+                else series_identifier
+            )
+            (y_value, y_err) = split_metric_uncertainty(metrics, y_metric)
+            data[series_name] = (
+                y_value,
+                y_err,
+                hue_index_lookup[run_configuration.name],
+            )
     return data
 
 

@@ -75,7 +75,7 @@ class BarChartModel(BaseModel):
     """A Pydantic model for a bar chart of a single variable."""
 
     title: str
-    y: str
+    y: str | list[str]
     split_metrics: list[str] = []
     fix_metrics: dict[str, Any] = {}
     y_log: bool = False
