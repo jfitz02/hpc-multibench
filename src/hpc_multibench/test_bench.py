@@ -25,7 +25,7 @@ from hpc_multibench.plot.plot_matplotlib import (
     draw_roofline_plot,
 )
 from hpc_multibench.run_configuration import RunConfiguration, get_queued_job_ids
-from hpc_multibench.uncertainties import UFloat, ufloat
+from hpc_multibench.uncertainties import UFloat
 from hpc_multibench.yaml_model import BenchModel, RunConfigurationModel
 
 DRY_RUN_SEPARATOR = "\n\n++++++++++\n\n\n"
@@ -343,57 +343,6 @@ class TestBench:
             run_metrics.append(rerun_metrics)
         return run_metrics
 
-    def calculate_derived_metrics(
-        self, run_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]]
-    ) -> list[dict[int, tuple[RunConfiguration, dict[str, str]]]]:
-        """Calculate derived metrics from definitions in the YAML file."""
-        derived_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]] = []
-
-        # TODO: Support for more aggressive meta-programming in derived quantities,
-        # scaling different run configurations against each other
-        all_metrics: dict[str, dict[str, dict[str, str]]] = {}
-        for rerun_group in run_metrics:
-            for rerun_count, (_job_id, (run_configuration, metrics)) in enumerate(
-                rerun_group.items()
-            ):
-                instantiation_rerun = f"{run_configuration.instantiation}_{rerun_count}"
-                if instantiation_rerun not in all_metrics:
-                    all_metrics[instantiation_rerun] = {}
-                if run_configuration.name not in all_metrics:
-                    all_metrics[instantiation_rerun][run_configuration.name] = {}
-
-                for metric, value in metrics.items():
-                    # print(instantiation_rerun, run_configuration.name, metric, value)
-                    all_metrics[instantiation_rerun][run_configuration.name][
-                        metric
-                    ] = value
-
-        for rerun_group in run_metrics:
-            derived_run_configuration_data: dict[
-                int, tuple[RunConfiguration, dict[str, str]]
-            ] = {}
-            for rerun_count, (job_id, (run_configuration, metrics)) in enumerate(
-                rerun_group.items()
-            ):
-
-                # Present a sane data structure for accessing other run configurations
-                # Comparisons are made instantiation-wise, so elise that variable
-                #
-                # Access metrics with corresponding run instantiations
-                # corresponding_metrics[run_config_name][metric] = value
-                instantiation_rerun = f"{run_configuration.instantiation}_{rerun_count}"
-                _corresponding_metrics = all_metrics[instantiation_rerun]
-
-                for (
-                    metric,
-                    derivation,
-                ) in self.bench_model.analysis.derived_metrics.items():
-                    metrics[metric] = eval(derivation)  # nosec: B307 # noqa: S307
-                derived_run_configuration_data[job_id] = (run_configuration, metrics)
-            derived_metrics.append(derived_run_configuration_data)
-
-        return derived_metrics
-
     def aggregate_run_metrics(  # noqa: C901
         self, run_metrics: list[dict[int, tuple[RunConfiguration, dict[str, str]]]]
     ) -> list[tuple[RunConfiguration, dict[str, str | UFloat]]]:
@@ -449,7 +398,7 @@ class TestBench:
                     if reruns_model.undiscarded_number >= 2  # noqa: PLR2004
                     else 0.0
                 )
-                aggregated_metrics[metric] = ufloat(metric_mean, metric_stdev)
+                aggregated_metrics[metric] = UFloat(metric_mean, metric_stdev)
 
             # Update the metrics
             if canonical_run_configuration is not None:
@@ -459,7 +408,7 @@ class TestBench:
 
         return all_aggregated_metrics
 
-    def calculate_derived_metrics_new(
+    def calculate_derived_metrics(
         self, input_metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]]
     ) -> list[tuple[RunConfiguration, dict[str, str | UFloat]]]:
         """Calculate derived metrics from definitions in the YAML file."""
@@ -474,12 +423,9 @@ class TestBench:
                 continue
             if run_configuration.name not in instantiation_numbers:
                 instantiation_numbers[run_configuration.name] = {}
-            instantation_key = RunConfiguration.get_instantiation_repr(
-                run_configuration.instantiation
-            )
             instantiation_number = len(instantiation_numbers[run_configuration.name])
             instantiation_numbers[run_configuration.name][
-                instantation_key
+                RunConfiguration.get_instantiation_repr(run_configuration.instantiation)
             ] = instantiation_number
 
             if run_configuration.name not in all_metrics:
@@ -489,13 +435,12 @@ class TestBench:
         for run_configuration, metrics in input_metrics:
             if run_configuration.instantiation is None:
                 continue
-            instantation_key = RunConfiguration.get_instantiation_repr(
-                run_configuration.instantiation
-            )
             instantiation_number = instantiation_numbers[run_configuration.name][
-                instantation_key
+                RunConfiguration.get_instantiation_repr(run_configuration.instantiation)
             ]
 
+            # Present a helpful data structure for accessing other run configurations
+            # Comparisons are made instantiation-wise, so elise that variable
             # {"run configuration name": {"metric": "value"}}
             _corresponding_metrics: dict[str, dict[str, str | UFloat]] = {
                 run_configuration_name: instantiation_metrics
@@ -520,7 +465,7 @@ class TestBench:
             ) in self.bench_model.analysis.derived_metrics.items():
                 value = eval(derivation)  # nosec: B307 # noqa: S307
                 if not isinstance(value, str):
-                    value = ufloat(value.nominal_value, value.std_dev)
+                    value = UFloat(value.nominal_value, value.std_dev)
                 metrics[metric] = value
             output_metrics.append((run_configuration, metrics))
 
@@ -534,7 +479,7 @@ class TestBench:
 
         run_metrics = self.get_run_metrics(run_outputs)
         aggregated_metrics = self.aggregate_run_metrics(run_metrics)
-        derived_metrics = self.calculate_derived_metrics_new(aggregated_metrics)
+        derived_metrics = self.calculate_derived_metrics(aggregated_metrics)
 
         # Draw the specified plots
         for line_plot in self.bench_model.analysis.line_plots:

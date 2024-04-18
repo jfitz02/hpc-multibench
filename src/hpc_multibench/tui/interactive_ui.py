@@ -340,8 +340,8 @@ class UserInterface(App[None]):
         if run_outputs is None:
             return None
         run_metrics = self.current_test_bench.get_run_metrics(run_outputs)
-        derived_metrics = self.current_test_bench.calculate_derived_metrics(run_metrics)
-        return self.current_test_bench.aggregate_run_metrics(derived_metrics)
+        aggregated_metrics = self.current_test_bench.aggregate_run_metrics(run_metrics)
+        return self.current_test_bench.calculate_derived_metrics(aggregated_metrics)
 
     def update_metrics_tab(self) -> None:
         """Update the metrics tab of the user interface."""

@@ -7,21 +7,9 @@ from uncertainties.core import Variable
 
 
 class UFloat(Variable):  # type: ignore[misc]
-    """A wrapper class for floating point numbers with uncertainties."""
-
-    def __str__(self) -> str:
-        """Modify the default implementation of stringify-ing the class."""
-        return super().__str__().replace("+/-", " ± ")  # type: ignore[no-any-return]
-
-
-def ufloat(
-    nominal_value: float, std_dev: float | None = None, tag: str | None = None
-) -> UFloat:
-    """
-    Return a new random variable.
+    """A wrapper class for floating point numbers with uncertainties.
 
     Args:
-    ----
         nominal_value: The nominal value of the random variable. It is
             more meaningful to use a value close to the central value or to the
             mean. This value is propagated by mathematical operations as if it
@@ -33,9 +21,12 @@ def ufloat(
             Variables don't have to have distinct tags. Tags are useful for
             tracing what values (and errors) enter in a given result (through
             the `error_components()` method). Defaults to None.
-
-    Returns:
-    -------
-        UFloat: A new random variable.
     """
-    return UFloat(nominal_value, std_dev, tag=tag)
+
+    nominal_value: float
+    std_dev: float | None
+    tag: str | None
+
+    def __str__(self) -> str:
+        """Modify the default implementation of stringify-ing the class."""
+        return super().__str__().replace("+/-", " ± ")  # type: ignore[no-any-return]
