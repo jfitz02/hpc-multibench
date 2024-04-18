@@ -459,6 +459,73 @@ class TestBench:
 
         return all_aggregated_metrics
 
+    def calculate_derived_metrics_new(
+        self, input_metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]]
+    ) -> list[tuple[RunConfiguration, dict[str, str | UFloat]]]:
+        """Calculate derived metrics from definitions in the YAML file."""
+        output_metrics: list[tuple[RunConfiguration, dict[str, str | UFloat]]] = []
+
+        # {"run configuration name" : {"run configuration name": {"instantation string": "instantation number"}}}
+        instantiation_numbers: dict[str, dict[str, int]] = {}
+        # {"run configuration name" : {"instantation #": {"metric": "value"}}}
+        all_metrics: dict[str, dict[int, dict[str, str | UFloat]]] = {}
+        for run_configuration, metrics in input_metrics:
+            if run_configuration.instantiation is None:
+                continue
+            if run_configuration.name not in instantiation_numbers:
+                instantiation_numbers[run_configuration.name] = {}
+            instantation_key = RunConfiguration.get_instantiation_repr(
+                run_configuration.instantiation
+            )
+            instantiation_number = len(instantiation_numbers[run_configuration.name])
+            instantiation_numbers[run_configuration.name][
+                instantation_key
+            ] = instantiation_number
+
+            if run_configuration.name not in all_metrics:
+                all_metrics[run_configuration.name] = {}
+            all_metrics[run_configuration.name][instantiation_number] = metrics
+
+        for run_configuration, metrics in input_metrics:
+            if run_configuration.instantiation is None:
+                continue
+            instantation_key = RunConfiguration.get_instantiation_repr(
+                run_configuration.instantiation
+            )
+            instantiation_number = instantiation_numbers[run_configuration.name][
+                instantation_key
+            ]
+
+            # {"run configuration name": {"metric": "value"}}
+            _corresponding_metrics: dict[str, dict[str, str | UFloat]] = {
+                run_configuration_name: instantiation_metrics
+                for (
+                    run_configuration_name,
+                    run_configuration_metrics,
+                ) in all_metrics.items()
+                for (
+                    iter_instantiation_number,
+                    instantiation_metrics,
+                ) in run_configuration_metrics.items()
+                if instantiation_number == iter_instantiation_number
+            }
+            # {"instantiation #": {"metric": "value"}}
+            _sequential_metrics: dict[int, dict[str, str | UFloat]] = all_metrics[
+                run_configuration.name
+            ]
+
+            for (
+                metric,
+                derivation,
+            ) in self.bench_model.analysis.derived_metrics.items():
+                value = eval(derivation)  # nosec: B307 # noqa: S307
+                if not isinstance(value, str):
+                    value = ufloat(value.nominal_value, value.std_dev)
+                metrics[metric] = value
+            output_metrics.append((run_configuration, metrics))
+
+        return output_metrics
+
     def report(self) -> None:
         """Analyse completed run configurations for the test bench."""
         run_outputs = self.get_run_outputs()
@@ -466,26 +533,26 @@ class TestBench:
             return
 
         run_metrics = self.get_run_metrics(run_outputs)
-        derived_metrics = self.calculate_derived_metrics(run_metrics)
-        aggregated_metrics = self.aggregate_run_metrics(derived_metrics)
+        aggregated_metrics = self.aggregate_run_metrics(run_metrics)
+        derived_metrics = self.calculate_derived_metrics_new(aggregated_metrics)
 
         # Draw the specified plots
         for line_plot in self.bench_model.analysis.line_plots:
             if not line_plot.enabled:
                 continue
-            draw_line_plot(line_plot, aggregated_metrics)
+            draw_line_plot(line_plot, derived_metrics)
 
         for bar_chart in self.bench_model.analysis.bar_charts:
             if not bar_chart.enabled:
                 continue
-            draw_bar_chart(bar_chart, aggregated_metrics)
+            draw_bar_chart(bar_chart, derived_metrics)
 
         for roofline_plot in self.bench_model.analysis.roofline_plots:
             if not roofline_plot.enabled:
                 continue
-            draw_roofline_plot(roofline_plot, aggregated_metrics)
+            draw_roofline_plot(roofline_plot, derived_metrics)
 
         for export_schema in self.bench_model.analysis.data_exports:
             if not export_schema.enabled:
                 continue
-            export_data(export_schema, aggregated_metrics)
+            export_data(export_schema, derived_metrics)

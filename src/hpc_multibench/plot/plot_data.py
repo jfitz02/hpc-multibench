@@ -17,7 +17,6 @@ def split_metric_uncertainty(
     value = metrics[metric]
     if isinstance(value, UFloat):
         return (value.nominal_value, value.std_dev)
-    # TODO: Add error message explaining which metric key can't be cast
     return (float(value), None)
 
 
