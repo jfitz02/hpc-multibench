@@ -464,7 +464,7 @@ class TestBench:
                 derivation,
             ) in self.bench_model.analysis.derived_metrics.items():
                 value = eval(derivation)  # nosec: B307 # noqa: S307
-                if not isinstance(value, str):
+                if hasattr(value, "nominal_value") and hasattr(value, "std_dev"):
                     value = UFloat(value.nominal_value, value.std_dev)
                 metrics[metric] = value
             output_metrics.append((run_configuration, metrics))
