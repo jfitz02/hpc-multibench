@@ -36,7 +36,9 @@ def get_line_plot_data(
         fix_names: list[str] = [
             f"{metric}={value}" for metric, value in plot.fix_metrics.items()
         ]
-        series_name = ", ".join([run_configuration.name, *fix_names, *split_names])
+        series_identifier = ", ".join(
+            [run_configuration.name, *fix_names, *split_names]
+        )
 
         if any(
             metrics[metric] != str(value) for metric, value in plot.fix_metrics.items()
@@ -44,10 +46,18 @@ def get_line_plot_data(
             continue
 
         (x_value, x_err) = split_metric_uncertainty(metrics, plot.x)
-        (y_value, y_err) = split_metric_uncertainty(metrics, plot.y)
-        if series_name not in data:
-            data[series_name] = []
-        data[series_name].append((x_value, y_value, x_err, y_err))
+
+        y_metrics = plot.y if isinstance(plot.y, list) else [plot.y]
+        for y_metric in y_metrics:
+            series_name = (
+                f"{y_metric}, {series_identifier}"
+                if isinstance(plot.y, list)
+                else series_identifier
+            )
+            (y_value, y_err) = split_metric_uncertainty(metrics, y_metric)
+            if series_name not in data:
+                data[series_name] = []
+            data[series_name].append((x_value, y_value, x_err, y_err))
 
     # Further reshape the data into convenient data series
     reshaped_data: dict[

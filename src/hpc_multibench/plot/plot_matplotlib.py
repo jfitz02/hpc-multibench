@@ -36,7 +36,10 @@ def draw_line_plot(
         )
     plt.legend()
     plt.xlabel(plot.x)
-    plt.ylabel(plot.y)
+    if isinstance(plot.y, list):
+        plt.ylabel(" | ".join(plot.y))
+    else:
+        plt.ylabel(plot.y)
     plt.title(plot.title)
     if plot.x_lim is not None:
         plt.xlim(plot.x_lim)

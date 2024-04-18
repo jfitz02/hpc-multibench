@@ -30,7 +30,10 @@ def draw_line_plot(
         this_plt.plot(x, y, marker=PLOTEXT_MARKER, label=name)
     this_plt.theme(PLOTEXT_THEME)
     this_plt.xlabel(plot.x)
-    this_plt.ylabel(plot.y)
+    if isinstance(plot.y, list):
+        this_plt.ylabel(" | ".join(plot.y))
+    else:
+        this_plt.ylabel(plot.y)
     this_plt.ylim(0)
     if plot.x_log:
         this_plt.xscale("log")

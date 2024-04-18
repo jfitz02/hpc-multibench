@@ -61,7 +61,7 @@ class LinePlotModel(BaseModel):
 
     title: str
     x: str
-    y: str
+    y: str | list[str]
     split_metrics: list[str] = []
     fix_metrics: dict[str, Any] = {}
     x_log: bool = False
