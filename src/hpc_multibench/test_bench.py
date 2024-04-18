@@ -274,7 +274,8 @@ class TestBench:
             if metric_search is None:
                 return None
             # TODO: Support multiple groups by lists as keys?
-            metrics[metric] = metric_search.group(1)
+            # NOTE: Strip commas to make it possible to parse numbers
+            metrics[metric] = metric_search.group(1).replace(",", "")
         return metrics
 
     def get_run_outputs(
