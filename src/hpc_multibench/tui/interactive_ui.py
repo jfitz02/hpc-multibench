@@ -421,7 +421,12 @@ class UserInterface(App[None]):
             *self.current_test_bench.bench_model.analysis.bar_charts,
             *self.current_test_bench.bench_model.analysis.roofline_plots,
         ]
-        return all_plot_models[self.current_plot_index % len(all_plot_models)]
+        enabled_plot_models = [
+            plot_model for plot_model in all_plot_models if plot_model.enabled
+        ]
+        if len(enabled_plot_models) == 0:
+            return None
+        return enabled_plot_models[self.current_plot_index % len(enabled_plot_models)]
 
     def action_reload_test_plan(self) -> None:
         """Reload the test plan for the user interface."""
