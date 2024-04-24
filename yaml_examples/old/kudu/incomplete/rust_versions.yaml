@@ -1,2 +1,0 @@
-# Run all the Rust versions against each other, including compilers/kokkos/cmake port
-# Medium-low priority, since shows evolution of Rust performance through techniques
