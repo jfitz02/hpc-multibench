@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Reference
 
 ::: hpc_multibench.tui.interactive_ui

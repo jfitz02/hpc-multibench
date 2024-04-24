@@ -43,7 +43,6 @@ theme:
     #  - navigation.tracking
     - search.highlight
     - search.suggest
-    - toc.follow
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -102,15 +101,14 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          selection:
-            filters:
-              - "!UFloat" # Ignore strange type wrapper causing warnings
           options:
             docstring_style: google
             members_order: source
             show_root_heading: true
             show_root_full_path: false
             show_signature_annotations: true
+            filters:
+              - "!UFloat" # Ignore strange type wrapper causing warnings
 
 extra:
   social:
