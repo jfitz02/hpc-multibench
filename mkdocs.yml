@@ -22,6 +22,8 @@ nav:
       - YAML model: reference/yaml_model.md
       - Test bench: reference/test_bench.md
       - Run configuration: reference/run_configuration.md
+      - Plotting submodule: reference/plot.md
+      - TUI submodule: reference/tui.md
       - Roofline model: reference/roofline_model.md
   - Gallery: gallery.md
   - Contributing: contributing.md
@@ -100,6 +102,9 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
+          selection:
+            filters:
+              - "!UFloat" # Ignore strange type wrapper causing warnings
           options:
             docstring_style: google
             members_order: source

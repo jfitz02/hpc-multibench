@@ -63,6 +63,13 @@ run: .venv/
 
 
 ### Documentation ###
+.PHONY: uml
+uml: .venv/
+	@echo "Generating UML diagrams"
+	@cd docs/assets/images/ &&\
+		rm -rf uml && mkdir uml/ && cd uml/ &&\
+		poetry run pyreverse -o png -p hpc-multibench ../../../../src/hpc_multibench
+
 .PHONY: docs
 docs: .venv/
 	@echo "Generating documentation:"

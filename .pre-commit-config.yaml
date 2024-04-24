@@ -5,6 +5,7 @@ repos:
     hooks:
       # Git checks
       - id: check-added-large-files
+        args: ["--maxkb", "1000"]
       # - id: no-commit-to-branch
       - id: check-merge-conflict
       # General file checks
