@@ -11,7 +11,10 @@
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/site" />
     </content>
-    <orderEntry type="jdk" jdkName="Poetry (pyproject_template)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.11 (hpc-multibench)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+  <component name="SonarLintModuleSettings">
+    <option name="uniqueId" value="2b631ee9-5fa0-4081-a10d-e1e8cbcba8bb" />
   </component>
 </module>

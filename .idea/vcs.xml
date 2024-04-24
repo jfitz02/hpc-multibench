@@ -2,5 +2,11 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/generated_results/eurocc_cfd-kudu-results" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/generated_results/eurocc_cfd-kudu-results/eurocc_cfd" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/generated_results/hpccg-rs-avon-results" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/generated_results/hpccg-rs-avon-results/hpccg-rs" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/generated_results/hpccg-rs-kudu-results" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/generated_results/hpccg-rs-kudu-results/hpccg-rs" vcs="Git" />
   </component>
 </project>
