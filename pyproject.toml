@@ -23,14 +23,8 @@ argparse = "^1.4.0"
 uncertainties = "^3.1.7"
 
 [tool.poetry.group.dev.dependencies]
-#black = "^23.7.0"
-#isort = "^5.12.0"
 pre-commit = "^2.20.0"
 pre-commit-hooks = "^4.3.0"
-#bandit = "^1.7.5"
-#mypy = "^1.4.1"
-#vulture = "^2.7"
-#ruff = "^0.0.277"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"
@@ -39,10 +33,11 @@ coverage = "^7.2.7"
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.1.18"
 mkdocstrings = { extras = ["python"], version = "^0.20.0" }
+erdantic = "^1.0.2"
+pylint = "^3.1.0"
 # mike = "^1.1.2"
 
 [tool.poetry.group.tui.dependencies]
-# textual = "^0.51.0"
 textual = { extras = ["syntax"], version = "^0.51.0" }
 textual-plotext = "^0.2.1"
 tree-sitter-languages = "==1.10.2"  # Pin for security, to avoid re-auditing

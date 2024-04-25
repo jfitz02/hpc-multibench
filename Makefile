@@ -67,11 +67,16 @@ run: .venv/
 uml: .venv/
 	@echo "Generating UML diagrams"
 	@cd docs/assets/images/ &&\
-		rm -rf uml && mkdir uml/ && cd uml/ &&\
+		rm -rf uml && mkdir uml/
+	@cd docs/assets/images/uml &&\
 		poetry run pyreverse \
 			-o png -p hpc-multibench \
 			--ignore plot,tui \
 			../../../../src/hpc_multibench
+
+# Broken by ellipsis in pydantic model definition
+# @cd docs/assets/images/uml &&\
+# 	poetry run erdantic hpc_multibench.yaml_model.TestPlanModel -o yaml_model.png
 
 .PHONY: docs
 docs: .venv/
