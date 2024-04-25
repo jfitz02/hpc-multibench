@@ -1,7 +1,8 @@
 ### Project specific ignores
 results*/
 discard_*/
-src_bak
+src_bak/
+tikz_outputs/
 
 ### Python ignores
 # Byte-compiled / optimized / DLL files
