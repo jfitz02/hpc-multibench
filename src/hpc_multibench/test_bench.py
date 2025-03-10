@@ -4,6 +4,7 @@
 
 from argparse import Namespace
 from base64 import b64decode, b64encode
+from copy import deepcopy
 from csv import DictReader, DictWriter
 from dataclasses import dataclass
 from itertools import product
@@ -200,7 +201,7 @@ class TestBench:
         # by model so they only get built once
         realised_run_configurations: dict[str, list[RunConfiguration]] = {
             run_name: [
-                run_model.realise(run_name, self.output_directory, instantiation)
+                deepcopy(run_model).realise(run_name, self.output_directory, instantiation)
                 for instantiation in self.instantiations
             ]
             for run_name, run_model in self.run_configuration_models.items()
