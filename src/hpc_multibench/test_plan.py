@@ -35,6 +35,7 @@ class TestPlan:
 
     def record_all(self, args: Namespace) -> None:
         """Run all the enabled test benches in the plan."""
+
         for bench in self.benches:
             if bench.bench_model.enabled:
                 print(f"Recording data from test bench '{bench.name}'")

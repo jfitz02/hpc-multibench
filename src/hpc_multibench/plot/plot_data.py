@@ -40,8 +40,9 @@ def get_line_plot_data(
             [run_configuration.name, *fix_names, *split_names]
         )
 
+
         if any(
-            metrics[metric] != str(value) for metric, value in plot.fix_metrics.items()
+            metrics[metric] != float(value) for metric, value in plot.fix_metrics.items()
         ):
             continue
 
@@ -74,6 +75,7 @@ def get_line_plot_data(
             x_err if any(x_err) else None,  # type: ignore[arg-type]
             y_err if any(y_err) else None,  # type: ignore[arg-type]
         )
+    print(reshaped_data)
     return reshaped_data
 
 

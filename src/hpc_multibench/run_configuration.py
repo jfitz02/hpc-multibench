@@ -137,6 +137,7 @@ class RunConfiguration:
         self.output_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Create and run the temporary sbatch file via slurm
+
         with NamedTemporaryFile(
             prefix=self.name, suffix=".sbatch", dir=Path("./"), mode="w+"
         ) as sbatch_tmp:

@@ -52,6 +52,7 @@ class RunConfigurationModel(BaseModel):
                 #     run.environment_variables.update(value)
                 else:
                     setattr(run, key, value)
+                    
 
         return run
 
@@ -107,6 +108,7 @@ class AnalysisModel(BaseModel):
 
     metrics: dict[str, str]
     derived_metrics: dict[str, str] = {}
+    multiple_values: list[str] = []
     line_plots: list[LinePlotModel] = []
     bar_charts: list[BarChartModel] = []
     roofline_plots: list[RooflinePlotModel] = []

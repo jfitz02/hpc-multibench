@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """A class representing a test bench composing part of a test plan."""
-
 from argparse import Namespace
 from base64 import b64decode, b64encode
+from copy import deepcopy
 from csv import DictReader, DictWriter
 from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
 from pickle import dumps as pickle_dumps  # nosec
 from pickle import loads as pickle_loads  # nosec
-from re import search as re_search
+from re import findall as re_search
 from shutil import rmtree
 from statistics import fmean, stdev
 from time import sleep
@@ -200,7 +200,7 @@ class TestBench:
         # by model so they only get built once
         realised_run_configurations: dict[str, list[RunConfiguration]] = {
             run_name: [
-                run_model.realise(run_name, self.output_directory, instantiation)
+                deepcopy(run_model).realise(run_name, self.output_directory, instantiation)
                 for instantiation in self.instantiations
             ]
             for run_name, run_model in self.run_configuration_models.items()
@@ -271,11 +271,23 @@ class TestBench:
         metrics: dict[str, str] = {}
         for metric, regex in self.bench_model.analysis.metrics.items():
             metric_search = re_search(regex, output)
-            if metric_search is None:
+            if metric_search is None or len(metric_search) == 0:
                 return None
             # TODO: Support multiple groups by lists as keys?
             # NOTE: Strip commas to make it possible to parse numbers
-            metrics[metric] = metric_search.group(1).replace(",", "")
+
+            metric_search = list(map(float, metric_search))
+            if metric not in self.bench_model.analysis.multiple_values:
+                metrics[metric] = metric_search[0]
+            else:
+                agg_metrics = ["fmean", "stdev", "min", "max", "sum"]
+
+                for agg_metric in agg_metrics:
+                    metrics[f"{metric} {agg_metric}"] = eval(  # nosec: B307 # noqa: S307
+                        f"{agg_metric}(metric_search)"
+                    )
+                
+        # print(metrics)
         return metrics
 
     def get_run_outputs(

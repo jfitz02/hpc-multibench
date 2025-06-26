@@ -353,16 +353,31 @@ class UserInterface(App[None]):
         if aggregated_metrics is None:
             metrics_table.add_columns("No run data to show!")
             return
+        
+        display_metrics = []
+        
+        agg_metrics = ["fmean", "stdev", "min", "max", "sum"]
+        for metric in self.current_test_bench.bench_model.analysis.metrics.keys():
+            if metric in self.current_test_bench.bench_model.analysis.multiple_values:
+                for agg_metric in agg_metrics:
+                    display_metrics.append(f"{metric} {agg_metric}")
+            else:
+                display_metrics.append(metric)
+                
+        with open("metrics.txt", "w") as f:
+            f.write(str(len(display_metrics)) + "\n")
 
         if self.show_mode == ShowMode.TestBench:
             metrics_table.add_columns(
                 "Name",
-                *list(self.current_test_bench.bench_model.analysis.metrics.keys()),
+                *display_metrics,
                 *list(
                     self.current_test_bench.bench_model.analysis.derived_metrics.keys()
                 ),
             )
             for run_configuration, metrics in aggregated_metrics:
+                with open("metrics2.txt", "w") as f:
+                    f.write(str(len(list(metrics.values()))) + "\n")
                 metrics_table.add_row(
                     run_configuration.name,
                     *list(metrics.values()),
